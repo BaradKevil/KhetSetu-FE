@@ -65,6 +65,8 @@ const UI_TEXT = {
     createBuyerBtn: 'Create Buyer Account',
     alreadyAccount: 'Already have an account?',
     signIn: 'Sign In',
+    registerSuccessFarmer: 'Farmer account created successfully! Please sign in to continue.',
+    registerSuccessBuyer: 'Buyer account created successfully! Please sign in to continue.',
   },
   hi: {
     language: 'भाषा',
@@ -101,6 +103,8 @@ const UI_TEXT = {
     createBuyerBtn: 'खरीदार खाता बनाएं',
     alreadyAccount: 'पहले से खाता है?',
     signIn: 'प्रवेश करें',
+    registerSuccessFarmer: 'किसान खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
+    registerSuccessBuyer: 'खरीदार खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
   },
   gu: {
     language: 'ભાષા',
@@ -137,6 +141,8 @@ const UI_TEXT = {
     createBuyerBtn: 'ખરીદનાર ખાતું બનાવો',
     alreadyAccount: 'પહેલેથી ખાતું છે?',
     signIn: 'લૉગિન કરો',
+    registerSuccessFarmer: 'ખેડૂત ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
+    registerSuccessBuyer: 'ખરીદનાર ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
   },
 };
 
@@ -250,27 +256,17 @@ const Register = () => {
         if (formData.city?.trim()) payload.sub_district = formData.city.trim();
       }
 
-      const res = await registerMutation.mutateAsync(payload);
-      const authData = unwrap(res);
+      await registerMutation.mutateAsync(payload);
 
-      if (authData?.accessToken) {
-        localStorage.setItem('accessToken', authData.accessToken);
-        localStorage.setItem('refreshToken', authData.refreshToken);
-        localStorage.setItem('role', authData.user?.role || role);
-        localStorage.setItem('phone', authData.user?.phone || fullPhone);
-        localStorage.setItem('fullName', authData.user?.full_name || formData.full_name);
-        localStorage.setItem('profilePhoto', authData.user?.profile_photo || '');
-        setLang(lang);
-      }
-
-      toast.success(
+      const successMsg =
         role === 'seller'
-          ? 'Welcome to KhetSetu! Your farmer account is ready.'
-          : 'Welcome to KhetSetu! Your buyer account is ready.'
-      );
+          ? (t.registerSuccessFarmer || 'Farmer account created successfully! Please sign in to continue.')
+          : (t.registerSuccessBuyer || 'Buyer account created successfully! Please sign in to continue.');
 
-      if (role === 'seller') navigate('/seller');
-      else navigate('/buyer');
+      toast.success(successMsg);
+
+      // Production-grade flow: Redirect to /login after successful account registration
+      navigate(`/login?phone=${encodeURIComponent(cleanDigits)}&role=${role}&lang=${lang}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     }

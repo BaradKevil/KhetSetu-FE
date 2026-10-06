@@ -9,7 +9,7 @@ import {
   Fade,
   Collapse,
 } from '@mui/material';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   MdAgriculture,
   MdPhoneIphone,
@@ -81,13 +81,26 @@ const UI_TEXT = {
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { language: lang, changeLanguage: setLang } = useLanguage();
   const t = UI_TEXT[lang] || UI_TEXT.en;
 
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Sync phone and lang from URL searchParams
+  useEffect(() => {
+    const urlPhone = searchParams.get('phone');
+    if (urlPhone) setPhone(urlPhone);
+
+    const urlLang = searchParams.get('lang');
+    if (urlLang && ['en', 'hi', 'gu'].includes(urlLang) && urlLang !== lang) {
+      setLang(urlLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const sendOtpMutation = useSendOtpMutation();
   const verifyOtpMutation = useVerifyOtpMutation();
