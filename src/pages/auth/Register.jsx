@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -121,20 +121,39 @@ const UI_TEXT = {
 
 const Register = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { language: lang, changeLanguage: setLang } = useLanguage();
   const t = UI_TEXT[lang] || UI_TEXT.en;
 
+  // Initialize role based on URL parameter (?role=buyer or ?role=seller)
+  const initialRole = searchParams.get('role') === 'buyer' ? 'buyer' : 'seller';
+  const [role, setRole] = useState(initialRole);
+
+  // Sync role state and update URL query parameter immediately
+  const handleRoleSelect = (newRole) => {
+    setRole(newRole);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('role', newRole);
+    setSearchParams(newParams, { replace: true });
+  };
+
+  // Keep state in sync if user navigates back/forward or URL changes
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'buyer' || roleParam === 'seller') {
+      setRole(roleParam);
+    }
+  }, [searchParams]);
+
   // If query parameter specifies language, set it globally if valid
-  useState(() => {
+  useEffect(() => {
     const paramLang = searchParams.get('lang');
     if (paramLang && (paramLang === 'en' || paramLang === 'hi' || paramLang === 'gu') && paramLang !== lang) {
       setLang(paramLang);
     }
-  });
+  }, [searchParams, lang, setLang]);
 
-  const [role, setRole] = useState('seller'); // 'seller' or 'buyer'
   const [acceptedTerms, setAcceptedTerms] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -313,7 +332,7 @@ const Register = () => {
           {/* Card 1: Farmer (Seller) */}
           <Card
             elevation={0}
-            onClick={() => setRole('seller')}
+            onClick={() => handleRoleSelect('seller')}
             sx={{
               position: 'relative',
               cursor: 'pointer',
@@ -417,7 +436,7 @@ const Register = () => {
           {/* Card 2: Buyer (Personal / Trade) */}
           <Card
             elevation={0}
-            onClick={() => setRole('buyer')}
+            onClick={() => handleRoleSelect('buyer')}
             sx={{
               position: 'relative',
               cursor: 'pointer',
