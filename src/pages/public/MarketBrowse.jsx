@@ -14,7 +14,7 @@ import {
   Paper,
   InputAdornment,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MdSearch, MdLocationOn } from 'react-icons/md';
 import { useGetPublicMarketQuery, useGetCropsQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
@@ -34,13 +34,14 @@ const MarketBrowse = () => {
   });
 
   const cropsList = Array.isArray(crops) ? crops : [];
-  const products = marketData?.items || [];
+  const location = useLocation();
+  const isInsidePortal =
+    location.pathname.startsWith('/buyer') ||
+    location.pathname.startsWith('/seller') ||
+    location.pathname.startsWith('/admin');
 
-  return (
-    <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
-
-      <Container maxWidth="lg" sx={{ py: 5 }}>
+  const mainContent = (
+    <>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
@@ -278,6 +279,18 @@ const MarketBrowse = () => {
             ))}
           </Grid>
         )}
+    </>
+  );
+
+  if (isInsidePortal) {
+    return <Box sx={{ pb: 4 }}>{mainContent}</Box>;
+  }
+
+  return (
+    <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navbar />
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        {mainContent}
       </Container>
     </Box>
   );
