@@ -19,10 +19,10 @@ const SellerKYC = () => {
   });
 
   const [farmLocation, setFarmLocation] = useState({
-    state: profile.state || 'Gujarat',
-    district: profile.district || 'Gir Somnath',
-    city: profile.sub_district || 'Kodinar',
-    village: profile.village || 'Alidar',
+    state: profile.state || '',
+    district: profile.district || '',
+    city: profile.sub_district || '',
+    village: profile.village || '',
   });
 
   const handleSaveBank = () => {

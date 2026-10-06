@@ -45,11 +45,11 @@ const AddProduct = () => {
     moisture_percentage: 12.0,
     is_organic: false,
     packaging_type: '50kg Jute Bags',
-    pickup_state: 'Gujarat',
-    pickup_district: 'Gir Somnath',
-    pickup_city: 'Kodinar',
-    pickup_village: 'Alidar',
-    pickup_pincode: '362725',
+    pickup_state: '',
+    pickup_district: '',
+    pickup_city: '',
+    pickup_village: '',
+    pickup_pincode: '',
     images: ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80'],
   });
 

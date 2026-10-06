@@ -15,6 +15,52 @@ import {
 
 const CUSTOM_VILLAGE_KEY = '__OTHER_CUSTOM_VILLAGE__';
 
+const menuStyleProps = {
+  PaperProps: {
+    sx: {
+      maxHeight: 280,
+      borderRadius: '12px',
+      border: '1px solid #E2E8F0',
+      boxShadow: '0 12px 36px -4px rgba(15, 23, 42, 0.16)',
+      p: 0.5,
+      '& .MuiMenuItem-root': {
+        borderRadius: '8px',
+        my: 0.3,
+        px: 1.5,
+        py: 1,
+        fontSize: '0.875rem',
+        fontWeight: 500,
+        color: '#1E293B',
+        transition: 'all 0.15s ease-in-out',
+        '&:hover': {
+          bgcolor: '#EFF6FF',
+          color: '#1D4ED8',
+        },
+        '&.Mui-selected': {
+          bgcolor: '#2563EB !important', // Vibrant Blue background for selected item
+          color: '#FFFFFF !important',
+          fontWeight: 600,
+          '&:hover': {
+            bgcolor: '#1D4ED8 !important',
+            color: '#FFFFFF !important',
+          },
+          '& .MuiTypography-root': {
+            color: '#FFFFFF !important',
+          },
+          '& svg': {
+            color: '#FFFFFF !important',
+          },
+        },
+        '&.Mui-disabled, &.Mui-disabled.Mui-selected': {
+          opacity: 0.65,
+          color: '#94A3B8 !important',
+          bgcolor: 'transparent !important',
+        },
+      },
+    },
+  },
+};
+
 /**
  * Reusable Cascading Location Selector
  * Hierarchy: State -> District -> City / Taluka -> Village
@@ -28,7 +74,7 @@ const CUSTOM_VILLAGE_KEY = '__OTHER_CUSTOM_VILLAGE__';
  * @param {object} labels - Custom labels for localized text
  */
 export const LocationSelector = ({
-  values = { state: 'Gujarat', district: '', city: '', village: '' },
+  values = { state: '', district: '', city: '', village: '' },
   onChange,
   showVillage = true,
   required = false,
@@ -41,15 +87,27 @@ export const LocationSelector = ({
     village: 'Village',
   },
 }) => {
-  const currentState = values.state || 'Gujarat';
-  const currentDistrict = values.district || '';
-  const currentCity = values.city || '';
-  const currentVillage = values.village || '';
+  const currentState = values?.state || '';
+  const currentDistrict = values?.district || '';
+  const currentCity = values?.city || '';
+  const currentVillage = values?.village || '';
 
   const statesList = useMemo(() => getStates(), []);
-  const districtsList = useMemo(() => getDistricts(currentState), [currentState]);
-  const citiesList = useMemo(() => getCities(currentState, currentDistrict), [currentState, currentDistrict]);
-  const villagesList = useMemo(() => getVillages(currentState, currentDistrict, currentCity), [currentState, currentDistrict, currentCity]);
+  const districtsList = useMemo(() => (currentState ? getDistricts(currentState) : []), [currentState]);
+  const citiesList = useMemo(() => (currentState && currentDistrict ? getCities(currentState, currentDistrict) : []), [currentState, currentDistrict]);
+  const villagesList = useMemo(() => (currentState && currentDistrict && currentCity ? getVillages(currentState, currentDistrict, currentCity) : []), [currentState, currentDistrict, currentCity]);
+
+  // Dynamic placeholders based on hierarchy progress
+  const statePlaceholder = labels.selectState || 'Select State';
+  const districtPlaceholder = currentState
+    ? (labels.selectDistrict || 'Select District')
+    : (labels.selectStateFirst || 'Select State first');
+  const cityPlaceholder = currentDistrict
+    ? (labels.selectCity || 'Select City / Taluka')
+    : (currentState ? (labels.selectDistrictFirst || 'Select District first') : (labels.selectStateFirst || 'Select State first'));
+  const villagePlaceholder = currentCity
+    ? (labels.selectVillage || 'Select Village')
+    : (currentDistrict ? (labels.selectCityFirst || 'Select City first') : (labels.selectDistrictFirst || 'Select District first'));
 
   // Determine if current village is a custom user-typed village
   const isPresetVillage = villagesList.includes(currentVillage);
@@ -158,11 +216,28 @@ export const LocationSelector = ({
             select
             fullWidth
             size={size}
-            value={currentState}
+            value={statesList.includes(currentState) ? currentState : ''}
             onChange={handleStateChange}
             disabled={disabled}
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (selected) => {
+                if (!selected) {
+                  return (
+                    <Box component="span" sx={{ color: '#94A3B8', fontWeight: 400 }}>
+                      {statePlaceholder}
+                    </Box>
+                  );
+                }
+                return selected;
+              },
+              MenuProps: menuStyleProps,
+            }}
             InputProps={{ sx: { borderRadius: 2.5 } }}
           >
+            <MenuItem value="" disabled sx={{ display: 'none' }}>
+              {statePlaceholder}
+            </MenuItem>
             {statesList.map((st) => (
               <MenuItem key={st} value={st}>
                 {st}
@@ -188,11 +263,24 @@ export const LocationSelector = ({
             value={districtsList.includes(currentDistrict) ? currentDistrict : ''}
             onChange={handleDistrictChange}
             disabled={disabled || !districtsList.length}
-            placeholder="Select District"
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (selected) => {
+                if (!selected) {
+                  return (
+                    <Box component="span" sx={{ color: '#94A3B8', fontWeight: 400 }}>
+                      {districtPlaceholder}
+                    </Box>
+                  );
+                }
+                return selected;
+              },
+              MenuProps: menuStyleProps,
+            }}
             InputProps={{ sx: { borderRadius: 2.5 } }}
           >
-            <MenuItem value="" disabled>
-              <em>Select District</em>
+            <MenuItem value="" disabled sx={{ display: 'none' }}>
+              {districtPlaceholder}
             </MenuItem>
             {districtsList.map((dist) => (
               <MenuItem key={dist} value={dist}>
@@ -229,11 +317,24 @@ export const LocationSelector = ({
             value={citiesList.includes(currentCity) ? currentCity : ''}
             onChange={handleCityChange}
             disabled={disabled || !currentDistrict || !citiesList.length}
-            placeholder="Select City / Taluka"
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (selected) => {
+                if (!selected) {
+                  return (
+                    <Box component="span" sx={{ color: '#94A3B8', fontWeight: 400 }}>
+                      {cityPlaceholder}
+                    </Box>
+                  );
+                }
+                return selected;
+              },
+              MenuProps: menuStyleProps,
+            }}
             InputProps={{ sx: { borderRadius: 2.5 } }}
           >
-            <MenuItem value="" disabled>
-              <em>{currentDistrict ? 'Select City / Taluka' : 'Select District first'}</em>
+            <MenuItem value="" disabled sx={{ display: 'none' }}>
+              {cityPlaceholder}
             </MenuItem>
             {citiesList.map((city) => (
               <MenuItem key={city} value={city}>
@@ -262,10 +363,24 @@ export const LocationSelector = ({
                 value={villagesList.includes(currentVillage) ? currentVillage : ''}
                 onChange={handleVillageChange}
                 disabled={disabled || !currentCity || !villagesList.length}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (selected) => {
+                    if (!selected) {
+                      return (
+                        <Box component="span" sx={{ color: '#94A3B8', fontWeight: 400 }}>
+                          {villagePlaceholder}
+                        </Box>
+                      );
+                    }
+                    return selected;
+                  },
+                  MenuProps: menuStyleProps,
+                }}
                 InputProps={{ sx: { borderRadius: 2.5 } }}
               >
-                <MenuItem value="" disabled>
-                  <em>{currentCity ? 'Select Village' : 'Select City first'}</em>
+                <MenuItem value="" disabled sx={{ display: 'none' }}>
+                  {villagePlaceholder}
                 </MenuItem>
                 {villagesList.map((vil) => (
                   <MenuItem key={vil} value={vil}>

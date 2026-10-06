@@ -13,7 +13,6 @@ export const LOCATIONS_DATA = {
           'Kodinar': [
             'Alidar',
             'Chhara',
-            'Devli',
             'Devli(Dedani)',
             'Harmadiya',
             'Kadodara',
