@@ -33,7 +33,7 @@ export const clearSessionAndRedirect = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('role');
   localStorage.removeItem('user');
-  window.location.href = '/login';
+  window.location.href = '/';
 };
 
 apiClient.interceptors.response.use(

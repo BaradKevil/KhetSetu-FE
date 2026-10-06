@@ -33,7 +33,13 @@ export const RoleGuard = ({ allowedRoles, children }) => {
 };
 
 export const HomeRedirect = () => {
+  const auth = localStorage.getItem('accessToken');
   const userRole = localStorage.getItem('role');
+
+  if (!auth) {
+    return <Navigate to="/" replace />;
+  }
+
   if (userRole === 'super_admin' || userRole === 'staff') {
     return <Navigate to="/admin" replace />;
   }
