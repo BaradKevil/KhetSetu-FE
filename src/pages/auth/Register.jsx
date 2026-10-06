@@ -5,7 +5,6 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
   Card,
   CardActionArea,
   MenuItem,
@@ -293,52 +292,224 @@ const Register = () => {
           </Typography>
         </Box>
 
-        {/* Clean Role Toggle Cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                border: role === 'seller' ? '2px solid #2E7D32' : '1px solid #E2E8F0',
-                bgcolor: role === 'seller' ? '#F0FDF4' : '#FFFFFF',
-                boxShadow: role === 'seller' ? '0 4px 12px rgba(46, 125, 50, 0.1)' : 'none',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <CardActionArea onClick={() => setRole('seller')} sx={{ p: 2, textAlign: 'center' }}>
-                <MdAgriculture size={30} color={role === 'seller' ? '#2E7D32' : '#64748B'} />
-                <Typography variant="subtitle2" fontWeight={800} sx={{ mt: 1, color: role === 'seller' ? '#166534' : '#1E293B' }}>
-                  {t.farmerTitle}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.72rem', mt: 0.3 }}>
-                  {t.farmerDesc}
-                </Typography>
-              </CardActionArea>
-            </Card>
-          </Grid>
+        {/* Clean Production-Grade Role Toggle Cards */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2,
+            mb: 3,
+            width: '100%',
+          }}
+        >
+          {/* Card 1: Farmer (Seller) */}
+          <Card
+            elevation={0}
+            onClick={() => setRole('seller')}
+            sx={{
+              position: 'relative',
+              cursor: 'pointer',
+              borderRadius: 3,
+              border: role === 'seller' ? '2px solid #2E7D32' : '1.5px solid #E2E8F0',
+              bgcolor: role === 'seller' ? '#F0FDF4' : '#FFFFFF',
+              boxShadow:
+                role === 'seller'
+                  ? '0 6px 16px rgba(46, 125, 50, 0.12)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.02)',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              userSelect: 'none',
+              '&:hover': {
+                borderColor: role === 'seller' ? '#2E7D32' : '#CBD5E1',
+                transform: 'translateY(-2px)',
+                boxShadow:
+                  role === 'seller'
+                    ? '0 8px 20px rgba(46, 125, 50, 0.16)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.06)',
+              },
+            }}
+          >
+            {/* Top-right active checkmark badge */}
+            {role === 'seller' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  color: '#2E7D32',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <MdCheckCircle size={18} />
+              </Box>
+            )}
 
-          <Grid item xs={6}>
-            <Card
+            <Box
               sx={{
-                borderRadius: 3,
-                border: role === 'buyer' ? '2px solid #0288D1' : '1px solid #E2E8F0',
-                bgcolor: role === 'buyer' ? '#F0F9FF' : '#FFFFFF',
-                boxShadow: role === 'buyer' ? '0 4px 12px rgba(2, 136, 209, 0.1)' : 'none',
-                transition: 'all 0.2s ease',
+                p: { xs: 2, sm: 2.2 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                height: '100%',
+                justifyContent: 'center',
               }}
             >
-              <CardActionArea onClick={() => setRole('buyer')} sx={{ p: 2, textAlign: 'center' }}>
-                <MdShoppingCart size={30} color={role === 'buyer' ? '#0288D1' : '#64748B'} />
-                <Typography variant="subtitle2" fontWeight={800} sx={{ mt: 1, color: role === 'buyer' ? '#0369A1' : '#1E293B' }}>
-                  {t.buyerTitle}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.72rem', mt: 0.3 }}>
-                  {t.buyerDesc}
-                </Typography>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        </Grid>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: role === 'seller' ? 'rgba(46, 125, 50, 0.14)' : '#F1F5F9',
+                  color: role === 'seller' ? '#2E7D32' : '#64748B',
+                  mb: 1.2,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <MdAgriculture size={24} />
+              </Box>
+
+              <Typography
+                variant="subtitle2"
+                fontWeight={800}
+                sx={{
+                  color: role === 'seller' ? '#166534' : '#1E293B',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.2,
+                }}
+              >
+                {t.farmerTitle}
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: role === 'seller' ? '#15803D' : '#64748B',
+                  fontSize: '0.72rem',
+                  mt: 0.6,
+                  lineHeight: 1.35,
+                  minHeight: 32,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {t.farmerDesc}
+              </Typography>
+            </Box>
+          </Card>
+
+          {/* Card 2: Buyer (Personal / Trade) */}
+          <Card
+            elevation={0}
+            onClick={() => setRole('buyer')}
+            sx={{
+              position: 'relative',
+              cursor: 'pointer',
+              borderRadius: 3,
+              border: role === 'buyer' ? '2px solid #0288D1' : '1.5px solid #E2E8F0',
+              bgcolor: role === 'buyer' ? '#F0F9FF' : '#FFFFFF',
+              boxShadow:
+                role === 'buyer'
+                  ? '0 6px 16px rgba(2, 136, 209, 0.12)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.02)',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              userSelect: 'none',
+              '&:hover': {
+                borderColor: role === 'buyer' ? '#0288D1' : '#CBD5E1',
+                transform: 'translateY(-2px)',
+                boxShadow:
+                  role === 'buyer'
+                    ? '0 8px 20px rgba(2, 136, 209, 0.16)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.06)',
+              },
+            }}
+          >
+            {/* Top-right active checkmark badge */}
+            {role === 'buyer' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  color: '#0288D1',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <MdCheckCircle size={18} />
+              </Box>
+            )}
+
+            <Box
+              sx={{
+                p: { xs: 2, sm: 2.2 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: role === 'buyer' ? 'rgba(2, 136, 209, 0.14)' : '#F1F5F9',
+                  color: role === 'buyer' ? '#0288D1' : '#64748B',
+                  mb: 1.2,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <MdShoppingCart size={24} />
+              </Box>
+
+              <Typography
+                variant="subtitle2"
+                fontWeight={800}
+                sx={{
+                  color: role === 'buyer' ? '#0369A1' : '#1E293B',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.2,
+                }}
+              >
+                {t.buyerTitle}
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: role === 'buyer' ? '#0284C7' : '#64748B',
+                  fontSize: '0.72rem',
+                  mt: 0.6,
+                  lineHeight: 1.35,
+                  minHeight: 32,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {t.buyerDesc}
+              </Typography>
+            </Box>
+          </Card>
+        </Box>
 
         {/* User-Friendly Form */}
         <Box component="form" onSubmit={handleRegister} noValidate>
