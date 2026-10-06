@@ -33,6 +33,7 @@ import BuyerProfile from './pages/buyer/BuyerProfile';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminKYCQueue from './pages/admin/AdminKYCQueue';
+import AdminKYCDetail from './pages/admin/AdminKYCDetail';
 import AdminLedger from './pages/admin/AdminLedger';
 import AdminPayouts from './pages/admin/AdminPayouts';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
@@ -128,6 +129,7 @@ function App() {
       children: [
         { path: '', element: <AdminDashboard /> },
         { path: 'kyc', element: <AdminKYCQueue /> },
+        { path: 'kyc/:sellerId', element: <AdminKYCDetail /> },
         { path: 'orders', element: <BuyerOrders /> },
         { path: 'finance/ledger', element: <AdminLedger /> },
         { path: 'finance/payouts', element: <AdminPayouts /> },

@@ -188,15 +188,67 @@ export const useUpdateOrderStatusMutation = () => {
 };
 
 // -------------------------------------------------
+//  Seller & KYC Verification APIs
+// -------------------------------------------------
+export const sellerApi = {
+  getProfile: () => apiClient.get('/seller/profile'),
+  submitKYC: (data) => apiClient.put('/seller/kyc', data),
+  uploadDocument: (formData) =>
+    apiClient.post('/seller/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
+export const useGetSellerProfileQuery = () => {
+  return useQuery({
+    queryKey: ['seller-profile'],
+    queryFn: async () => unwrap(await sellerApi.getProfile()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useSubmitKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => sellerApi.submitKYC(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+    },
+  });
+};
+
+export const useUploadDocumentMutation = () => {
+  return useMutation({
+    mutationFn: async (file) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      const res = await sellerApi.uploadDocument(formData);
+      return unwrap(res);
+    },
+  });
+};
+
+// -------------------------------------------------
 //  Admin Control Tower APIs
 // -------------------------------------------------
 export const adminApi = {
   getMetrics: () => apiClient.get('/admin/metrics'),
   getKYCQueue: (params) => apiClient.get('/admin/kyc/queue', { params }),
+  getKYCDetails: (sellerId) => apiClient.get(`/admin/kyc/${sellerId}`),
   moderateKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/moderate`, data),
   getLedger: (params) => apiClient.get('/admin/finance/ledger', { params }),
   getPayouts: (params) => apiClient.get('/admin/finance/payouts', { params }),
   getAuditLogs: (params) => apiClient.get('/admin/audit-logs', { params }),
+};
+
+export const useGetKYCDetailsQuery = (sellerId) => {
+  return useQuery({
+    queryKey: ['admin-kyc-detail', sellerId],
+    queryFn: async () => unwrap(await adminApi.getKYCDetails(sellerId)),
+    enabled: !!sellerId && !!localStorage.getItem('accessToken'),
+  });
 };
 
 export const useGetAdminMetricsQuery = () => {
