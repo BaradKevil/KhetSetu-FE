@@ -16,6 +16,7 @@ import { useGetPublicMarketQuery, useGetMandiPricesQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import Navbar from '../../common/Navbar';
 import LiveHarvestSpotlight from './LiveHarvestSpotlight';
+import LiveTicker from './LiveTicker';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -56,48 +57,8 @@ const Landing = () => {
     <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
-      {/* Live Mandi Rate Ticker */}
-      <Box
-        sx={{
-          bgcolor: '#1E293B',
-          color: '#FFFFFF',
-          py: 1.2,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          borderBottom: '1px solid #334155',
-        }}
-      >
-        <Container maxWidth="xl">
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#4ADE80', fontWeight: 700, fontSize: '0.85rem' }}>
-              <MdTrendingUp size={18} />
-              <span>{t('market.liveMandiBenchmark', 'LIVE MANDI BENCHMARK RATES:')}</span>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
-              {rates.length > 0 ? (
-                rates.map((rate) => (
-                  <Typography key={rate.id} variant="caption" sx={{ color: '#E2E8F0', display: 'inline-flex', gap: 0.8 }}>
-                    <strong>{rate.crop?.name || 'Crop'} ({rate.mandi_name}):</strong>
-                    <span style={{ color: '#FCD34D' }}>₹{(rate.modal_price_paise / 100).toFixed(0)}/Qtl</span>
-                  </Typography>
-                ))
-              ) : (
-                <>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Wheat Lokwan (Unjha APMC): <span style={{ color: '#FCD34D' }}>₹2,740/Qtl</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Basmati 1121 (Khanna Mandi): <span style={{ color: '#FCD34D' }}>₹3,820/Qtl</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Shankar-6 Cotton (Rajkot): <span style={{ color: '#FCD34D' }}>₹6,850/Qtl</span>
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      {/* Live Products Auto-Scrolling Ticker */}
+      <LiveTicker products={allProducts} isLoading={isMarketLoading} />
 
       {/* Hero Section */}
       <Box
