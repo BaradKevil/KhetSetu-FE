@@ -24,7 +24,7 @@ import {
   MdSecurity,
   MdAgriculture,
 } from 'react-icons/md';
-import { useGetProductDetailsQuery, useCreateOrderMutation } from '../../Api/Api';
+import { useGetProductDetailsQuery, useCreateOrderMutation, useGetProfileQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
 import PhoneInput from '../../common/custom/PhoneInput';
@@ -34,9 +34,13 @@ import { toast } from 'react-toastify';
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t, formatCurrency } = useLanguage();
+  const { t, formatCurrency, language } = useLanguage();
   const { data: product, isLoading } = useGetProductDetailsQuery(id);
+  const { data: userProfile } = useGetProfileQuery();
   const createOrderMutation = useCreateOrderMutation();
+
+  const currentUserRole = userProfile?.role || localStorage.getItem('role');
+  const isSeller = currentUserRole === 'seller';
 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
@@ -296,22 +300,42 @@ const ProductDetail = () => {
               </Grid>
             </Paper>
 
-            {/* Escrow Guarantee Note */}
-            <Alert severity="info" icon={<MdSecurity size={24} />} sx={{ mb: 3, borderRadius: 2.5 }}>
-              <strong>{t('market.escrowGuaranteeTitle', 'KhetSetu Escrow Guarantee:')}</strong>{' '}
-              {t('market.escrowGuaranteeBody', 'Your payment is held securely in the platform trust vault. The farmer is paid only after you inspect and confirm delivery.')}
-            </Alert>
+            {/* Action Area: Farmer vs Buyer */}
+            {isSeller ? (
+              <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                <Typography variant="subtitle2" fontWeight={700}>
+                  {language === 'gu' ? 'ખેડૂત એકાઉન્ટ ડિટેક્ટ થયું' : language === 'hi' ? 'किसान खाता पहचाना गया' : 'Farmer Account Detected'}
+                </Typography>
+                <Typography variant="body2">
+                  {language === 'gu'
+                    ? 'તમે હાલ ખેડૂત (Seller) તરીકે લૉગિન છો. પાક ખરીદવા અને એસ્ક્રો ઓર્ડર આપવા માટે ખરીદનાર (Buyer) ખાતાની જરૂર છે.'
+                    : language === 'hi'
+                    ? 'आप वर्तमान में किसान (विक्रेता) के रूप में लॉगिन हैं। फसल खरीदने और एस्क्रो ऑर्डर देने के लिए खरीदार (Buyer) खाते की आवश्यकता है।'
+                    : 'You are logged in with a Farmer (Seller) account. To purchase crops and place escrow orders, please use a registered Buyer account.'}
+                </Typography>
+              </Alert>
+            ) : (
+              <>
+                <Alert severity="info" icon={<MdSecurity size={24} />} sx={{ mb: 3, borderRadius: 2.5 }}>
+                  <strong>{t('market.escrowGuaranteeTitle', 'KhetSetu Escrow Guarantee:')}</strong>{' '}
+                  {t(
+                    'market.escrowGuaranteeBody',
+                    'Your payment is held securely in the platform trust vault. The farmer is paid only after you inspect and confirm delivery.'
+                  )}
+                </Alert>
 
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              fullWidth
-              onClick={handleOpenOrder}
-              sx={{ py: 1.6, fontSize: '1.05rem', fontWeight: 700, borderRadius: 3 }}
-            >
-              {t('market.orderWithEscrow', 'Order with Escrow Protection')}
-            </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  fullWidth
+                  onClick={handleOpenOrder}
+                  sx={{ py: 1.6, fontSize: '1.05rem', fontWeight: 700, borderRadius: 3 }}
+                >
+                  {t('market.orderWithEscrow', 'Order with Escrow Protection')}
+                </Button>
+              </>
+            )}
           </Grid>
         </Grid>
       </Container>

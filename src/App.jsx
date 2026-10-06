@@ -21,6 +21,7 @@ import Register from './pages/auth/Register';
 import SellerDashboard from './pages/seller/SellerDashboard';
 import MyProducts from './pages/seller/MyProducts';
 import AddProduct from './pages/seller/AddProduct';
+import SellerProductDetail from './pages/seller/SellerProductDetail';
 import SellerOrders from './pages/seller/SellerOrders';
 import SellerEarnings from './pages/seller/SellerEarnings';
 import SellerKYC from './pages/seller/SellerKYC';
@@ -92,6 +93,7 @@ function App() {
         { path: '', element: <SellerDashboard /> },
         { path: 'products', element: <MyProducts /> },
         { path: 'products/new', element: <AddProduct /> },
+        { path: 'products/:id', element: <SellerProductDetail /> },
         { path: 'orders', element: <SellerOrders /> },
         { path: 'earnings', element: <SellerEarnings /> },
         { path: 'profile', element: <SellerKYC /> },

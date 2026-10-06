@@ -11,6 +11,7 @@ import {
   Chip,
   IconButton,
   Avatar,
+  Tooltip,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { MdAddCircleOutline, MdVisibility } from 'react-icons/md';
@@ -117,9 +118,11 @@ const MyProducts = () => {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton component={Link} to={`/market/${p.id}`} size="small" color="primary">
-                      <MdVisibility />
-                    </IconButton>
+                    <Tooltip title={t('farmer.viewDetailsTooltip', 'View Crop Details (પાકની વિગતો જુઓ)')}>
+                      <IconButton component={Link} to={`/seller/products/${p.id}`} size="small" color="primary">
+                        <MdVisibility />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))
