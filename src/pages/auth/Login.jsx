@@ -181,22 +181,30 @@ const Login = () => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'stretch', sm: 'center' },
         justifyContent: 'center',
-        p: 2.5,
-        background: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        p: { xs: 0, sm: 2.5, md: 4 },
+        bgcolor: { xs: '#FFFFFF', sm: '#F8FAF9' },
+        background: {
+          xs: '#FFFFFF',
+          sm: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, sm: 4.5 },
+          p: { xs: 2.5, sm: 4, md: 4.5 },
           width: '100%',
-          maxWidth: 440,
-          borderRadius: 4,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.05)',
+          maxWidth: { xs: '100%', sm: 440 },
+          minHeight: { xs: '100vh', sm: 'auto' },
+          borderRadius: { xs: 0, sm: 4 },
+          border: { xs: 'none', sm: '1px solid #E2E8F0' },
+          boxShadow: { xs: 'none', sm: '0 20px 40px rgba(0, 0, 0, 0.05)' },
           bgcolor: '#FFFFFF',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
         {/* Universal Language Switcher Bar */}

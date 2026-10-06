@@ -102,7 +102,7 @@ const AddProduct = () => {
             </Typography>
 
             <Grid container spacing={2.5}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   select
                   fullWidth
@@ -118,7 +118,7 @@ const AddProduct = () => {
                 </TextField>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Variety (e.g. Lokwan, Basmati 1121, Sharbati)"
@@ -128,7 +128,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   select
                   fullWidth
@@ -142,7 +142,7 @@ const AddProduct = () => {
                 </TextField>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Harvest Date"
@@ -153,7 +153,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} size={12}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -176,7 +176,7 @@ const AddProduct = () => {
             </Typography>
 
             <Grid container spacing={2.5}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Total Available Quantity"
@@ -186,7 +186,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   select
                   fullWidth
@@ -201,7 +201,7 @@ const AddProduct = () => {
                 </TextField>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label={`Price (₹) per ${formData.unit}`}
@@ -212,7 +212,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Minimum Order Quantity"
@@ -222,7 +222,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Moisture % (Optional)"
@@ -232,7 +232,7 @@ const AddProduct = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Packaging Type"

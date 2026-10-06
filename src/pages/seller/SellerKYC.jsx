@@ -66,10 +66,10 @@ const SellerKYC = () => {
           {t('farmer.farmDetails', 'Farm & Personal Information')}
         </Typography>
         <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('auth.fullName', 'Farmer Full Name')} fullWidth defaultValue={profile.full_name || 'Rameshwar Patel'} />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('farmer.farmName', 'Farm / Krishi Kendra Name')} fullWidth defaultValue={profile.farm_name || 'Patel Organic Krishi Farm'} />
           </Grid>
         </Grid>
@@ -98,7 +98,7 @@ const SellerKYC = () => {
         </Typography>
 
         <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField
               label={t('farmer.accountHolderName', 'Account Holder Name')}
               fullWidth
@@ -106,7 +106,7 @@ const SellerKYC = () => {
               onChange={(e) => setBankData({ ...bankData, holder_name: e.target.value })}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField
               label={t('farmer.bankAccountNumber', 'Bank Account Number')}
               fullWidth
@@ -114,7 +114,7 @@ const SellerKYC = () => {
               onChange={(e) => setBankData({ ...bankData, account_number: e.target.value })}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField
               label={t('farmer.ifscCode', 'Bank IFSC Code')}
               fullWidth
@@ -122,7 +122,7 @@ const SellerKYC = () => {
               onChange={(e) => setBankData({ ...bankData, ifsc: e.target.value })}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField
               label={t('farmer.bankName', 'Bank Name')}
               fullWidth

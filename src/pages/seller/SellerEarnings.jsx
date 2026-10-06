@@ -33,7 +33,7 @@ const SellerEarnings = () => {
 
       {/* Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Typography variant="caption" color="text.secondary" fontWeight={700}>
               {t('farmer.totalEarnings', 'TOTAL PAID TO BANK')}
@@ -47,7 +47,7 @@ const SellerEarnings = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Typography variant="caption" color="text.secondary" fontWeight={700}>
               {t('farmer.escrowLocked', 'LOCKED IN ESCROW')}
@@ -61,7 +61,7 @@ const SellerEarnings = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Typography variant="caption" color="text.secondary" fontWeight={700}>
               {t('farmer.platformCommission', 'PLATFORM COMMISSIONS (2.5%)')}

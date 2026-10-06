@@ -63,7 +63,7 @@ const MarketBrowse = () => {
           }}
         >
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -80,7 +80,7 @@ const MarketBrowse = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -98,7 +98,7 @@ const MarketBrowse = () => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -146,7 +146,7 @@ const MarketBrowse = () => {
         ) : (
           <Grid container spacing={3}>
             {products.map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
+              <Grid item xs={12} sm={6} md={4} size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                 <Card
                   sx={{
                     height: '100%',
@@ -200,7 +200,7 @@ const MarketBrowse = () => {
 
                     <Box sx={{ p: 1.5, bgcolor: '#F8FAF9', borderRadius: 2, mb: 2 }}>
                       <Grid container spacing={1}>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} size={6}>
                           <Typography variant="caption" color="text.secondary">
                             {t('market.available', 'Available')}
                           </Typography>
@@ -208,7 +208,7 @@ const MarketBrowse = () => {
                             {item.available_quantity} {item.unit}
                           </Typography>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} size={6}>
                           <Typography variant="caption" color="text.secondary">
                             {t('market.minOrder', 'Min Order')}
                           </Typography>

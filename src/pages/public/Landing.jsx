@@ -107,7 +107,7 @@ const Landing = () => {
       >
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={7}>
+            <Grid item xs={12} md={7} size={{ xs: 12, md: 7 }}>
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
                 <Chip
                   icon={<MdSecurity style={{ color: '#2E7D32' }} />}
@@ -206,7 +206,7 @@ const Landing = () => {
             </Grid>
 
             {/* Visual Hero Card */}
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={5} size={{ xs: 12, md: 5 }}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -292,7 +292,7 @@ const Landing = () => {
           </Box>
 
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#E8F5E9', color: '#2E7D32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdAgriculture />
@@ -306,7 +306,7 @@ const Landing = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#FFF4E5', color: '#E65100', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdSecurity />
@@ -320,7 +320,7 @@ const Landing = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#E0F2FE', color: '#0288D1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdAccountBalance />
@@ -356,7 +356,7 @@ const Landing = () => {
 
           <Grid container spacing={3}>
             {featuredCrops.map((crop) => (
-              <Grid item xs={12} sm={6} md={3} key={crop.id}>
+              <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }} key={crop.id}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                   <CardMedia
                     component="img"
@@ -406,7 +406,7 @@ const Landing = () => {
       <Box sx={{ mt: 'auto', bgcolor: '#0F172A', color: '#94A3B8', py: 6, borderTop: '1px solid #1E293B' }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} justifyContent="space-between">
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Typography variant="h6" fontWeight={800} color="#FFFFFF" sx={{ mb: 1 }}>
                 🌾 Khet<span style={{ color: '#4ADE80' }}>Setu</span>
               </Typography>
@@ -414,7 +414,7 @@ const Landing = () => {
                 Empowering Indian agriculture through equitable market access, transparent APMC pricing, and secure escrow settlement.
               </Typography>
             </Grid>
-            <Grid item xs={6} md={2}>
+            <Grid item xs={6} md={2} size={{ xs: 6, md: 2 }}>
               <Typography variant="subtitle2" fontWeight={700} color="#FFFFFF" sx={{ mb: 1.5 }}>
                 Platform
               </Typography>
@@ -424,7 +424,7 @@ const Landing = () => {
                 <Link to="/login" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.85rem' }}>Sign In</Link>
               </Box>
             </Grid>
-            <Grid item xs={6} md={2}>
+            <Grid item xs={6} md={2} size={{ xs: 6, md: 2 }}>
               <Typography variant="subtitle2" fontWeight={700} color="#FFFFFF" sx={{ mb: 1.5 }}>
                 Legal & Safety
               </Typography>

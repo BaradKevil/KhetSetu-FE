@@ -33,7 +33,7 @@ const AdminDashboard = () => {
 
       {/* Metrics Row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#F0FDF4', color: '#16A34A' }}>
@@ -52,7 +52,7 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E0F2FE', color: '#0288D1' }}>
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E8F5E9', color: '#2E7D32' }}>
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#FEF3C7', color: '#D97706' }}>
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
 
       {/* Operational Highlights */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
               {t('admin.platformCompliance', 'Platform Health & Compliance')}
@@ -131,7 +131,7 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
               {t('admin.disputesManagement', 'Disputes & Risk Management')}

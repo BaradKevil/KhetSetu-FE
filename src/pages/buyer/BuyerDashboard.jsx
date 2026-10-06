@@ -104,7 +104,7 @@ const BuyerDashboard = () => {
 
       {/* Metric Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E0F2FE', color: '#0288D1' }}>
@@ -123,7 +123,7 @@ const BuyerDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E8F5E9', color: '#2E7D32' }}>
@@ -142,7 +142,7 @@ const BuyerDashboard = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#F8FAFC', color: '#475569' }}>

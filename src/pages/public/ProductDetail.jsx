@@ -117,7 +117,7 @@ const ProductDetail = () => {
       <Container maxWidth="lg" sx={{ py: 5 }}>
         <Grid container spacing={4}>
           {/* Photos */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Card sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
               <CardMedia
                 component="img"
@@ -164,7 +164,7 @@ const ProductDetail = () => {
           </Grid>
 
           {/* Details & Actions */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
               <Chip label={product.crop?.name} color="primary" size="small" />
               <Chip label={`${t('farmer.grade', 'Grade')}: ${product.grade}`} variant="outlined" size="small" />
@@ -193,7 +193,7 @@ const ProductDetail = () => {
               <Divider sx={{ my: 2 }} />
 
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid item xs={6} size={6}>
                   <Typography variant="caption" color="text.secondary">
                     {t('market.totalQuantityAvailable', 'Total Quantity Available')}
                   </Typography>
@@ -201,7 +201,7 @@ const ProductDetail = () => {
                     {product.available_quantity} {product.unit}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} size={6}>
                   <Typography variant="caption" color="text.secondary">
                     {t('market.minimumOrderQuantity', 'Minimum Order Quantity')}
                   </Typography>
@@ -209,7 +209,7 @@ const ProductDetail = () => {
                     {product.min_order_quantity} {product.unit}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} size={6}>
                   <Typography variant="caption" color="text.secondary">
                     {t('market.moistureContent', 'Moisture Content')}
                   </Typography>
@@ -217,7 +217,7 @@ const ProductDetail = () => {
                     {product.moisture_percentage ? `${product.moisture_percentage}%` : t('market.standardQuality', 'Standard')}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} size={6}>
                   <Typography variant="caption" color="text.secondary">
                     {t('market.packaging', 'Packaging')}
                   </Typography>
