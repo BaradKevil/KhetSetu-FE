@@ -18,9 +18,11 @@ import {
 } from '@mui/material';
 import { MdCheck, MdLocalShipping } from 'react-icons/md';
 import { useGetSellerOrdersQuery, useUpdateOrderStatusMutation } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
 const SellerOrders = () => {
+  const { t, formatCurrency } = useLanguage();
   const { data: ordersData, isLoading } = useGetSellerOrdersQuery();
   const updateStatusMutation = useUpdateOrderStatusMutation();
 
@@ -38,9 +40,9 @@ const SellerOrders = () => {
         status: 'accepted',
         note: 'Order accepted by farmer. Packing harvest for pickup.',
       });
-      toast.success('Order accepted! Prepare harvest for dispatch.');
+      toast.success(t('farmer.orderAccepted', 'Order accepted! Prepare harvest for dispatch.'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error accepting order.');
+      toast.error(err.response?.data?.message || t('errors.SOMETHING_WENT_WRONG', 'Error accepting order.'));
     }
   };
 
@@ -62,10 +64,10 @@ const SellerOrders = () => {
           dispatch_date: new Date().toISOString(),
         },
       });
-      toast.success('Order marked as dispatched! Buyer notified.');
+      toast.success(t('farmer.orderDispatched', 'Order marked as dispatched! Buyer notified.'));
       setDispatchModalOpen(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error updating dispatch.');
+      toast.error(err.response?.data?.message || t('errors.SOMETHING_WENT_WRONG', 'Error updating dispatch.'));
     }
   };
 
@@ -73,10 +75,10 @@ const SellerOrders = () => {
     <Box>
       <Box sx={{ mb: 3.5 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          📦 Incoming Farmer Orders
+          {t('farmer.incomingOrdersHeading', '📦 Incoming Farmer Orders')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Track buyer orders with locked escrow payment guarantees.
+          {t('farmer.incomingOrdersSubtitle', 'Track buyer orders with locked escrow payment guarantees.')}
         </Typography>
       </Box>
 
@@ -84,19 +86,19 @@ const SellerOrders = () => {
         <Table>
           <TableHead sx={{ bgcolor: '#F8FAF9' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Order #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Buyer Details</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Crops & Quantity</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Net Payout (Paise / ₹)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>Action</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.orderNum', 'Order #')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.buyerLabel', 'Buyer Details')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.cropAndVariety', 'Crops & Quantity')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.netPayout', 'Net Payout')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Status')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>{t('common.actions', 'Action')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                  Loading orders...
+                  {t('common.loading', 'Loading orders...')}
                 </TableCell>
               </TableRow>
             ) : orders.length === 0 ? (
@@ -127,7 +129,7 @@ const SellerOrders = () => {
                     ))}
                   </TableCell>
                   <TableCell sx={{ fontWeight: 800, color: '#2E7D32' }}>
-                    ₹{(o.payout_paise / 100).toLocaleString('en-IN')}
+                    {formatCurrency(o.payout_paise, true)}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -153,7 +155,7 @@ const SellerOrders = () => {
                         onClick={() => handleAcceptOrder(o.id)}
                         sx={{ borderRadius: 2 }}
                       >
-                        Accept
+                        {t('common.accept', 'Accept')}
                       </Button>
                     )}
                     {o.status === 'accepted' && (
@@ -165,7 +167,7 @@ const SellerOrders = () => {
                         onClick={() => handleOpenDispatch(o)}
                         sx={{ borderRadius: 2 }}
                       >
-                        Dispatch
+                        {t('common.dispatch', 'Dispatch')}
                       </Button>
                     )}
                     {o.status === 'dispatched' && (

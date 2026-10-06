@@ -16,14 +16,20 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGetCropsQuery, useCreateProductMutation } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
-
-const steps = ['Select Crop & Variety', 'Quantity & Pricing', 'Farm Pickup Location'];
 
 const AddProduct = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { data: crops } = useGetCropsQuery();
   const createProductMutation = useCreateProductMutation();
+
+  const steps = [
+    t('farmer.cropType', 'Select Crop & Variety'),
+    t('farmer.pricePerUnit', 'Quantity & Pricing'),
+    t('farmer.pickupAddress', 'Farm Pickup Location'),
+  ];
 
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -60,10 +66,10 @@ const AddProduct = () => {
         price_per_unit: Number(formData.price_per_unit),
         min_order_quantity: Number(formData.min_order_quantity),
       });
-      toast.success('Crop listed successfully! Live on KhetSetu Mandi.');
+      toast.success(t('farmer.cropListedSuccess', 'Crop listed successfully! Live on KhetSetu Mandi.'));
       navigate('/seller/products');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error listing crop.');
+      toast.error(err.response?.data?.message || t('errors.SOMETHING_WENT_WRONG', 'Error listing crop.'));
     }
   };
 
@@ -71,10 +77,10 @@ const AddProduct = () => {
     <Box maxWidth="md" sx={{ mx: 'auto' }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          🌾 List Your Crop for Sale
+          {t('farmer.addNewCropTitle', '🌾 List Your Crop for Sale')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Step-by-step listing wizard designed for quick and accurate crop entries.
+          {t('farmer.addNewCropSubtitle', 'Step-by-step listing wizard designed for quick and accurate crop entries.')}
         </Typography>
       </Box>
 
@@ -288,7 +294,7 @@ const AddProduct = () => {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5, pt: 3, borderTop: '1px solid #F1F5F9' }}>
           <Button disabled={activeStep === 0} onClick={handleBack}>
-            Back
+            {t('common.back', 'Back')}
           </Button>
           {activeStep === steps.length - 1 ? (
             <Button
@@ -297,11 +303,11 @@ const AddProduct = () => {
               onClick={handleSubmit}
               disabled={createProductMutation.isPending}
             >
-              {createProductMutation.isPending ? 'Publishing...' : 'Publish Crop Listing'}
+              {createProductMutation.isPending ? t('common.loading', 'Publishing...') : t('common.submit', 'Publish Crop Listing')}
             </Button>
           ) : (
             <Button variant="contained" color="primary" onClick={handleNext}>
-              Next Step
+              {t('common.next', 'Next Step')}
             </Button>
           )}
         </Box>

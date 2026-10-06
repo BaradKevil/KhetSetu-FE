@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Box, Typography, Paper, Grid, TextField, Button, Chip, Alert, Divider } from '@mui/material';
-import { MdVerified, MdAccountBalance, MdLocationOn } from 'react-icons/md';
+import { Box, Typography, Paper, Grid, TextField, Button, Chip } from '@mui/material';
+import { MdVerified } from 'react-icons/md';
 import { useGetProfileQuery } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
 const SellerKYC = () => {
-  const { data: userProfile, isLoading } = useGetProfileQuery();
+  const { t } = useLanguage();
+  const { data: userProfile } = useGetProfileQuery();
   const profile = userProfile?.seller_profile || {};
 
   const [bankData, setBankData] = useState({
@@ -16,17 +18,17 @@ const SellerKYC = () => {
   });
 
   const handleSaveBank = () => {
-    toast.success('Bank details saved for automated direct transfers!');
+    toast.success(t('farmer.bankSavedSuccess', 'Bank details saved for automated direct transfers!'));
   };
 
   return (
     <Box maxWidth="md">
       <Box sx={{ mb: 3.5 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          🌾 Farm Profile & KYC Verification
+          {t('navigation.farmProfileKyc', '🌾 Farm Profile & KYC Verification')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Required for verified farmer badge and automated bank payouts.
+          {t('farmer.kycRequiredDesc', 'Required for verified farmer badge and automated bank payouts.')}
         </Typography>
       </Box>
 
@@ -35,15 +37,15 @@ const SellerKYC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="subtitle1" fontWeight={700}>
-              Verification Status
+              {t('common.status', 'Verification Status')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Verified farmers receive priority placement and higher buyer trust.
+              {t('farmer.verifiedBenefits', 'Verified farmers receive priority placement and higher buyer trust.')}
             </Typography>
           </Box>
           <Chip
             icon={<MdVerified />}
-            label="VERIFIED FARMER"
+            label={t('market.verifiedFarmer', 'VERIFIED FARMER')}
             color="success"
             sx={{ fontWeight: 700, px: 1, py: 0.5 }}
           />
@@ -53,23 +55,23 @@ const SellerKYC = () => {
       {/* Farm Details */}
       <Paper elevation={0} sx={{ p: 3.5, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
         <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-          Farm & Personal Information
+          {t('farmer.farmDetails', 'Farm & Personal Information')}
         </Typography>
         <Grid container spacing={2.5}>
           <Grid item xs={12} sm={6}>
-            <TextField label="Farmer Full Name" fullWidth defaultValue={profile.full_name || 'Rameshwar Patel'} />
+            <TextField label={t('auth.fullName', 'Farmer Full Name')} fullWidth defaultValue={profile.full_name || 'Rameshwar Patel'} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField label="Farm / Krishi Kendra Name" fullWidth defaultValue={profile.farm_name || 'Patel Organic Krishi Farm'} />
+            <TextField label={t('farmer.farmName', 'Farm / Krishi Kendra Name')} fullWidth defaultValue={profile.farm_name || 'Patel Organic Krishi Farm'} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField label="Village" fullWidth defaultValue={profile.village || 'Alampur'} />
+            <TextField label={t('common.village', 'Village')} fullWidth defaultValue={profile.village || 'Alampur'} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField label="District" fullWidth defaultValue={profile.district || 'Mehsana'} />
+            <TextField label={t('common.district', 'District')} fullWidth defaultValue={profile.district || 'Mehsana'} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField label="State" fullWidth defaultValue={profile.state || 'Gujarat'} />
+            <TextField label={t('common.state', 'State')} fullWidth defaultValue={profile.state || 'Gujarat'} />
           </Grid>
         </Grid>
       </Paper>
@@ -77,16 +79,16 @@ const SellerKYC = () => {
       {/* Bank Account */}
       <Paper elevation={0} sx={{ p: 3.5, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
         <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
-          Direct Bank Account Details
+          {t('farmer.bankAccountTitle', 'Direct Bank Account Details')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-          Where escrow payments are credited immediately after delivery confirmations.
+          {t('farmer.bankAccountDesc', 'Where escrow payments are credited immediately after delivery confirmations.')}
         </Typography>
 
         <Grid container spacing={2.5}>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Account Holder Name"
+              label={t('farmer.accountHolderName', 'Account Holder Name')}
               fullWidth
               value={bankData.holder_name}
               onChange={(e) => setBankData({ ...bankData, holder_name: e.target.value })}
@@ -94,7 +96,7 @@ const SellerKYC = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Bank Account Number"
+              label={t('farmer.bankAccountNumber', 'Bank Account Number')}
               fullWidth
               value={bankData.account_number}
               onChange={(e) => setBankData({ ...bankData, account_number: e.target.value })}
@@ -102,7 +104,7 @@ const SellerKYC = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Bank IFSC Code"
+              label={t('farmer.ifscCode', 'Bank IFSC Code')}
               fullWidth
               value={bankData.ifsc}
               onChange={(e) => setBankData({ ...bankData, ifsc: e.target.value })}
@@ -110,7 +112,7 @@ const SellerKYC = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Bank Name"
+              label={t('farmer.bankName', 'Bank Name')}
               fullWidth
               value={bankData.bank_name}
               onChange={(e) => setBankData({ ...bankData, bank_name: e.target.value })}
@@ -120,7 +122,7 @@ const SellerKYC = () => {
 
         <Box sx={{ mt: 3, textAlign: 'right' }}>
           <Button variant="contained" color="primary" onClick={handleSaveBank}>
-            Update Bank Information
+            {t('common.save', 'Update Bank Information')}
           </Button>
         </Box>
       </Paper>

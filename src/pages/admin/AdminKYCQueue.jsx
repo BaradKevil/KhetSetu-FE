@@ -18,9 +18,11 @@ import {
 } from '@mui/material';
 import { MdCheck, MdClose } from 'react-icons/md';
 import { useGetKYCQueueQuery, useModerateKYCMutation } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
 const AdminKYCQueue = () => {
+  const { t } = useLanguage();
   const { data: queueData, isLoading } = useGetKYCQueueQuery();
   const moderateKYCMutation = useModerateKYCMutation();
 
@@ -37,9 +39,9 @@ const AdminKYCQueue = () => {
         status: 'verified',
         reason: 'Documents and bank account verified by officer.',
       });
-      toast.success('Farmer KYC verified successfully!');
+      toast.success(t('admin.kycVerifiedSuccess', 'Farmer KYC verified successfully!'));
     } catch (err) {
-      toast.error('Error updating KYC.');
+      toast.error(t('admin.kycUpdateError', 'Error updating KYC.'));
     }
   };
 
@@ -51,10 +53,10 @@ const AdminKYCQueue = () => {
         status: 'rejected',
         reason: rejectionReason || 'Document mismatch or blurred image.',
       });
-      toast.info('Farmer KYC marked as rejected.');
+      toast.info(t('admin.kycRejectedNotice', 'Farmer KYC marked as rejected.'));
       setRejectModalOpen(false);
     } catch (err) {
-      toast.error('Error updating KYC.');
+      toast.error(t('admin.kycUpdateError', 'Error updating KYC.'));
     }
   };
 
@@ -62,10 +64,10 @@ const AdminKYCQueue = () => {
     <Box>
       <Box sx={{ mb: 3.5 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          🛡️ Farmer KYC Verification Queue
+          {t('admin.farmerKycQueue', '🛡️ Farmer KYC Verification Queue')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Review land records, Aadhaar references, and bank account holders before issuing verified badges.
+          {t('admin.farmerKycSubtitle', 'Review land records, Aadhaar references, and bank account holders before issuing verified badges.')}
         </Typography>
       </Box>
 
@@ -73,25 +75,25 @@ const AdminKYCQueue = () => {
         <Table>
           <TableHead sx={{ bgcolor: '#F8FAF9' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Farmer Name</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Farm Location</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Land Size</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Bank Account</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>KYC Status</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.farmerName', 'Farmer Name')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.farmLocation', 'Farm Location')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.landSize', 'Land Size')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.bankAccount', 'Bank Account')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.kycStatus', 'KYC Status')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>{t('common.actions', 'Actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                  Loading queue...
+                  {t('admin.loadingQueue', 'Loading queue...')}
                 </TableCell>
               </TableRow>
             ) : sellers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">No KYC records in queue.</Typography>
+                  <Typography color="text.secondary">{t('admin.noKycRecords', 'No KYC records in queue.')}</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -102,16 +104,16 @@ const AdminKYCQueue = () => {
                       {s.full_name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {s.farm_name || 'Individual Krishi'}
+                      {s.farm_name || t('admin.individualKrishi', 'Individual Krishi')}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     {s.village}, {s.district}, {s.state}
                   </TableCell>
-                  <TableCell>{s.land_size_acres ? `${s.land_size_acres} Acres` : 'N/A'}</TableCell>
+                  <TableCell>{s.land_size_acres ? `${s.land_size_acres} ${t('admin.acres', 'Acres')}` : 'N/A'}</TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {s.bank_name || 'Bank on file'}
+                      {s.bank_name || t('admin.bankOnFile', 'Bank on file')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {s.masked_account || 'XXXXXXXX5019'} ({s.bank_ifsc || 'SBIN...'})
@@ -141,7 +143,7 @@ const AdminKYCQueue = () => {
                           startIcon={<MdCheck />}
                           onClick={() => handleApprove(s.user_id)}
                         >
-                          Approve
+                          {t('admin.approve', 'Approve')}
                         </Button>
                       )}
                       {s.kyc_status !== 'rejected' && (
@@ -155,7 +157,7 @@ const AdminKYCQueue = () => {
                             setRejectModalOpen(true);
                           }}
                         >
-                          Reject
+                          {t('admin.reject', 'Reject')}
                         </Button>
                       )}
                     </Box>
@@ -169,23 +171,23 @@ const AdminKYCQueue = () => {
 
       {/* Rejection Modal */}
       <Dialog open={rejectModalOpen} onClose={() => setRejectModalOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800 }}>Reason for KYC Rejection</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>{t('admin.reasonForRejection', 'Reason for KYC Rejection')}</DialogTitle>
         <DialogContent dividers>
           <TextField
-            label="Explanation (Sent to Farmer)"
+            label={t('admin.rejectionExplanation', 'Explanation (Sent to Farmer)')}
             fullWidth
             multiline
             rows={3}
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="e.g. Document image unclear or bank name mismatch."
+            placeholder={t('admin.rejectionPlaceholder', 'e.g. Document image unclear or bank name mismatch.')}
             sx={{ mt: 1 }}
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setRejectModalOpen(false)}>Cancel</Button>
+          <Button onClick={() => setRejectModalOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
           <Button variant="contained" color="error" onClick={handleReject}>
-            Submit Rejection
+            {t('admin.submitRejection', 'Submit Rejection')}
           </Button>
         </DialogActions>
       </Dialog>

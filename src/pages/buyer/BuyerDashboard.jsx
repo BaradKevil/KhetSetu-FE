@@ -2,8 +2,10 @@ import { Box, Typography, Grid, Paper, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { MdStorefront, MdShoppingBag, MdSecurity, MdArrowForward, MdVerified } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useGetProfileQuery } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 
 const BuyerDashboard = () => {
+  const { t } = useLanguage();
   const { data: userProfile } = useGetProfileQuery();
   const { data: ordersData } = useGetBuyerOrdersQuery({ limit: 5 });
   const isVerified = userProfile?.buyer_profile?.is_verified ?? false;
@@ -21,10 +23,10 @@ const BuyerDashboard = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
-            💼 Buyer Overview
+            {t('buyerDashboardTitle')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage your crop purchases, delivery tracking, and escrow protections.
+            {t('buyerDashboardSubtitle')}
           </Typography>
         </Box>
         <Button
@@ -36,7 +38,7 @@ const BuyerDashboard = () => {
           startIcon={<MdStorefront size={22} />}
           sx={{ borderRadius: 3, fontWeight: 700 }}
         >
-          Explore Mandi Listings
+          {t('exploreMandiListings')}
         </Button>
       </Box>
 
@@ -76,10 +78,10 @@ const BuyerDashboard = () => {
             </Box>
             <Box>
               <Typography variant="subtitle2" fontWeight={800} color="#0369A1">
-                Business & GSTIN Verification (Optional)
+                {t('businessVerifyTitle')}
               </Typography>
               <Typography variant="body2" color="#075985">
-                Individual buyers can make retail purchases right away. Provide your GSTIN & Trade details in your Profile to unlock high-volume wholesale purchasing.
+                {t('businessVerifyDesc')}
               </Typography>
             </Box>
           </Box>
@@ -95,7 +97,7 @@ const BuyerDashboard = () => {
               px: 3,
             }}
           >
-            Verify Business
+            {t('verifyBusinessBtn')}
           </Button>
         </Paper>
       )}
@@ -109,14 +111,14 @@ const BuyerDashboard = () => {
                 <MdShoppingBag size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                ACTIVE ORDERS
+                {t('activeOrders')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#0F172A">
               {activeOrders.length}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Orders being dispatched/delivered
+              {t('ordersBeingDispatched')}
             </Typography>
           </Paper>
         </Grid>
@@ -128,14 +130,14 @@ const BuyerDashboard = () => {
                 <MdSecurity size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                ESCROW PROTECTION
+                {t('escrowProtectionTitle')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#2E7D32">
-              100% Locked
+              {t('escrowProtectionLocked')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Funds held until you inspect delivery
+              {t('escrowProtectionSubtitle')}
             </Typography>
           </Paper>
         </Grid>
@@ -147,14 +149,14 @@ const BuyerDashboard = () => {
                 <MdStorefront size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                TOTAL PURCHASES
+                {t('totalPurchasesTitle')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#0F172A">
               ₹{(totalEscrowPaid / 100).toLocaleString('en-IN')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Total transaction volume
+              {t('totalPurchasesSubtitle')}
             </Typography>
           </Paper>
         </Grid>
@@ -164,16 +166,16 @@ const BuyerDashboard = () => {
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
           <Typography variant="h6" fontWeight={700}>
-            Recent Crop Purchases
+            {t('recentPurchases')}
           </Typography>
           <Button component={Link} to="/buyer/orders" size="small" endIcon={<MdArrowForward />}>
-            View All Purchases
+            {t('viewAllOrders')}
           </Button>
         </Box>
 
         {orders.length === 0 ? (
           <Typography color="text.secondary" py={4} textAlign="center">
-            No purchases made yet. Explore the marketplace to find high-grade produce directly from farmers!
+            {t('noPurchasesYet')}
           </Typography>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -192,10 +194,10 @@ const BuyerDashboard = () => {
               >
                 <Box>
                   <Typography variant="subtitle2" fontWeight={700}>
-                    Order #{o.order_number}
+                    {t('orderNum')} #{o.order_number}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Farmer: {o.seller?.seller_profile?.full_name || 'Farmer'} • Status: {o.status.toUpperCase()}
+                    {t('farmerLabel')}: {o.seller?.seller_profile?.full_name || 'Farmer'} • {t('status')}: {o.status.toUpperCase()}
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
@@ -203,7 +205,7 @@ const BuyerDashboard = () => {
                     ₹{(o.total_paise / 100).toLocaleString('en-IN')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Escrow Protected
+                    {t('escrowProtectedTag')}
                   </Typography>
                 </Box>
               </Box>

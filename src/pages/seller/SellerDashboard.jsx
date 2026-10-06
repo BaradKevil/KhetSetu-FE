@@ -10,8 +10,10 @@ import {
   MdVerifiedUser,
 } from 'react-icons/md';
 import { useGetSellerProductsQuery, useGetSellerOrdersQuery, useGetProfileQuery } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 
 const SellerDashboard = () => {
+  const { t } = useLanguage();
   const { data: userProfile } = useGetProfileQuery();
   const { data: productsData } = useGetSellerProductsQuery({ limit: 5 });
   const { data: ordersData } = useGetSellerOrdersQuery({ limit: 5 });
@@ -41,10 +43,10 @@ const SellerDashboard = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
-            🌾 Farmer Dashboard
+            {t('farmerDashboardTitle')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage your harvest listings, orders, and direct bank payouts.
+            {t('farmerDashboardSubtitle')}
           </Typography>
         </Box>
         <Button
@@ -56,7 +58,7 @@ const SellerDashboard = () => {
           startIcon={<MdAddCircleOutline size={22} />}
           sx={{ borderRadius: 3, fontWeight: 700 }}
         >
-          Add New Crop
+          {t('addNewCrop')}
         </Button>
       </Box>
 
@@ -96,11 +98,10 @@ const SellerDashboard = () => {
             </Box>
             <Box>
               <Typography variant="subtitle2" fontWeight={800} color="#92400E">
-                KYC & Bank Account Verification Required
+                {t('kycRequiredTitle')}
               </Typography>
               <Typography variant="body2" color="#B45309">
-                Your farmer account is currently {kycStatus === 'pending' ? 'pending review' : 'unverified'}.
-                You can draft listings, but verification is required before crops go live and payouts are released.
+                {t('kycRequiredDesc')}
               </Typography>
             </Box>
           </Box>
@@ -116,7 +117,7 @@ const SellerDashboard = () => {
               px: 3,
             }}
           >
-            Complete KYC Now
+            {t('completeKycNow')}
           </Button>
         </Paper>
       )}
@@ -130,14 +131,14 @@ const SellerDashboard = () => {
                 <MdStorefront size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                LIVE LISTINGS
+                {t('liveListings')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#0F172A">
               {activeListingsCount}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Active in marketplace
+              {t('activeInMarket')}
             </Typography>
           </Paper>
         </Grid>
@@ -149,14 +150,14 @@ const SellerDashboard = () => {
                 <MdShoppingBag size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                ACTIVE ORDERS
+                {t('activeOrders')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#0F172A">
               {newOrdersCount}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Awaiting dispatch/delivery
+              {t('awaitingDispatch')}
             </Typography>
           </Paper>
         </Grid>
@@ -168,14 +169,14 @@ const SellerDashboard = () => {
                 <MdAccountBalanceWallet size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                ESCROW LOCKED
+                {t('escrowLocked')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#0288D1">
               ₹{(pendingPayoutPaise / 100).toLocaleString('en-IN')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Secured in vault for you
+              {t('securedInVault')}
             </Typography>
           </Paper>
         </Grid>
@@ -187,14 +188,14 @@ const SellerDashboard = () => {
                 <MdPayments size={24} />
               </Box>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                TOTAL EARNINGS
+                {t('totalEarnings')}
               </Typography>
             </Box>
             <Typography variant="h4" fontWeight={800} color="#16A34A">
               ₹{(totalSalesPaise / 100).toLocaleString('en-IN')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Paid to bank account
+              {t('paidToBank')}
             </Typography>
           </Paper>
         </Grid>
@@ -204,16 +205,16 @@ const SellerDashboard = () => {
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
           <Typography variant="h6" fontWeight={700}>
-            Incoming Orders
+            {t('incomingOrdersHeading')}
           </Typography>
           <Button component={Link} to="/seller/orders" size="small" endIcon={<MdArrowForward />}>
-            View All Orders
+            {t('viewAllOrders')}
           </Button>
         </Box>
 
         {orders.length === 0 ? (
           <Typography color="text.secondary" py={4} textAlign="center">
-            No orders received yet. Share your crop listings to receive orders!
+            {t('noIncomingOrders')}
           </Typography>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -232,10 +233,10 @@ const SellerDashboard = () => {
               >
                 <Box>
                   <Typography variant="subtitle2" fontWeight={700}>
-                    Order #{o.order_number}
+                    {t('orderNum')} #{o.order_number}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Buyer: {o.buyer?.buyer_profile?.company_name || 'Agro Buyer'} • Status: {o.status.toUpperCase()}
+                    {t('buyerLabel')}: {o.buyer?.buyer_profile?.company_name || 'Agro Buyer'} • {t('status')}: {o.status.toUpperCase()}
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
@@ -243,7 +244,7 @@ const SellerDashboard = () => {
                     ₹{(o.payout_paise / 100).toLocaleString('en-IN')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Your Net Payout
+                    {t('netPayout')}
                   </Typography>
                 </Box>
               </Box>

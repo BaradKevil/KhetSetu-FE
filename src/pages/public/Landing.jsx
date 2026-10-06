@@ -13,10 +13,12 @@ import {
   MdCheckCircle,
 } from 'react-icons/md';
 import { useGetPublicMarketQuery, useGetMandiPricesQuery } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import Navbar from '../../common/Navbar';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const heroRef = useRef(null);
   const headlineRef = useRef(null);
   const subtitleRef = useRef(null);
@@ -67,7 +69,7 @@ const Landing = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#4ADE80', fontWeight: 700, fontSize: '0.85rem' }}>
               <MdTrendingUp size={18} />
-              <span>LIVE MANDI BENCHMARK RATES:</span>
+              <span>{t('market.liveMandiBenchmark', 'LIVE MANDI BENCHMARK RATES:')}</span>
             </Box>
             <Box sx={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
               {rates.length > 0 ? (
@@ -109,7 +111,7 @@ const Landing = () => {
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
                 <Chip
                   icon={<MdSecurity style={{ color: '#2E7D32' }} />}
-                  label="100% Protected Escrow Marketplace"
+                  label={t('market.protectedEscrowMarketplace', '100% Protected Escrow Marketplace')}
                   sx={{ bgcolor: '#E8F5E9', color: '#1B5E20', fontWeight: 700, mb: 3, px: 1, py: 0.5 }}
                 />
               </motion.div>
@@ -126,7 +128,10 @@ const Landing = () => {
                   mb: 2.5,
                 }}
               >
-                The Trusted Bridge From the <span style={{ color: '#2E7D32' }}>Field</span> to the <span style={{ color: '#E65100' }}>Buyer</span>.
+                {t('market.heroTitlePre', 'The Trusted Bridge From the')}{' '}
+                <span style={{ color: '#2E7D32' }}>{t('market.heroField', 'Field')}</span>{' '}
+                {t('market.heroMid', 'to the')}{' '}
+                <span style={{ color: '#E65100' }}>{t('market.heroBuyer', 'Buyer')}</span>.
               </Typography>
 
               <Typography
@@ -141,7 +146,7 @@ const Landing = () => {
                   maxWidth: 600,
                 }}
               >
-                Farmers list crops directly at genuine prices. Buyers purchase with verified quality. Payments are held safely in escrow until verified delivery.
+                {t('market.heroSubtitle', 'Farmers list crops directly at genuine prices. Buyers purchase with verified quality. Payments are held safely in escrow until verified delivery.')}
               </Typography>
 
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -154,7 +159,7 @@ const Landing = () => {
                   sx={{ px: 3.5, py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3 }}
                   startIcon={<MdAgriculture size={22} />}
                 >
-                  Register as Farmer
+                  {t('market.registerAsFarmer', 'Register as Farmer')}
                 </Button>
                 <Button
                   component={Link}
@@ -173,7 +178,7 @@ const Landing = () => {
                   }}
                   endIcon={<MdArrowForward size={20} />}
                 >
-                  Browse Crops & Rates
+                  {t('market.browseCropsRates', 'Browse Crops & Rates')}
                 </Button>
               </Box>
 
@@ -182,19 +187,19 @@ const Landing = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <MdCheckCircle color="#2E7D32" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
-                    Direct Bank Payouts
+                    {t('market.directBankPayouts', 'Direct Bank Payouts')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <MdCheckCircle color="#2E7D32" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
-                    Verified APMC Mandi Rates
+                    {t('market.verifiedApmcRates', 'Verified APMC Mandi Rates')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <MdCheckCircle color="#2E7D32" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
-                    Zero Hidden Deductions
+                    {t('market.zeroHiddenDeductions', 'Zero Hidden Deductions')}
                   </Typography>
                 </Box>
               </Box>

@@ -10,8 +10,10 @@ import {
   Chip,
 } from '@mui/material';
 import { useGetPayoutsQuery } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 
 const AdminPayouts = () => {
+  const { t, formatCurrency } = useLanguage();
   const { data: payoutsData, isLoading } = useGetPayoutsQuery();
   const payouts = payoutsData?.items || [];
 
@@ -19,10 +21,10 @@ const AdminPayouts = () => {
     <Box>
       <Box sx={{ mb: 3.5 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          💳 Farmer Payout Queue & Bank Settlements
+          {t('admin.payoutQueueTitle', '💳 Farmer Payout Queue & Bank Settlements')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Overview of direct bank payouts released from escrow to farmer bank accounts.
+          {t('admin.payoutQueueSubtitle', 'Overview of direct bank payouts released from escrow to farmer bank accounts.')}
         </Typography>
       </Box>
 
@@ -30,24 +32,24 @@ const AdminPayouts = () => {
         <Table>
           <TableHead sx={{ bgcolor: '#F8FAF9' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Payout ID</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Farmer Beneficiary</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Bank Reference / UTR</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Amount Released (₹)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.payoutId', 'Payout ID')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.farmerBeneficiary', 'Farmer Beneficiary')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.bankRefUtr', 'Bank Reference / UTR')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('admin.amountReleased', 'Amount Released (₹)')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Status')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  Loading payouts...
+                  {t('admin.loadingPayouts', 'Loading payouts...')}
                 </TableCell>
               </TableRow>
             ) : payouts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">No bank payouts in queue.</Typography>
+                  <Typography color="text.secondary">{t('admin.noPayouts', 'No bank payouts in queue.')}</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -58,7 +60,7 @@ const AdminPayouts = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="subtitle2" fontWeight={700}>
-                      {p.seller?.seller_profile?.full_name || 'Farmer'}
+                      {p.seller?.seller_profile?.full_name || t('navigation.farmerSeller', 'Farmer')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {p.seller?.seller_profile?.bank_name} ({p.seller?.seller_profile?.masked_account})
@@ -68,7 +70,7 @@ const AdminPayouts = () => {
                     {p.utr_number || p.bank_reference || 'Processing...'}
                   </TableCell>
                   <TableCell sx={{ fontWeight: 800, color: '#2E7D32' }}>
-                    ₹{(p.amount_paise / 100).toLocaleString('en-IN')}
+                    {formatCurrency(p.amount_paise, true)}
                   </TableCell>
                   <TableCell>
                     <Chip

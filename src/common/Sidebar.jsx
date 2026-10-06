@@ -24,7 +24,28 @@ import {
   MdHistory,
 } from 'react-icons/md';
 
+import { useLanguage } from '../context/LanguageContext';
+
 const DRAWER_WIDTH = 260;
+
+const menuTranslationKeys = {
+  'seller-dashboard': 'dashboard',
+  'seller-products': 'myProducts',
+  'seller-new-product': 'addNewCrop',
+  'seller-orders': 'incomingOrders',
+  'seller-earnings': 'earningsPayouts',
+  'seller-kyc': 'farmProfileKyc',
+  'buyer-dashboard': 'buyerOverview',
+  'buyer-market': 'exploreMandi',
+  'buyer-orders': 'myEscrowOrders',
+  'buyer-profile': 'businessProfile',
+  'admin-dashboard': 'controlTower',
+  'admin-kyc': 'kycApprovals',
+  'admin-orders': 'ordersOversight',
+  'admin-ledger': 'ledger',
+  'admin-payouts': 'payoutApprovals',
+  'admin-audit': 'auditTrail',
+};
 
 const iconMap = {
   'seller-dashboard': <MdDashboard size={20} />,
@@ -48,6 +69,7 @@ const iconMap = {
 const Sidebar = ({ open, onClose, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const userRole = localStorage.getItem('role') || 'buyer';
 
   const filteredMenu = menulist.filter((item) =>
@@ -59,16 +81,20 @@ const Sidebar = ({ open, onClose, isMobile }) => {
       <Box sx={{ p: 2.5, borderBottom: '1px solid #F1F5F9' }}>
         <Typography variant="overline" color="text.secondary" fontWeight={700} letterSpacing="0.08em">
           {userRole === 'seller'
-            ? 'Kisan Portal'
+            ? t('kisanPortal')
             : userRole === 'buyer'
-            ? 'Trader Portal'
-            : 'Admin Operations'}
+            ? t('traderPortal')
+            : t('adminOperations')}
         </Typography>
       </Box>
 
       <List sx={{ px: 1.5, py: 2, flex: 1 }}>
         {filteredMenu.map((item) => {
           const isActive = location.pathname === item.path;
+          const translatedName = menuTranslationKeys[item.id]
+            ? t(menuTranslationKeys[item.id])
+            : item.name;
+
           return (
             <ListItem key={item.id} disablePadding sx={{ mb: 0.6 }}>
               <ListItemButton
@@ -99,7 +125,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
                   {iconMap[item.id] || <MdDashboard size={20} />}
                 </ListItemIcon>
                 <ListItemText
-                  primary={item.name}
+                  primary={translatedName}
                   primaryTypographyProps={{
                     fontSize: '0.92rem',
                     fontWeight: isActive ? 700 : 500,
@@ -113,7 +139,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
 
       <Box sx={{ p: 2, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
         <Typography variant="caption" color="text.secondary">
-          KhetSetu Escrow Protected © 2026
+          {t('escrowProtectedFooter')}
         </Typography>
       </Box>
     </Box>
