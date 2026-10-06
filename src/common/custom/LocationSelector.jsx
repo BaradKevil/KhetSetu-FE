@@ -299,7 +299,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.state || (lang === 'gu' ? 'રાજ્ય' : lang === 'hi' ? 'राज्य' : 'State')} {required && '*'}
+            {labels.state || (lang === 'gu' ? 'રાજ્ય' : lang === 'hi' ? 'राज्य' : 'State')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -360,7 +360,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.district || (lang === 'gu' ? 'જિલ્લો' : lang === 'hi' ? 'ज़िला' : 'District')} {required && '*'}
+            {labels.district || (lang === 'gu' ? 'જિલ્લો' : lang === 'hi' ? 'ज़िला' : 'District')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -431,7 +431,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.city || (lang === 'gu' ? 'શહેર / તાલુકો' : lang === 'hi' ? 'शहर / तालुका' : 'City / Taluka')} {required && '*'}
+            {labels.city || (lang === 'gu' ? 'શહેર / તાલુકો' : lang === 'hi' ? 'शहर / तालुका' : 'City / Taluka')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -493,7 +493,7 @@ export const LocationSelector = ({
               color="#334155"
               sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
             >
-              {labels.village || (lang === 'gu' ? 'ગામ' : lang === 'hi' ? 'गाँव' : 'Village')} {required && '*'}
+              {labels.village || (lang === 'gu' ? 'ગામ' : lang === 'hi' ? 'गाँव' : 'Village')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
             </Typography>
             {!isCustomVillage ? (
               <TextField
