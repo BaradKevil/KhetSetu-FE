@@ -247,6 +247,14 @@ export const farmer = {
   step1ErrorAlert: 'Please complete all mandatory crop specifications before proceeding.',
   step2ErrorAlert: 'Please complete all mandatory quantity, price, and packaging details.',
   step3ErrorAlert: 'Please complete all mandatory pickup address details before publishing.',
+  cropPhotosTitle: 'Crop Harvest Photos (1 to 5 Photos)',
+  cropPhotosSubtitle: 'Upload real photos of your harvest. Minimum 1 photo is mandatory, maximum 5. The 1st photo is your primary cover photo displayed everywhere.',
+  primaryCoverPhoto: '⭐ Primary Cover Photo',
+  setAsPrimary: 'Set as Primary',
+  photoRequired: 'At least 1 crop photograph is mandatory. Please upload a clear photo of your harvest.',
+  maxPhotosReached: 'Maximum 5 photos allowed per product listing.',
+  uploadingPhotos: 'Uploading crop photo(s)...',
+  photosCountBadge: 'Photos Uploaded',
 };
 
 export const buyer = {

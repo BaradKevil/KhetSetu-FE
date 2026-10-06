@@ -39,6 +39,7 @@ const ProductDetail = () => {
   const createOrderMutation = useCreateOrderMutation();
 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [orderQty, setOrderQty] = useState(10);
   const [address, setAddress] = useState({
     recipient_name: 'Jayesh Shah',
@@ -118,17 +119,84 @@ const ProductDetail = () => {
         <Grid container spacing={4}>
           {/* Photos */}
           <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
-            <Card sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+            <Card sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #E2E8F0', position: 'relative' }}>
               <CardMedia
                 component="img"
                 height="380"
                 image={
+                  product.images?.[selectedPhotoIndex] ||
                   product.images?.[0] ||
                   'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80'
                 }
                 alt={product.variety}
+                sx={{ objectFit: 'cover' }}
               />
+              {selectedPhotoIndex === 0 && (
+                <Chip
+                  label="⭐ Primary Photo"
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    left: 12,
+                    bgcolor: 'rgba(37, 99, 235, 0.95)',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                  }}
+                />
+              )}
             </Card>
+
+            {/* Thumbnail Gallery Row if multiple photos exist */}
+            {Array.isArray(product.images) && product.images.length > 1 && (
+              <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5, overflowX: 'auto', pb: 0.5 }}>
+                {product.images.map((img, i) => (
+                  <Box
+                    key={i}
+                    onClick={() => setSelectedPhotoIndex(i)}
+                    sx={{
+                      width: 68,
+                      height: 68,
+                      borderRadius: 2.5,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: selectedPhotoIndex === i ? '2.5px solid #2563EB' : '1px solid #E2E8F0',
+                      opacity: selectedPhotoIndex === i ? 1 : 0.7,
+                      transition: 'all 0.15s ease',
+                      flexShrink: 0,
+                      position: 'relative',
+                      '&:hover': { opacity: 1, borderColor: '#2563EB' },
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={img}
+                      alt={`Thumbnail ${i + 1}`}
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {i === 0 && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          bgcolor: 'rgba(37, 99, 235, 0.85)',
+                          color: '#fff',
+                          fontSize: '0.55rem',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          py: 0.2,
+                        }}
+                      >
+                        Cover
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            )}
 
             {/* Farmer Profile Badge Card */}
             <Paper elevation={0} sx={{ p: 3, mt: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>

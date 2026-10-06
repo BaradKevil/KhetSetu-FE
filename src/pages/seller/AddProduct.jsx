@@ -31,6 +31,9 @@ import {
   MdLocalShipping,
   MdHomeWork,
   MdLocationOn,
+  MdAddPhotoAlternate,
+  MdStar,
+  MdPhotoLibrary,
 } from 'react-icons/md';
 import { useGetCropsQuery, useCreateProductMutation, useUploadDocumentMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -82,8 +85,10 @@ const AddProduct = () => {
   const uploadDocMutation = useUploadDocumentMutation();
 
   const fileInputRef = useRef(null);
+  const photoInputRef = useRef(null);
   const [activeStep, setActiveStep] = useState(0);
   const [uploadingCert, setUploadingCert] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [certFileName, setCertFileName] = useState('');
   const [certFileSize, setCertFileSize] = useState(null);
 
@@ -112,7 +117,7 @@ const AddProduct = () => {
     pickup_pincode: '',
     pickup_address_type: 'Farm Gate / Field',
     pickup_exact_address: '',
-    images: ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80'],
+    images: [], // Farmer must upload 1 to 5 real harvest photos
   });
 
   const [errors, setErrors] = useState({});
@@ -268,6 +273,92 @@ const AddProduct = () => {
     setCertFileSize(null);
   };
 
+  // Handle Multiple Crop Photos Upload (Min 1, Max 5)
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const currentCount = formData.images.length;
+    const availableSlots = 5 - currentCount;
+
+    if (availableSlots <= 0) {
+      toast.warning(t('farmer.maxPhotosReached', 'Maximum 5 photos allowed per product listing.'));
+      return;
+    }
+
+    const filesToUpload = files.slice(0, availableSlots);
+    if (files.length > availableSlots) {
+      toast.info(`Only ${availableSlots} more photo(s) can be added (Maximum 5 photos per listing).`);
+    }
+
+    setUploadingPhotos(true);
+    try {
+      const newUploadedUrls = [];
+      for (const file of filesToUpload) {
+        if (file.size > 15 * 1024 * 1024) {
+          toast.error(`${file.name} exceeds 15MB limit.`);
+          continue;
+        }
+        try {
+          const res = await uploadDocMutation.mutateAsync(file);
+          if (res?.file_url) {
+            newUploadedUrls.push(res.file_url);
+          } else {
+            newUploadedUrls.push(URL.createObjectURL(file));
+          }
+        } catch {
+          newUploadedUrls.push(URL.createObjectURL(file));
+        }
+      }
+
+      if (newUploadedUrls.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...newUploadedUrls],
+        }));
+        setErrors((prev) => ({ ...prev, images: '' }));
+        toast.success(
+          language === 'gu'
+            ? `${newUploadedUrls.length} ફોટો સફળતાપૂર્વક જોડાયા!`
+            : language === 'hi'
+            ? `${newUploadedUrls.length} फ़ोटो सफलतापूर्वक जुड़ी!`
+            : `${newUploadedUrls.length} photo(s) added successfully!`
+        );
+      }
+    } catch {
+      toast.error('Failed to upload photos.');
+    } finally {
+      setUploadingPhotos(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
+  // Remove photo from gallery
+  const handleRemovePhoto = (indexToRemove) => {
+    setFormData((prev) => {
+      const updated = prev.images.filter((_, idx) => idx !== indexToRemove);
+      return { ...prev, images: updated };
+    });
+  };
+
+  // Promote photo to index 0 (Primary Cover Photo)
+  const handleSetPrimary = (indexToPromote) => {
+    if (indexToPromote === 0) return;
+    setFormData((prev) => {
+      const updated = [...prev.images];
+      const [promoted] = updated.splice(indexToPromote, 1);
+      updated.unshift(promoted);
+      return { ...prev, images: updated };
+    });
+    toast.info(
+      language === 'gu'
+        ? 'કવર ફોટો બદલાઈ ગયો! આ ફોટો માર્કેટપ્લેસ પર મુખ્ય દેખાશે.'
+        : language === 'hi'
+        ? 'कवर फ़ोटो अपडेट हुआ! यह फ़ोटो मार्केटप्लेस पर सबसे आगे दिखेगा।'
+        : 'Cover photo updated! This photo will be shown first across the marketplace.'
+    );
+  };
+
   // Helper for red asterisk in labels
   const RedStar = () => (
     <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800, fontSize: '1rem' }}>
@@ -296,6 +387,12 @@ const AddProduct = () => {
         newErrors.organic_certificate_url = t(
           'farmer.organicCertificateRequired',
           'Organic certificate document is strictly required for certified organic harvest.'
+        );
+      }
+      if (!formData.images || formData.images.length === 0) {
+        newErrors.images = t(
+          'farmer.photoRequired',
+          'At least 1 crop photograph is mandatory. Please upload a clear photo of your harvest.'
         );
       }
     } else if (activeStep === 1) {
@@ -805,6 +902,225 @@ const AddProduct = () => {
                       )}
                     </Box>
                   )}
+                </Paper>
+              </Grid>
+
+              {/* Field 6: Crop Harvest Photos (Min 1, Max 5) */}
+              <Grid item xs={12} size={12}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    border: errors.images ? '2px solid #EF4444' : '1px solid #E2E8F0',
+                    bgcolor: '#FFFFFF',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <MdPhotoLibrary size={22} color="#2563EB" />
+                      <Typography variant="subtitle1" fontWeight={700} color="#0F172A">
+                        {t('farmer.cropPhotosTitle', 'Crop Harvest Photos (1 to 5 Photos)')} <RedStar />
+                      </Typography>
+                    </Box>
+                    <Chip
+                      icon={<MdStar style={{ color: '#F59E0B' }} />}
+                      label={`${formData.images.length} / 5 ${t('farmer.photosCountBadge', 'Photos Uploaded')}`}
+                      color={formData.images.length >= 1 ? 'success' : 'default'}
+                      variant={formData.images.length >= 1 ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+                    />
+                  </Box>
+
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                    {t(
+                      'farmer.cropPhotosSubtitle',
+                      'Upload real photos of your harvest. Minimum 1 photo is mandatory, maximum 5. The 1st photo is your primary cover photo displayed everywhere.'
+                    )}
+                  </Typography>
+
+                  <input
+                    type="file"
+                    ref={photoInputRef}
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={handlePhotoUpload}
+                  />
+
+                  {/* Photo Grid & Upload Area */}
+                  <Grid container spacing={2}>
+                    {formData.images.map((imgUrl, idx) => (
+                      <Grid item xs={6} sm={4} md={2.4} key={idx} size={{ xs: 6, sm: 4, md: 2.4 }}>
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            borderRadius: 2.5,
+                            overflow: 'hidden',
+                            border: idx === 0 ? '2.5px solid #2563EB' : '1px solid #CBD5E1',
+                            boxShadow: idx === 0 ? '0 4px 12px rgba(37, 99, 235, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
+                            aspectRatio: '1',
+                            bgcolor: '#0F172A',
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={imgUrl}
+                            alt={`Crop Photo ${idx + 1}`}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block',
+                            }}
+                          />
+
+                          {/* Primary Cover Badge on Index 0 */}
+                          {idx === 0 ? (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 6,
+                                left: 6,
+                                bgcolor: 'rgba(37, 99, 235, 0.95)',
+                                color: '#FFFFFF',
+                                px: 1,
+                                py: 0.3,
+                                borderRadius: 1.5,
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.3,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                              }}
+                            >
+                              <MdStar size={13} />
+                              <span>{t('farmer.primaryCoverPhoto', '⭐ Cover')}</span>
+                            </Box>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={() => handleSetPrimary(idx)}
+                              sx={{
+                                position: 'absolute',
+                                bottom: 6,
+                                left: 6,
+                                bgcolor: 'rgba(15, 23, 42, 0.85)',
+                                color: '#FFFFFF',
+                                px: 0.8,
+                                py: 0.2,
+                                borderRadius: 1.5,
+                                fontSize: '0.62rem',
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: '#2563EB' },
+                              }}
+                            >
+                              {t('farmer.setAsPrimary', 'Make Cover')}
+                            </Button>
+                          )}
+
+                          {/* Delete Button */}
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemovePhoto(idx)}
+                            sx={{
+                              position: 'absolute',
+                              top: 6,
+                              right: 6,
+                              bgcolor: 'rgba(239, 68, 68, 0.9)',
+                              color: '#FFFFFF',
+                              p: 0.5,
+                              '&:hover': { bgcolor: '#DC2626' },
+                            }}
+                            title="Remove photo"
+                          >
+                            <MdDelete size={14} />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    ))}
+
+                    {/* Add Photo Button / Card */}
+                    {formData.images.length < 5 && (
+                      <Grid item xs={6} sm={4} md={2.4} size={{ xs: 6, sm: 4, md: 2.4 }}>
+                        <Box
+                          onClick={() => !uploadingPhotos && photoInputRef.current?.click()}
+                          sx={{
+                            border: '2px dashed #94A3B8',
+                            borderRadius: 2.5,
+                            aspectRatio: '1',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: uploadingPhotos ? 'wait' : 'pointer',
+                            bgcolor: '#F8FAFC',
+                            p: 1.5,
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              borderColor: '#2563EB',
+                              bgcolor: '#EFF6FF',
+                            },
+                          }}
+                        >
+                          {uploadingPhotos ? (
+                            <>
+                              <CircularProgress size={24} color="primary" />
+                              <Typography variant="caption" sx={{ mt: 1, fontSize: '0.7rem', color: '#64748B', fontWeight: 600 }}>
+                                {t('farmer.uploadingPhotos', 'Uploading...')}
+                              </Typography>
+                            </>
+                          ) : (
+                            <>
+                              <MdAddPhotoAlternate size={28} color="#64748B" />
+                              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mt: 0.8, fontSize: '0.72rem' }}>
+                                {formData.images.length === 0
+                                  ? '+ Upload Photos'
+                                  : `+ Add More (${5 - formData.images.length} left)`}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>
+                                JPG, PNG, WebP
+                              </Typography>
+                            </>
+                          )}
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+
+                  {/* Error message if photos are missing */}
+                  {errors.images && (
+                    <Typography variant="caption" color="error" fontWeight={700} sx={{ mt: 1.5, display: 'block' }}>
+                      ⚠️ {errors.images}
+                    </Typography>
+                  )}
+
+                  {/* Informational banner about cover photo */}
+                  <Box
+                    sx={{
+                      mt: 2.5,
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: '#EFF6FF',
+                      border: '1px solid #BFDBFE',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <MdInfoOutline size={16} color="#1D4ED8" />
+                    <Typography variant="caption" color="#1E40AF" fontWeight={500}>
+                      {language === 'gu'
+                        ? '💡 ૧મો ફોટો કવર ફોટો તરીકે મંડી માર્કેટપ્લેસ અને ખરીદદારોના સર્ચ રિઝલ્ટમાં મુખ્ય દર્શાવવામાં આવશે.'
+                        : language === 'hi'
+                        ? '💡 पहली फ़ोटो मुख्य (कवर) फ़ोटो के रूप में मंडी मार्केटप्लेस और खरीदारों की खोज में सबसे आगे दिखेगी।'
+                        : '💡 The 1st photo is used as the primary cover photo across the marketplace, buyer catalog, and search results.'}
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
             </Grid>
