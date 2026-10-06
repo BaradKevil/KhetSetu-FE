@@ -12,37 +12,83 @@ import {
   Avatar,
 } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
-import { MdMenu, MdAccountCircle, MdLogout, MdAgriculture, MdLanguage } from 'react-icons/md';
+import {
+  MdMenu,
+  MdAccountCircle,
+  MdLogout,
+  MdAgriculture,
+} from 'react-icons/md';
 import { clearSessionAndRedirect } from '../Api/ApiClient';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from './custom/LanguageSelector';
 
 const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
   const role = localStorage.getItem('role') || 'guest';
   const phone = localStorage.getItem('phone') || '';
-  const fullName = localStorage.getItem('fullName') || 'User';
+  const rawFullName = localStorage.getItem('fullName') || '';
+  const profilePhoto = localStorage.getItem('profilePhoto') || '';
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [langAnchorEl, setLangAnchorEl] = useState(null);
-  const [currentLang, setCurrentLang] = useState('English');
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
-  const handleLangOpen = (event) => setLangAnchorEl(event.currentTarget);
-  const handleLangClose = (lang) => {
-    if (typeof lang === 'string') setCurrentLang(lang);
-    setLangAnchorEl(null);
+  // Formats phone into readable "+91 XXXXX XXXXX"
+  const formatPhoneNumber = (p) => {
+    if (!p) return '';
+    const digits = String(p).replace(/\D/g, '');
+    if (digits.length === 10) return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+    }
+    return p;
+  };
+
+  // Resolves a human display name instead of showing raw phone numbers
+  const getDisplayName = () => {
+    if (rawFullName && !rawFullName.startsWith('+') && !/^\d+$/.test(rawFullName.replace(/\s+/g, ''))) {
+      return rawFullName;
+    }
+    switch (role) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'staff':
+        return 'Admin Staff';
+      case 'seller':
+        return 'Farmer (Seller)';
+      case 'buyer':
+        return 'Trader (Buyer)';
+      default:
+        return 'User';
+    }
+  };
+
+  // Fallback avatar content when profile photo is not yet uploaded
+  const getAvatarContent = () => {
+    if (profilePhoto) return null;
+    const name = getDisplayName();
+    if (name && name !== 'User') {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+      }
+      return name.charAt(0).toUpperCase();
+    }
+    return <MdAccountCircle size={22} />;
   };
 
   const getRoleBadge = () => {
     switch (role) {
       case 'seller':
-        return <Chip label="🌾 Farmer / Seller" size="small" sx={{ bgcolor: '#E8F5E9', color: '#1B5E20', fontWeight: 600 }} />;
+        return <Chip label={t('farmerSeller', '🌾 Farmer')} size="small" sx={{ bgcolor: '#E8F5E9', color: '#1B5E20', fontWeight: 700 }} />;
       case 'buyer':
-        return <Chip label="💼 Trader / Buyer" size="small" sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 600 }} />;
+        return <Chip label={t('traderBuyer', '💼 Buyer')} size="small" sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 700 }} />;
       case 'super_admin':
       case 'staff':
-        return <Chip label="🛡️ Super Admin" size="small" sx={{ bgcolor: '#F1F5F9', color: '#0F172A', fontWeight: 600 }} />;
+        return <Chip label={t('superAdmin', '🛡️ Super Admin')} size="small" sx={{ bgcolor: '#F1F5F9', color: '#0F172A', fontWeight: 700 }} />;
       default:
         return null;
     }
@@ -100,68 +146,87 @@ const Navbar = ({ onToggleSidebar }) => {
             to="/market"
             size="small"
             variant="text"
-            sx={{ display: { xs: 'none', md: 'inline-flex' }, color: '#475569' }}
+            sx={{ display: { xs: 'none', md: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
           >
-            Mandi Rates & Market
+            {t('mandiRatesMarket', 'Mandi Rates & Market')}
           </Button>
 
-          {/* Regional Language Switcher */}
-          <Button
-            size="small"
-            startIcon={<MdLanguage size={18} />}
-            onClick={handleLangOpen}
-            sx={{
-              color: '#334155',
-              border: '1px solid #E2E8F0',
-              borderRadius: 2,
-              px: 1.5,
-              py: 0.5,
-              fontSize: '0.85rem',
-            }}
-          >
-            {currentLang}
-          </Button>
-          <Menu anchorEl={langAnchorEl} open={Boolean(langAnchorEl)} onClose={() => handleLangClose(null)}>
-            <MenuItem onClick={() => handleLangClose('English')}>English</MenuItem>
-            <MenuItem onClick={() => handleLangClose('हिन्दी (Hindi)')}>हिन्दी (Hindi)</MenuItem>
-            <MenuItem onClick={() => handleLangClose('ગુજરાતી (Gujarati)')}>ગુજરાતી (Gujarati)</MenuItem>
-          </Menu>
+          {/* Reusable Universal Language Selector */}
+          <LanguageSelector variant="menu" size="small" />
 
-          {/* User Account Menu */}
+          {/* User Account Menu with Photo Support */}
           {localStorage.getItem('accessToken') ? (
             <>
               <IconButton onClick={handleMenuOpen} sx={{ p: 0.5 }}>
-                <Avatar sx={{ bgcolor: '#2E7D32', width: 36, height: 36, fontSize: '0.95rem' }}>
-                  {fullName.charAt(0).toUpperCase()}
+                <Avatar
+                  src={profilePhoto || undefined}
+                  sx={{
+                    bgcolor: '#2E7D32',
+                    width: 38,
+                    height: 38,
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    border: '2px solid #E2E8F0',
+                  }}
+                >
+                  {getAvatarContent()}
                 </Avatar>
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
-                slotProps={{ paper: { sx: { width: 220, borderRadius: 2, mt: 1, p: 0.5 } } }}
+                slotProps={{ paper: { sx: { width: 240, borderRadius: 2.5, mt: 1, p: 0.5, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' } } }}
               >
-                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #F1F5F9' }}>
-                  <Typography variant="subtitle2" fontWeight={700} noWrap>
-                    {fullName}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {phone}
-                  </Typography>
+                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar
+                    src={profilePhoto || undefined}
+                    sx={{
+                      bgcolor: '#2E7D32',
+                      width: 42,
+                      height: 42,
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {getAvatarContent()}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="subtitle2" fontWeight={700} noWrap>
+                      {getDisplayName()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', mt: 0.2 }}>
+                      {formatPhoneNumber(phone)}
+                    </Typography>
+                  </Box>
                 </Box>
-                <MenuItem onClick={() => { handleMenuClose(); navigate('/seller/profile'); }}>
+
+                <Box sx={{ px: 2, py: 1 }}>
+                  {getRoleBadge()}
+                </Box>
+
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    navigate(role === 'seller' ? '/seller/profile' : '/buyer/profile');
+                  }}
+                  sx={{ borderRadius: 1.5, mx: 0.5 }}
+                >
                   <MdAccountCircle size={18} style={{ marginRight: 10, color: '#64748B' }} />
-                  Profile Details
+                  {t('businessProfile', 'Profile & Settings')}
                 </MenuItem>
-                <MenuItem onClick={clearSessionAndRedirect} sx={{ color: '#DC2626' }}>
+                <MenuItem
+                  onClick={clearSessionAndRedirect}
+                  sx={{ color: '#DC2626', borderRadius: 1.5, mx: 0.5 }}
+                >
                   <MdLogout size={18} style={{ marginRight: 10 }} />
-                  Sign Out
+                  {t('logout', 'Sign Out')}
                 </MenuItem>
               </Menu>
             </>
           ) : (
-            <Button component={Link} to="/login" variant="contained" color="primary" size="small">
-              Sign In
+            <Button component={Link} to="/login" variant="contained" color="primary" size="small" sx={{ fontWeight: 700 }}>
+              {t('signIn', 'Sign In')}
             </Button>
           )}
         </Box>

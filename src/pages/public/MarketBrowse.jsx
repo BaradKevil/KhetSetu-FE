@@ -15,11 +15,13 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { MdSearch, MdLocationOn, MdFilterList } from 'react-icons/md';
+import { MdSearch, MdLocationOn } from 'react-icons/md';
 import { useGetPublicMarketQuery, useGetCropsQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MarketBrowse = () => {
+  const { t, formatCurrency } = useLanguage();
   const [searchCrop, setSearchCrop] = useState('');
   const [selectedCropId, setSelectedCropId] = useState('');
   const [selectedState, setSelectedState] = useState('');
@@ -42,10 +44,10 @@ const MarketBrowse = () => {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
-            🌾 Explore Live Crop Mandi
+            {t('market.exploreLiveMandi', '🌾 Explore Live Crop Mandi')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Browse verified harvest listings with direct farmer pricing and escrow buyer protection.
+            {t('market.exploreLiveMandiSubtitle', 'Browse verified harvest listings with direct farmer pricing and escrow buyer protection.')}
           </Typography>
         </Box>
 
@@ -65,7 +67,7 @@ const MarketBrowse = () => {
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Search variety (e.g. Basmati, Lokwan)..."
+                placeholder={t('market.searchVarietyPlaceholder', 'Search variety (e.g. Basmati, Lokwan)...')}
                 value={searchCrop}
                 onChange={(e) => setSearchCrop(e.target.value)}
                 InputProps={{
@@ -83,11 +85,11 @@ const MarketBrowse = () => {
                 select
                 fullWidth
                 size="small"
-                label="Filter by Crop"
+                label={t('market.filterByCrop', 'Filter by Crop')}
                 value={selectedCropId}
                 onChange={(e) => setSelectedCropId(e.target.value)}
               >
-                <MenuItem value="">All Crops</MenuItem>
+                <MenuItem value="">{t('market.allCrops', 'All Crops')}</MenuItem>
                 {cropsList.map((crop) => (
                   <MenuItem key={crop.id} value={crop.id}>
                     {crop.name} ({crop.category})
@@ -101,11 +103,11 @@ const MarketBrowse = () => {
                 select
                 fullWidth
                 size="small"
-                label="State / Region"
+                label={t('market.stateRegion', 'State / Region')}
                 value={selectedState}
                 onChange={(e) => setSelectedState(e.target.value)}
               >
-                <MenuItem value="">All States</MenuItem>
+                <MenuItem value="">{t('market.allStates', 'All States')}</MenuItem>
                 <MenuItem value="Gujarat">Gujarat</MenuItem>
                 <MenuItem value="Punjab">Punjab</MenuItem>
                 <MenuItem value="Haryana">Haryana</MenuItem>
@@ -120,15 +122,15 @@ const MarketBrowse = () => {
         {/* Product Grid */}
         {isLoading ? (
           <Typography textAlign="center" py={8} color="text.secondary">
-            Loading verified crop listings...
+            {t('market.loadingListings', 'Loading verified crop listings...')}
           </Typography>
         ) : products.length === 0 ? (
           <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px solid #E2E8F0' }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
-              No listings matched your criteria
+              {t('market.noListingsCriteria', 'No listings matched your criteria')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Try clearing filters to see all available agricultural produce.
+              {t('market.clearFiltersHint', 'Try clearing filters to see all available agricultural produce.')}
             </Typography>
             <Button
               variant="outlined"
@@ -138,7 +140,7 @@ const MarketBrowse = () => {
                 setSelectedState('');
               }}
             >
-              Reset Filters
+              {t('market.resetFilters', 'Reset Filters')}
             </Button>
           </Paper>
         ) : (
@@ -171,7 +173,7 @@ const MarketBrowse = () => {
                     />
                     {item.is_organic && (
                       <Chip
-                        label="Organic"
+                        label={t('market.organicBadge', 'Organic')}
                         size="small"
                         color="success"
                         sx={{ position: 'absolute', top: 12, left: 12, fontWeight: 700 }}
@@ -200,7 +202,7 @@ const MarketBrowse = () => {
                       <Grid container spacing={1}>
                         <Grid item xs={6}>
                           <Typography variant="caption" color="text.secondary">
-                            Available
+                            {t('market.available', 'Available')}
                           </Typography>
                           <Typography variant="body2" fontWeight={700}>
                             {item.available_quantity} {item.unit}
@@ -208,7 +210,7 @@ const MarketBrowse = () => {
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="caption" color="text.secondary">
-                            Min Order
+                            {t('market.minOrder', 'Min Order')}
                           </Typography>
                           <Typography variant="body2" fontWeight={700}>
                             {item.min_order_quantity} {item.unit}
@@ -220,10 +222,10 @@ const MarketBrowse = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px solid #F1F5F9' }}>
                       <Box>
                         <Typography variant="caption" color="text.secondary">
-                          Escrow Price
+                          {t('market.escrowPrice', 'Escrow Price')}
                         </Typography>
                         <Typography variant="h6" fontWeight={800} color="#2E7D32">
-                          ₹{(item.price_per_unit_paise / 100).toFixed(0)}
+                          {formatCurrency(item.price_per_unit_paise, true)}
                           <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500 }}>/{item.unit}</span>
                         </Typography>
                       </Box>
@@ -235,7 +237,7 @@ const MarketBrowse = () => {
                         size="small"
                         sx={{ borderRadius: 2, px: 2 }}
                       >
-                        Buy Now
+                        {t('market.buyNow', 'Buy Now')}
                       </Button>
                     </Box>
                   </CardContent>

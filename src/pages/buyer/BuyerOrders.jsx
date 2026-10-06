@@ -20,11 +20,11 @@ import {
 } from '@mui/material';
 import { MdCheckCircle, MdTimeline } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useUpdateOrderStatusMutation } from '../../Api/Api';
+import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
-const orderSteps = ['Order Placed', 'Escrow Held', 'Accepted', 'Dispatched', 'Delivered & Released'];
-
 const BuyerOrders = () => {
+  const { t, formatCurrency, formatDate } = useLanguage();
   const { data: ordersData, isLoading } = useGetBuyerOrdersQuery();
   const updateStatusMutation = useUpdateOrderStatusMutation();
 
@@ -33,6 +33,14 @@ const BuyerOrders = () => {
 
   const orders = ordersData?.items || [];
 
+  const orderSteps = [
+    t('buyer.stepPlaced', 'Order Placed'),
+    t('buyer.stepEscrowHeld', 'Escrow Held'),
+    t('buyer.stepAccepted', 'Accepted'),
+    t('buyer.stepDispatched', 'Dispatched'),
+    t('buyer.stepDelivered', 'Delivered & Released'),
+  ];
+
   const handleConfirmDelivery = async (orderId) => {
     try {
       await updateStatusMutation.mutateAsync({
@@ -40,9 +48,9 @@ const BuyerOrders = () => {
         status: 'delivered',
         note: 'Buyer inspected produce and confirmed delivery. Escrow funds released to farmer.',
       });
-      toast.success('Delivery confirmed! Payment successfully released to the farmer.');
+      toast.success(t('buyer.deliveryConfirmedSuccess', 'Delivery confirmed! Payment successfully released to the farmer.'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error updating status.');
+      toast.error(err.response?.data?.message || t('errors.SOMETHING_WENT_WRONG', 'Error updating status.'));
     }
   };
 
@@ -62,10 +70,10 @@ const BuyerOrders = () => {
     <Box>
       <Box sx={{ mb: 3.5 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
-          📦 My Escrow Orders
+          {t('buyer.buyerOrdersTitle', '📦 My Escrow Orders')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Track real-time dispatch progress. Confirm delivery once goods arrive to release farmer payout.
+          {t('buyer.buyerOrdersSubtitle', 'Track real-time dispatch progress. Confirm delivery once goods arrive to release farmer payout.')}
         </Typography>
       </Box>
 
@@ -73,25 +81,25 @@ const BuyerOrders = () => {
         <Table>
           <TableHead sx={{ bgcolor: '#F8FAF9' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Order #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Farmer (Seller)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Produce Items</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Total Escrow (₹)</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Current Status</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('buyer.orderNumber', 'Order #')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.farmerSeller', 'Farmer (Seller)')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.cropAndVariety', 'Produce Items')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('buyer.totalEscrow', 'Total Escrow')}</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Current Status')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>{t('common.actions', 'Actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                  Loading orders...
+                  {t('common.loading', 'Loading orders...')}
                 </TableCell>
               </TableRow>
             ) : orders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">No orders placed yet.</Typography>
+                  <Typography color="text.secondary">{t('buyer.noPurchasesYet', 'No orders placed yet.')}</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -100,7 +108,7 @@ const BuyerOrders = () => {
                   <TableCell sx={{ fontWeight: 700 }}>#{o.order_number}</TableCell>
                   <TableCell>
                     <Typography variant="subtitle2" fontWeight={600}>
-                      {o.seller?.seller_profile?.full_name || 'Farmer Seller'}
+                      {o.seller?.seller_profile?.full_name || t('buyer.farmerLabel', 'Farmer Seller')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {o.seller?.seller_profile?.district}, {o.seller?.seller_profile?.state}
@@ -114,7 +122,7 @@ const BuyerOrders = () => {
                     ))}
                   </TableCell>
                   <TableCell sx={{ fontWeight: 800, color: '#0F172A' }}>
-                    ₹{(o.total_paise / 100).toLocaleString('en-IN')}
+                    {formatCurrency(o.total_paise, true)}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -141,7 +149,7 @@ const BuyerOrders = () => {
                         }}
                         startIcon={<MdTimeline />}
                       >
-                        Timeline
+                        {t('buyer.timeline', 'Timeline')}
                       </Button>
 
                       {o.status === 'dispatched' && (
@@ -152,7 +160,7 @@ const BuyerOrders = () => {
                           startIcon={<MdCheckCircle />}
                           onClick={() => handleConfirmDelivery(o.id)}
                         >
-                          Confirm & Release
+                          {t('buyer.confirmDelivery', 'Confirm & Release')}
                         </Button>
                       )}
                     </Box>
@@ -167,7 +175,7 @@ const BuyerOrders = () => {
       {/* Timeline Modal */}
       <Dialog open={timelineModalOpen} onClose={() => setTimelineModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800 }}>
-          Order Tracking: #{selectedOrder?.order_number}
+          {t('buyer.orderTracking', 'Order Tracking')}: #{selectedOrder?.order_number}
         </DialogTitle>
         <DialogContent dividers>
           {selectedOrder && (
@@ -181,7 +189,7 @@ const BuyerOrders = () => {
               </Stepper>
 
               <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                Audit Log Timeline Events:
+                {t('buyer.auditEvents', 'Audit Log Timeline Events')}:
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {selectedOrder.timeline?.map((event, idx) => (
@@ -191,7 +199,7 @@ const BuyerOrders = () => {
                         {event.status.toUpperCase()}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {new Date(event.timestamp).toLocaleString()}
+                        {formatDate(event.timestamp, { dateStyle: 'short', timeStyle: 'short' })}
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary">
@@ -204,7 +212,7 @@ const BuyerOrders = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setTimelineModalOpen(false)}>Close</Button>
+          <Button onClick={() => setTimelineModalOpen(false)}>{t('common.close', 'Close')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -1,11 +1,13 @@
 import { Box, Typography, Button, Paper } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MdLockOutline } from 'react-icons/md';
+import { useLanguage } from '../../context/LanguageContext';
 
 const NotAuthorized = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const errorMsg = searchParams.get('error') || 'You do not have permission to access this portal page.';
+  const { t } = useLanguage();
+  const errorMsg = searchParams.get('error') || t('admin.defaultRestrictedMsg', 'You do not have permission to access this portal page.');
 
   return (
     <Box
@@ -46,17 +48,17 @@ const NotAuthorized = () => {
           <MdLockOutline />
         </Box>
         <Typography variant="h5" fontWeight={700} gutterBottom>
-          Access Restricted
+          {t('admin.accessRestricted', 'Access Restricted')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
           {errorMsg}
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
           <Button variant="outlined" onClick={() => navigate(-1)}>
-            Go Back
+            {t('admin.goBack', 'Go Back')}
           </Button>
           <Button variant="contained" color="primary" onClick={() => navigate('/')}>
-            Return to Market
+            {t('admin.returnToMarket', 'Return to Market')}
           </Button>
         </Box>
       </Paper>

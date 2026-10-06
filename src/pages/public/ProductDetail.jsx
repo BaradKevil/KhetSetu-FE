@@ -23,16 +23,17 @@ import {
   MdVerified,
   MdSecurity,
   MdAgriculture,
-  MdLocalShipping,
-  MdAccountBalance,
 } from 'react-icons/md';
 import { useGetProductDetailsQuery, useCreateOrderMutation } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
+import { useLanguage } from '../../context/LanguageContext';
+import PhoneInput from '../../common/custom/PhoneInput';
 import { toast } from 'react-toastify';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, formatCurrency } = useLanguage();
   const { data: product, isLoading } = useGetProductDetailsQuery(id);
   const createOrderMutation = useCreateOrderMutation();
 
@@ -53,7 +54,9 @@ const ProductDetail = () => {
       <Box sx={{ minHeight: '100vh', bgcolor: '#F8FAF9' }}>
         <Navbar />
         <Container sx={{ py: 10, textAlign: 'center' }}>
-          <Typography color="text.secondary">Loading crop harvest specifications...</Typography>
+          <Typography color="text.secondary">
+            {t('market.specsLoading', 'Loading crop harvest specifications...')}
+          </Typography>
         </Container>
       </Box>
     );
@@ -64,16 +67,18 @@ const ProductDetail = () => {
       <Box sx={{ minHeight: '100vh', bgcolor: '#F8FAF9' }}>
         <Navbar />
         <Container sx={{ py: 10, textAlign: 'center' }}>
-          <Typography variant="h5" fontWeight={700}>Produce listing not found</Typography>
+          <Typography variant="h5" fontWeight={700}>
+            {t('market.produceNotFound', 'Produce listing not found')}
+          </Typography>
           <Button component={Link} to="/market" sx={{ mt: 2 }} variant="contained">
-            Back to Marketplace
+            {t('market.backToMarket', 'Back to Marketplace')}
           </Button>
         </Container>
       </Box>
     );
   }
 
-  const priceINR = (product.price_per_unit_paise / 100);
+  const priceINR = product.price_per_unit_paise / 100;
   const subtotal = Math.round(orderQty * priceINR);
   const buyerFee = Math.round(subtotal * 0.005);
   const totalPayable = subtotal + buyerFee;
@@ -81,7 +86,7 @@ const ProductDetail = () => {
   const handleOpenOrder = () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      toast.info('Please sign in or register to place an escrow order.');
+      toast.info(t('market.signInToOrder', 'Please sign in or register to place an escrow order.'));
       navigate('/login');
       return;
     }
@@ -96,11 +101,11 @@ const ProductDetail = () => {
         delivery_address: address,
         payment_method: 'sandbox',
       });
-      toast.success('Order placed successfully! Funds held securely in Escrow.');
+      toast.success(t('market.orderSuccess', 'Order placed successfully! Funds held securely in Escrow.'));
       setOrderModalOpen(false);
       navigate('/buyer/orders');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error creating order.');
+      toast.error(err.response?.data?.message || t('market.orderError', 'Error creating order.'));
     }
   };
 
@@ -145,12 +150,12 @@ const ProductDetail = () => {
                 <Box sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="subtitle1" fontWeight={700}>
-                      {product.seller?.seller_profile?.full_name || 'Farmer Seller'}
+                      {product.seller?.seller_profile?.full_name || t('market.farmerSeller', 'Farmer Seller')}
                     </Typography>
-                    <Chip label="Verified Farmer" size="small" color="success" icon={<MdVerified />} />
+                    <Chip label={t('market.verifiedFarmer', 'Verified Farmer')} size="small" color="success" icon={<MdVerified />} />
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    {product.seller?.seller_profile?.farm_name || 'Organic Farm'} • {product.pickup_district}, {product.pickup_state}
+                    {product.seller?.seller_profile?.farm_name || t('market.organicFarm', 'Organic Farm')} • {product.pickup_district}, {product.pickup_state}
                   </Typography>
                 </Box>
               </Box>
@@ -161,8 +166,8 @@ const ProductDetail = () => {
           <Grid item xs={12} md={6}>
             <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
               <Chip label={product.crop?.name} color="primary" size="small" />
-              <Chip label={`Grade: ${product.grade}`} variant="outlined" size="small" />
-              {product.is_organic && <Chip label="Certified Organic" color="success" size="small" />}
+              <Chip label={`${t('farmer.grade', 'Grade')}: ${product.grade}`} variant="outlined" size="small" />
+              {product.is_organic && <Chip label={t('market.certifiedOrganic', 'Certified Organic')} color="success" size="small" />}
             </Box>
 
             <Typography variant="h4" fontWeight={800} color="#0F172A" gutterBottom>
@@ -171,16 +176,16 @@ const ProductDetail = () => {
 
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 3 }}>
               <MdLocationOn size={18} color="#64748B" />
-              Village {product.pickup_village}, Taluka/District {product.pickup_district}, {product.pickup_state} (PIN {product.pickup_pincode})
+              {t('common.village', 'Village')} {product.pickup_village}, {product.pickup_district}, {product.pickup_state} ({t('common.pincode', 'PIN')} {product.pickup_pincode})
             </Typography>
 
             {/* Pricing Box */}
             <Paper elevation={0} sx={{ p: 3, bgcolor: '#FFFFFF', borderRadius: 3, border: '1px solid #E2E8F0', mb: 3 }}>
               <Typography variant="caption" color="text.secondary">
-                Guaranteed Escrow Rate
+                {t('market.guaranteedEscrowRate', 'Guaranteed Escrow Rate')}
               </Typography>
               <Typography variant="h3" fontWeight={800} color="#2E7D32">
-                ₹{priceINR.toFixed(0)}
+                {formatCurrency(product.price_per_unit_paise, true)}
                 <span style={{ fontSize: '1.1rem', color: '#64748B', fontWeight: 500 }}> / {product.unit}</span>
               </Typography>
 
@@ -189,7 +194,7 @@ const ProductDetail = () => {
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
-                    Total Quantity Available
+                    {t('market.totalQuantityAvailable', 'Total Quantity Available')}
                   </Typography>
                   <Typography variant="body1" fontWeight={700}>
                     {product.available_quantity} {product.unit}
@@ -197,7 +202,7 @@ const ProductDetail = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
-                    Minimum Order Quantity
+                    {t('market.minimumOrderQuantity', 'Minimum Order Quantity')}
                   </Typography>
                   <Typography variant="body1" fontWeight={700}>
                     {product.min_order_quantity} {product.unit}
@@ -205,18 +210,18 @@ const ProductDetail = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
-                    Moisture Content
+                    {t('market.moistureContent', 'Moisture Content')}
                   </Typography>
                   <Typography variant="body1" fontWeight={700}>
-                    {product.moisture_percentage ? `${product.moisture_percentage}%` : 'Standard'}
+                    {product.moisture_percentage ? `${product.moisture_percentage}%` : t('market.standardQuality', 'Standard')}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
-                    Packaging
+                    {t('market.packaging', 'Packaging')}
                   </Typography>
                   <Typography variant="body1" fontWeight={700}>
-                    {product.packaging_type || 'Jute Bags'}
+                    {product.packaging_type || t('market.juteBags', 'Jute Bags')}
                   </Typography>
                 </Grid>
               </Grid>
@@ -224,7 +229,8 @@ const ProductDetail = () => {
 
             {/* Escrow Guarantee Note */}
             <Alert severity="info" icon={<MdSecurity size={24} />} sx={{ mb: 3, borderRadius: 2.5 }}>
-              <strong>KhetSetu Escrow Guarantee:</strong> Your payment is held securely in the platform trust vault. The farmer is paid only after you inspect and confirm delivery.
+              <strong>{t('market.escrowGuaranteeTitle', 'KhetSetu Escrow Guarantee:')}</strong>{' '}
+              {t('market.escrowGuaranteeBody', 'Your payment is held securely in the platform trust vault. The farmer is paid only after you inspect and confirm delivery.')}
             </Alert>
 
             <Button
@@ -235,7 +241,7 @@ const ProductDetail = () => {
               onClick={handleOpenOrder}
               sx={{ py: 1.6, fontSize: '1.05rem', fontWeight: 700, borderRadius: 3 }}
             >
-              Order with Escrow Protection
+              {t('market.orderWithEscrow', 'Order with Escrow Protection')}
             </Button>
           </Grid>
         </Grid>
@@ -244,20 +250,20 @@ const ProductDetail = () => {
       {/* Checkout Dialog */}
       <Dialog open={orderModalOpen} onClose={() => setOrderModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800 }}>
-          Confirm Escrow Order
+          {t('market.confirmEscrowOrder', 'Confirm Escrow Order')}
         </DialogTitle>
         <DialogContent dividers>
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" fontWeight={700}>
-              Crop: {product.crop?.name} ({product.variety})
+              {t('market.cropLabel', 'Crop:')} {product.crop?.name} ({product.variety})
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Seller: {product.seller?.seller_profile?.full_name} • Rate: ₹{priceINR}/{product.unit}
+              {t('market.sellerLabel', 'Seller:')} {product.seller?.seller_profile?.full_name} • {t('market.rateLabel', 'Rate:')} {formatCurrency(product.price_per_unit_paise, true)}/{product.unit}
             </Typography>
           </Box>
 
           <TextField
-            label={`Quantity to Purchase (${product.unit})`}
+            label={t('market.quantityToPurchase', 'Quantity to Purchase ({{unit}})', { unit: product.unit })}
             type="number"
             fullWidth
             value={orderQty}
@@ -267,18 +273,18 @@ const ProductDetail = () => {
           />
 
           <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-            Delivery Location Details
+            {t('market.deliveryLocationDetails', 'Delivery Location Details')}
           </Typography>
           <TextField
-            label="Recipient Name / Business"
+            label={t('market.recipientName', 'Recipient Name / Business')}
             fullWidth
             size="small"
             value={address.recipient_name}
             onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
             sx={{ mb: 1.5 }}
           />
-          <TextField
-            label="Contact Phone"
+          <PhoneInput
+            label={t('market.contactPhone', 'Contact Phone')}
             fullWidth
             size="small"
             value={address.phone}
@@ -286,7 +292,7 @@ const ProductDetail = () => {
             sx={{ mb: 1.5 }}
           />
           <TextField
-            label="Delivery Address / Warehouse"
+            label={t('market.deliveryAddressWarehouse', 'Delivery Address / Warehouse')}
             fullWidth
             size="small"
             value={address.address_line}
@@ -296,29 +302,31 @@ const ProductDetail = () => {
 
           <Paper sx={{ p: 2, bgcolor: '#F8FAF9', borderRadius: 2, mt: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2">Produce Subtotal ({orderQty} {product.unit}):</Typography>
-              <Typography variant="body2" fontWeight={600}>₹{subtotal.toLocaleString('en-IN')}</Typography>
+              <Typography variant="body2">{t('market.produceSubtotal', 'Produce Subtotal ({{qty}} {{unit}}):', { qty: orderQty, unit: product.unit })}</Typography>
+              <Typography variant="body2" fontWeight={600}>{formatCurrency(subtotal * 100, true)}</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2">Escrow Platform Fee (0.5%):</Typography>
-              <Typography variant="body2" fontWeight={600}>₹{buyerFee.toLocaleString('en-IN')}</Typography>
+              <Typography variant="body2">{t('market.escrowPlatformFee', 'Escrow Platform Fee (0.5%):')}</Typography>
+              <Typography variant="body2" fontWeight={600}>{formatCurrency(buyerFee * 100, true)}</Typography>
             </Box>
             <Divider sx={{ my: 1 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="subtitle1" fontWeight={700}>Total Payable (Escrow Hold):</Typography>
-              <Typography variant="subtitle1" fontWeight={800} color="#2E7D32">₹{totalPayable.toLocaleString('en-IN')}</Typography>
+              <Typography variant="subtitle1" fontWeight={700}>{t('market.totalPayableEscrow', 'Total Payable (Escrow Hold):')}</Typography>
+              <Typography variant="subtitle1" fontWeight={800} color="#2E7D32">{formatCurrency(totalPayable * 100, true)}</Typography>
             </Box>
           </Paper>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={() => setOrderModalOpen(false)}>Cancel</Button>
+          <Button onClick={() => setOrderModalOpen(false)}>
+            {t('common.cancel', 'Cancel')}
+          </Button>
           <Button
             variant="contained"
             color="primary"
             onClick={handleConfirmOrder}
             disabled={createOrderMutation.isPending}
           >
-            {createOrderMutation.isPending ? 'Processing...' : 'Authorize Escrow Payment'}
+            {createOrderMutation.isPending ? t('market.processing', 'Processing...') : t('market.authorizePayment', 'Authorize Escrow Payment')}
           </Button>
         </DialogActions>
       </Dialog>

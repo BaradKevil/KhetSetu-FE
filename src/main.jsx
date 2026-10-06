@@ -7,6 +7,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 
+import { LanguageProvider } from './context/LanguageContext';
+
 const client = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,10 +21,12 @@ const client = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={client}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   </StrictMode>
 );

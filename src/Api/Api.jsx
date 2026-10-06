@@ -12,6 +12,7 @@ export const authApi = {
   sendOtp: (data) => apiClient.post('/auth/send-otp', data),
   verifyOtp: (data) => apiClient.post('/auth/verify-otp', data),
   getProfile: () => apiClient.get('/auth/profile'),
+  updateLanguage: (data) => apiClient.put('/auth/language', data),
   setup2FA: () => apiClient.post('/auth/2fa/setup'),
   verify2FA: (data) => apiClient.post('/auth/2fa/verify', data),
 };
@@ -20,6 +21,14 @@ export const useLoginMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data) => authApi.login(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+  });
+};
+
+export const useUpdateLanguageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => authApi.updateLanguage(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 };
