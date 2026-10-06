@@ -28,6 +28,7 @@ import { useGetProductDetailsQuery, useCreateOrderMutation } from '../../Api/Api
 import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
 import PhoneInput from '../../common/custom/PhoneInput';
+import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
 const ProductDetail = () => {
@@ -297,6 +298,40 @@ const ProductDetail = () => {
             size="small"
             value={address.address_line}
             onChange={(e) => setAddress({ ...address, address_line: e.target.value })}
+            sx={{ mb: 1.5 }}
+          />
+
+          <Box sx={{ mb: 1.5 }}>
+            <LocationSelector
+              size="small"
+              showVillage={false}
+              values={{
+                state: address.state,
+                district: address.district,
+                city: address.city,
+              }}
+              onChange={(loc) => {
+                setAddress((prev) => ({
+                  ...prev,
+                  state: loc.state,
+                  district: loc.district,
+                  city: loc.city,
+                }));
+              }}
+              labels={{
+                state: t('common.state', 'State'),
+                district: t('common.district', 'District'),
+                city: t('common.city', 'City / Taluka'),
+              }}
+            />
+          </Box>
+
+          <TextField
+            label={t('common.pincode', 'Pincode')}
+            fullWidth
+            size="small"
+            value={address.pincode}
+            onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
             sx={{ mb: 1.5 }}
           />
 

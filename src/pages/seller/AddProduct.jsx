@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useGetCropsQuery, useCreateProductMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
 const AddProduct = () => {
@@ -45,9 +46,10 @@ const AddProduct = () => {
     is_organic: false,
     packaging_type: '50kg Jute Bags',
     pickup_state: 'Gujarat',
-    pickup_district: 'Mehsana',
-    pickup_village: 'Alampur',
-    pickup_pincode: '382715',
+    pickup_district: 'Gir Somnath',
+    pickup_city: 'Kodinar',
+    pickup_village: 'Alidar',
+    pickup_pincode: '362725',
     images: ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80'],
   });
 
@@ -248,43 +250,41 @@ const AddProduct = () => {
               Step 3: Farm Pickup Location
             </Typography>
 
-            <Grid container spacing={2.5}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Village / Farm Name"
-                  value={formData.pickup_village}
-                  onChange={(e) => setFormData({ ...formData, pickup_village: e.target.value })}
-                />
-              </Grid>
+            <LocationSelector
+              values={{
+                state: formData.pickup_state,
+                district: formData.pickup_district,
+                city: formData.pickup_city,
+                village: formData.pickup_village,
+              }}
+              onChange={(loc) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  pickup_state: loc.state,
+                  pickup_district: loc.district,
+                  pickup_city: loc.city,
+                  pickup_village: loc.village,
+                }));
+              }}
+              showVillage={true}
+              required
+              labels={{
+                state: 'State',
+                district: 'District',
+                city: 'City / Taluka',
+                village: 'Village / Farm Name',
+              }}
+            />
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="District"
-                  value={formData.pickup_district}
-                  onChange={(e) => setFormData({ ...formData, pickup_district: e.target.value })}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="State"
-                  value={formData.pickup_state}
-                  onChange={(e) => setFormData({ ...formData, pickup_state: e.target.value })}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Pincode"
-                  value={formData.pickup_pincode}
-                  onChange={(e) => setFormData({ ...formData, pickup_pincode: e.target.value })}
-                />
-              </Grid>
-            </Grid>
+            <Box sx={{ mt: 2.5 }}>
+              <TextField
+                fullWidth
+                label="Pincode"
+                value={formData.pickup_pincode}
+                onChange={(e) => setFormData({ ...formData, pickup_pincode: e.target.value })}
+                InputProps={{ sx: { borderRadius: 2.5 } }}
+              />
+            </Box>
 
             <Alert severity="success" sx={{ mt: 3, borderRadius: 2.5 }}>
               Listing will be published instantly on the live marketplace. You can pause or adjust price anytime!

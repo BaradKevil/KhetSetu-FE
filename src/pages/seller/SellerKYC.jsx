@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Grid, TextField, Button, Chip } from '@mui/mate
 import { MdVerified } from 'react-icons/md';
 import { useGetProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
 const SellerKYC = () => {
@@ -15,6 +16,13 @@ const SellerKYC = () => {
     ifsc: 'SBIN0001248',
     bank_name: 'State Bank of India',
     holder_name: profile.full_name || 'Rameshwar Patel',
+  });
+
+  const [farmLocation, setFarmLocation] = useState({
+    state: profile.state || 'Gujarat',
+    district: profile.district || 'Gir Somnath',
+    city: profile.sub_district || 'Kodinar',
+    village: profile.village || 'Alidar',
   });
 
   const handleSaveBank = () => {
@@ -64,16 +72,20 @@ const SellerKYC = () => {
           <Grid item xs={12} sm={6}>
             <TextField label={t('farmer.farmName', 'Farm / Krishi Kendra Name')} fullWidth defaultValue={profile.farm_name || 'Patel Organic Krishi Farm'} />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField label={t('common.village', 'Village')} fullWidth defaultValue={profile.village || 'Alampur'} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField label={t('common.district', 'District')} fullWidth defaultValue={profile.district || 'Mehsana'} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField label={t('common.state', 'State')} fullWidth defaultValue={profile.state || 'Gujarat'} />
-          </Grid>
         </Grid>
+        <Box sx={{ mt: 2.5 }}>
+          <LocationSelector
+            values={farmLocation}
+            onChange={(loc) => setFarmLocation(loc)}
+            showVillage={true}
+            labels={{
+              state: t('common.state', 'State'),
+              district: t('common.district', 'District'),
+              city: t('common.city', 'City / Taluka'),
+              village: t('common.village', 'Village'),
+            }}
+          />
+        </Box>
       </Paper>
 
       {/* Bank Account */}

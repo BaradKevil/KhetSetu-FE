@@ -27,6 +27,7 @@ import { unwrap } from '../../Api/apiUtils';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSelector from '../../common/custom/LanguageSelector';
 import PhoneInput from '../../common/custom/PhoneInput';
+import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
 const UI_TEXT = {
@@ -43,8 +44,9 @@ const UI_TEXT = {
     phone: 'Mobile Number',
     phonePlaceholder: 'Enter 10-digit mobile number',
     state: 'State',
-    district: 'District / City',
-    village: 'Village / Taluka (Optional)',
+    district: 'District',
+    city: 'City / Taluka',
+    village: 'Village',
     buyerType: 'Account Type',
     individualBuyer: 'Individual (Personal / Household Use)',
     tradeBuyer: 'Trader / Merchant',
@@ -71,8 +73,9 @@ const UI_TEXT = {
     phone: 'मोबाइल नंबर',
     phonePlaceholder: '10-अंकीय मोबाइल नंबर दर्ज करें',
     state: 'राज्य',
-    district: 'जिला / शहर',
-    village: 'गाँव / तालुका (वैकल्पिक)',
+    district: 'ज़िला',
+    city: 'शहर / तालुका',
+    village: 'गाँव',
     buyerType: 'खाता प्रकार',
     individualBuyer: 'व्यक्तिगत (घरेलू उपयोग)',
     tradeBuyer: 'व्यापारी / आढ़ती',
@@ -99,8 +102,9 @@ const UI_TEXT = {
     phone: 'મોબાઇલ નંબર',
     phonePlaceholder: '10-અંકનો મોબાઈલ નંબર દાખલ કરો',
     state: 'રાજ્ય',
-    district: 'જિલ્લો / શહેર',
-    village: 'ગામ / તાલુકો (વૈકલ્પિક)',
+    district: 'જિલ્લો',
+    city: 'શહેર / તાલુકો',
+    village: 'ગામ',
     buyerType: 'ખાતાનો પ્રકાર',
     individualBuyer: 'વ્યક્તિગત (ઘર વપરાશ માટે)',
     tradeBuyer: 'વેપારી / દલાલ',
@@ -139,8 +143,9 @@ const Register = () => {
     phone: searchParams.get('phone') || '',
     password: '',
     state: 'Gujarat',
-    district: 'Mehsana',
-    village: 'Alampur',
+    district: 'Gir Somnath',
+    city: 'Kodinar',
+    village: 'Alidar',
     buyer_type: 'individual',
     company_name: '',
   });
@@ -183,6 +188,7 @@ const Register = () => {
       if (role === 'seller') {
         if (formData.state?.trim()) payload.state = formData.state.trim();
         if (formData.district?.trim()) payload.district = formData.district.trim();
+        if (formData.city?.trim()) payload.sub_district = formData.city.trim();
         if (formData.village?.trim()) payload.village = formData.village.trim();
       } else {
         payload.buyer_type = formData.buyer_type || 'individual';
@@ -192,6 +198,7 @@ const Register = () => {
         }
         if (formData.state?.trim()) payload.state = formData.state.trim();
         if (formData.district?.trim()) payload.district = formData.district.trim();
+        if (formData.city?.trim()) payload.sub_district = formData.city.trim();
       }
 
       const res = await registerMutation.mutateAsync(payload);
@@ -201,7 +208,7 @@ const Register = () => {
         localStorage.setItem('accessToken', authData.accessToken);
         localStorage.setItem('refreshToken', authData.refreshToken);
         localStorage.setItem('role', authData.user?.role || role);
-        localStorage.setItem('phone', authData.user?.phone || cleanPhone);
+        localStorage.setItem('phone', authData.user?.phone || fullPhone);
         localStorage.setItem('fullName', authData.user?.full_name || formData.full_name);
         localStorage.setItem('profilePhoto', authData.user?.profile_photo || '');
         setLang(lang);
@@ -365,50 +372,25 @@ const Register = () => {
             />
           </Box>
 
-          {/* Location fields */}
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.state}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.district}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.district}
-                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Farmer Specific: Village */}
-          {role === 'seller' && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.village}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.village}
-                onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                placeholder="e.g. Alampur"
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Box>
-          )}
+          {/* Cascading Location Selector (State -> District -> City / Taluka -> Village) */}
+          <Box sx={{ mb: 2 }}>
+            <LocationSelector
+              values={{
+                state: formData.state,
+                district: formData.district,
+                city: formData.city,
+                village: formData.village,
+              }}
+              onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
+              showVillage={role === 'seller'}
+              labels={{
+                state: t.state,
+                district: t.district,
+                city: t.city,
+                village: t.village,
+              }}
+            />
+          </Box>
 
           {/* Buyer Specific: Individual vs Business (Company NOT required) */}
           {role === 'buyer' && (
