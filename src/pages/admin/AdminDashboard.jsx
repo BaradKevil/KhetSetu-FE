@@ -1,4 +1,5 @@
-import { Box, Typography, Grid, Paper, Chip } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Grid, Paper, Chip, Alert, Button } from '@mui/material';
 import {
   MdAdminPanelSettings,
   MdAccountBalanceWallet,
@@ -10,6 +11,7 @@ import { useGetAdminMetricsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { t, formatCurrency } = useLanguage();
   const { data: metrics } = useGetAdminMetricsQuery();
 
@@ -30,6 +32,33 @@ const AdminDashboard = () => {
           {t('admin.controlTowerSubtitle', 'Monitor Gross Merchandise Value (GMV), escrow liquidity, KYC queues, and immutable accounting ledgers.')}
         </Typography>
       </Box>
+
+      {/* Change Requests Alert Banner */}
+      {metrics?.pendingChangeRequests > 0 && (
+        <Alert
+          severity="warning"
+          icon={<MdWarning size={24} />}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => navigate('/admin/kyc?tab=change_requests')}
+              sx={{ fontWeight: 700 }}
+            >
+              {t('admin.reviewChangeRequestsBtn', 'Review Change Requests')} ({metrics.pendingChangeRequests})
+            </Button>
+          }
+          sx={{ mb: 4, borderRadius: 3, border: '1px solid #FCD34D', bgcolor: '#FFFBEB' }}
+        >
+          <strong>
+            {metrics.pendingChangeRequests}{' '}
+            {t(
+              'admin.changeRequestAlert',
+              'farmer(s) have requested profile details change / bank account unlock.'
+            )}
+          </strong>
+        </Alert>
+      )}
 
       {/* Metrics Row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>

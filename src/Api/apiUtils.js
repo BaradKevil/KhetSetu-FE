@@ -10,6 +10,8 @@ export const unwrapPaginated = (res) => {
   const payload = res?.data?.data;
   const items = Array.isArray(payload?.data)
     ? payload.data
+    : Array.isArray(payload?.items)
+    ? payload.items
     : Array.isArray(payload?.rows)
     ? payload.rows
     : Array.isArray(payload)
@@ -25,6 +27,7 @@ export const unwrapPaginated = (res) => {
           totalCount: payload.pagination.totalCount ?? items.length,
         }
       : { currentPage: 1, totalPages: 1, totalCount: items.length },
+    counts: payload?.counts ?? null,
   };
 };
 

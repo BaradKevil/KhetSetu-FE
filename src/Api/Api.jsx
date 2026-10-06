@@ -193,6 +193,7 @@ export const useUpdateOrderStatusMutation = () => {
 export const sellerApi = {
   getProfile: () => apiClient.get('/seller/profile'),
   submitKYC: (data) => apiClient.put('/seller/kyc', data),
+  requestUnlock: (data) => apiClient.post('/seller/kyc/request-unlock', data),
   uploadDocument: (formData) =>
     apiClient.post('/seller/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -219,6 +220,18 @@ export const useSubmitKYCMutation = () => {
   });
 };
 
+export const useRequestUnlockMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => sellerApi.requestUnlock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
 export const useUploadDocumentMutation = () => {
   return useMutation({
     mutationFn: async (file) => {
@@ -238,9 +251,37 @@ export const adminApi = {
   getKYCQueue: (params) => apiClient.get('/admin/kyc/queue', { params }),
   getKYCDetails: (sellerId) => apiClient.get(`/admin/kyc/${sellerId}`),
   moderateKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/moderate`, data),
+  unlockKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/unlock`, data),
+  rejectUnlockKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/reject-unlock`, data),
   getLedger: (params) => apiClient.get('/admin/finance/ledger', { params }),
   getPayouts: (params) => apiClient.get('/admin/finance/payouts', { params }),
   getAuditLogs: (params) => apiClient.get('/admin/audit-logs', { params }),
+};
+
+export const useUnlockKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sellerId, ...data }) => adminApi.unlockKYC(sellerId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useRejectUnlockKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sellerId, ...data }) => adminApi.rejectUnlockKYC(sellerId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
 };
 
 export const useGetKYCDetailsQuery = (sellerId) => {

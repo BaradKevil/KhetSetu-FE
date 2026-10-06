@@ -32,8 +32,15 @@ import {
   MdDescription,
   MdZoomIn,
   MdClose,
+  MdLockOpen,
+  MdWarning,
 } from 'react-icons/md';
-import { useGetKYCDetailsQuery, useModerateKYCMutation } from '../../Api/Api';
+import {
+  useGetKYCDetailsQuery,
+  useModerateKYCMutation,
+  useUnlockKYCMutation,
+  useRejectUnlockKYCMutation,
+} from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
@@ -55,10 +62,16 @@ const AdminKYCDetail = () => {
 
   const { data: profile, isLoading, error } = useGetKYCDetailsQuery(sellerId);
   const moderateKYCMutation = useModerateKYCMutation();
+  const unlockKYCMutation = useUnlockKYCMutation();
+  const rejectUnlockMutation = useRejectUnlockKYCMutation();
 
   const [previewImage, setPreviewImage] = useState(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
+  const [unlockReason, setUnlockReason] = useState('');
+  const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
 
   const documents = profile?.kyc_documents || {};
   const aadhaarDoc = documents.aadhaar || null;
@@ -89,6 +102,34 @@ const AdminKYCDetail = () => {
       setRejectModalOpen(false);
     } catch {
       toast.error(t('admin.kycUpdateError', 'Error updating KYC status.'));
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await unlockKYCMutation.mutateAsync({
+        sellerId: Number(sellerId),
+        reason: unlockReason || 'Unlocked by officer to allow bank/document updates.',
+      });
+      toast.success(t('admin.unlockSuccess', 'Farmer profile unlocked. Farmer can now edit and resubmit their details.'));
+      setUnlockModalOpen(false);
+      setUnlockReason('');
+    } catch {
+      toast.error('Error unlocking farmer profile.');
+    }
+  };
+
+  const handleDeclineUnlock = async () => {
+    try {
+      await rejectUnlockMutation.mutateAsync({
+        sellerId: Number(sellerId),
+        reason: declineReason || 'Change request declined by administrative officer.',
+      });
+      toast.info(t('admin.declineSuccess', 'Farmer change request declined.'));
+      setDeclineModalOpen(false);
+      setDeclineReason('');
+    } catch {
+      toast.error('Error declining change request.');
     }
   };
 
@@ -140,6 +181,17 @@ const AdminKYCDetail = () => {
               sx={{ fontWeight: 700, px: 2.5 }}
             >
               {t('admin.approveKycBtn', 'Approve & Issue Verified Badge')}
+            </Button>
+          )}
+          {isVerified && (
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<MdLockOpen />}
+              onClick={() => setUnlockModalOpen(true)}
+              sx={{ fontWeight: 700, px: 2.5 }}
+            >
+              {t('admin.unlockFarmerBtn', 'Unlock Profile for Updates')}
             </Button>
           )}
           {!isRejected && (
@@ -208,6 +260,97 @@ const AdminKYCDetail = () => {
           </Typography>
         </Box>
       </Paper>
+
+      {/* Active Pending Change / Unlock Request Banner */}
+      {profile.kyc_documents?.unlock_request?.status === 'pending' && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3.5,
+            borderRadius: 3.5,
+            bgcolor: '#FFFBEB',
+            border: '2px solid #FCD34D',
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ p: 1.2, borderRadius: 2, bgcolor: '#FEF3C7', color: '#B45309' }}>
+                <MdWarning size={28} />
+              </Box>
+              <Box>
+                <Typography variant="h6" fontWeight={800} color="#92400E">
+                  {t('admin.changeRequestPendingTitle', '🔔 Farmer Requested Profile Details Change')}
+                </Typography>
+                <Typography variant="body2" color="#B45309">
+                  {t('admin.changeRequestSubmittedOn', 'Submitted on')}:{' '}
+                  {new Date(profile.kyc_documents.unlock_request.requested_at).toLocaleString()}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
+                variant="contained"
+                color="warning"
+                startIcon={<MdLockOpen />}
+                onClick={() => {
+                  setUnlockReason(profile.kyc_documents?.unlock_request?.reason || '');
+                  setUnlockModalOpen(true);
+                }}
+                sx={{ fontWeight: 700 }}
+              >
+                {t('admin.approveAndUnlockBtn', 'Approve & Unlock Profile')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<MdCancel />}
+                onClick={() => setDeclineModalOpen(true)}
+                sx={{ fontWeight: 700 }}
+              >
+                {t('admin.declineChangeRequestBtn', 'Decline Request')}
+              </Button>
+            </Box>
+          </Box>
+
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed #FDE68A' }}>
+            <Typography variant="caption" color="text.secondary" fontWeight={700} display="block">
+              {t('admin.farmerExplanationLabel', 'FARMER EXPLANATION / REASON')}:
+            </Typography>
+            <Paper elevation={0} sx={{ p: 1.5, mt: 0.5, bgcolor: '#FFFFFF', borderRadius: 2, border: '1px solid #FDE68A' }}>
+              <Typography variant="body1" fontWeight={600} color="#0F172A">
+                "{profile.kyc_documents.unlock_request.reason}"
+              </Typography>
+            </Paper>
+
+            {profile.kyc_documents.unlock_request.requested_fields && (
+              <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                  {t('admin.requestedFieldsLabel', 'REQUESTED CHANGE CATEGORIES')}:
+                </Typography>
+                {profile.kyc_documents.unlock_request.requested_fields.map((f) => (
+                  <Chip
+                    key={f}
+                    label={f.replace(/_/g, ' ').toUpperCase()}
+                    size="small"
+                    color="warning"
+                    sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* Previously Declined Change Request Notice */}
+      {profile.kyc_documents?.unlock_request?.status === 'rejected' && (
+        <Alert severity="info" sx={{ mb: 3.5, borderRadius: 3, fontWeight: 500 }}>
+          <strong>{t('admin.changeRequestDeclinedNotice', 'Previous change request was declined')}:</strong>{' '}
+          {profile.kyc_documents.unlock_request.rejection_reason || 'Declined by administrative officer.'}
+        </Alert>
+      )}
 
       {/* Previous Rejection Banner (if any) */}
       {isRejected && profile.kyc_rejection_reason && (
@@ -839,6 +982,78 @@ const AdminKYCDetail = () => {
           <Button onClick={() => setRejectModalOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
           <Button variant="contained" color="error" onClick={handleReject}>
             {t('admin.submitRejection', 'Confirm Rejection')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Unlock for Updates Modal */}
+      <Dialog open={unlockModalOpen} onClose={() => setUnlockModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          {t('admin.unlockFarmerTitle', 'Unlock Profile for Information Updates')}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t(
+              'admin.unlockExplanation',
+              'Unlocking this profile allows the farmer to edit their bank account and documents again. The KYC badge will be temporarily paused until the farmer re-submits and it is approved.'
+            )}
+          </Typography>
+
+          <TextField
+            label={t('admin.unlockReasonLabel', 'Officer Note / Reason for Unlock')}
+            fullWidth
+            multiline
+            rows={3}
+            value={unlockReason}
+            onChange={(e) => setUnlockReason(e.target.value)}
+            placeholder={t('admin.unlockReasonPlaceholder', 'e.g. Farmer requested bank account correction.')}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setUnlockModalOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleUnlock}
+            disabled={unlockKYCMutation.isPending}
+            startIcon={unlockKYCMutation.isPending ? <CircularProgress size={16} /> : <MdLockOpen />}
+            sx={{ fontWeight: 700 }}
+          >
+            {t('admin.confirmUnlockBtn', 'Confirm & Unlock Profile')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Decline Change Request Modal */}
+      <Dialog open={declineModalOpen} onClose={() => setDeclineModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          {t('admin.declineChangeRequestTitle', 'Decline Farmer Change Request')}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Provide an explanation for declining the farmer's request. The profile will remain verified and locked.
+          </Typography>
+
+          <TextField
+            label={t('admin.declineReasonLabel', 'Explanation / Reason for Declining')}
+            fullWidth
+            multiline
+            rows={3}
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+            placeholder={t('admin.declineReasonPlaceholder', 'e.g. Bank details already match official registry.')}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeclineModalOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeclineUnlock}
+            disabled={rejectUnlockMutation.isPending}
+            sx={{ fontWeight: 700 }}
+          >
+            {t('admin.confirmDeclineBtn', 'Confirm & Decline Request')}
           </Button>
         </DialogActions>
       </Dialog>
