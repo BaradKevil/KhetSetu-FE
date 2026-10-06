@@ -103,13 +103,14 @@ const Login = () => {
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
-    const cleanPhone = phone.trim();
-    if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 10) {
+    const cleanDigits = phone.replace(/\D/g, '').slice(-10);
+    if (!cleanDigits || cleanDigits.length < 10) {
       toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
+    const fullPhone = `+91${cleanDigits}`;
     try {
-      const res = await sendOtpMutation.mutateAsync({ phone: cleanPhone });
+      const res = await sendOtpMutation.mutateAsync({ phone: fullPhone });
       setOtpSent(true);
       setResendCooldown(30);
       toast.success(res.data?.message || res.message || 'OTP sent! Test OTP is 123456');
@@ -126,9 +127,12 @@ const Login = () => {
       return;
     }
 
+    const cleanDigits = phone.replace(/\D/g, '').slice(-10);
+    const fullPhone = `+91${cleanDigits}`;
+
     try {
       const res = await verifyOtpMutation.mutateAsync({
-        phone: phone.trim(),
+        phone: fullPhone,
         otp: cleanOtp,
       });
 
@@ -235,7 +239,7 @@ const Login = () => {
         </Box>
 
         {/* Main Phone Input Form */}
-        <Box component="form" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
+        <Box component="form" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} noValidate>
           <Box sx={{ mb: 2.5 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.8, display: 'block' }}>
               {t.phoneLabel}

@@ -155,11 +155,12 @@ const Register = () => {
       return;
     }
 
-    const cleanPhone = formData.phone.trim();
-    if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 10) {
+    const cleanDigits = formData.phone.replace(/\D/g, '').slice(-10);
+    if (!cleanDigits || cleanDigits.length < 10) {
       toast.error('Please provide a valid 10-digit mobile number.');
       return;
     }
+    const fullPhone = `+91${cleanDigits}`;
 
     if (!acceptedTerms) {
       toast.error('Please accept the Terms of Service to continue.');
@@ -171,7 +172,7 @@ const Register = () => {
       const payload = {
         role,
         full_name: formData.full_name.trim(),
-        phone: cleanPhone,
+        phone: fullPhone,
         preferred_language: lang,
       };
 
@@ -333,7 +334,7 @@ const Register = () => {
         </Grid>
 
         {/* User-Friendly Form */}
-        <Box component="form" onSubmit={handleRegister}>
+        <Box component="form" onSubmit={handleRegister} noValidate>
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
               {t.fullName} *
