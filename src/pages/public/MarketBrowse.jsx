@@ -125,23 +125,55 @@ const MarketBrowse = () => {
             {t('market.loadingListings', 'Loading verified crop listings...')}
           </Typography>
         ) : products.length === 0 ? (
-          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px solid #E2E8F0' }}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>
-              {t('market.noListingsCriteria', 'No listings matched your criteria')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              {t('market.clearFiltersHint', 'Try clearing filters to see all available agricultural produce.')}
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearchCrop('');
-                setSelectedCropId('');
-                setSelectedState('');
+          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: '#F8FAF9',
+                border: '2px dashed #CBD5E1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+                fontSize: 32,
               }}
             >
-              {t('market.resetFilters', 'Reset Filters')}
-            </Button>
+              🌾
+            </Box>
+            <Typography variant="h5" fontWeight={800} color="#0F172A" gutterBottom>
+              {t('market.noProductFound', 'No product found')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 460, mx: 'auto', lineHeight: 1.6 }}>
+              {searchCrop || selectedCropId || selectedState
+                ? t('market.noFilteredProduce', 'No products matched your search or filter criteria. Try resetting filters.')
+                : t('market.noLiveProduce', 'Currently there are no active crop listings available in the marketplace. Verified farmers can list crops directly.')}
+            </Typography>
+            {searchCrop || selectedCropId || selectedState ? (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => {
+                  setSearchCrop('');
+                  setSelectedCropId('');
+                  setSelectedState('');
+                }}
+              >
+                {t('market.resetFilters', 'Reset Filters')}
+              </Button>
+            ) : (
+              <Button
+                component={Link}
+                to="/register?role=seller"
+                variant="contained"
+                color="primary"
+                sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
+              >
+                {t('market.registerAsFarmer', 'Register as Farmer to List Crops')}
+              </Button>
+            )}
           </Paper>
         ) : (
           <Grid container spacing={3}>
