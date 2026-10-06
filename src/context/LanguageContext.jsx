@@ -15,12 +15,19 @@ export const LanguageProvider = ({ children }) => {
     return saved === 'hi' || saved === 'gu' || saved === 'en' ? saved : 'en';
   });
 
+  const [hasUserManuallyChosen, setHasUserManuallyChosen] = useState(false);
+
   const updateLanguageMutation = useUpdateLanguageMutation();
   const { data: userProfile } = useGetProfileQuery();
 
   // If user profile is loaded from DB and has an explicit preferred_language, sync it
   useEffect(() => {
-    if (userProfile?.preferred_language) {
+    const isAuthPage =
+      typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/register') ||
+        window.location.pathname.startsWith('/login'));
+
+    if (!hasUserManuallyChosen && !isAuthPage && userProfile?.preferred_language) {
       const dbLang = userProfile.preferred_language;
       if (['en', 'hi', 'gu'].includes(dbLang) && dbLang !== language) {
         setLanguageState(dbLang);
@@ -29,7 +36,7 @@ export const LanguageProvider = ({ children }) => {
         document.documentElement.lang = dbLang;
       }
     }
-  }, [userProfile]);
+  }, [userProfile, hasUserManuallyChosen, language]);
 
   // Keep HTML root lang tag updated
   useEffect(() => {
@@ -43,15 +50,22 @@ export const LanguageProvider = ({ children }) => {
     async (newLang) => {
       if (!['en', 'hi', 'gu'].includes(newLang)) return;
 
+      setHasUserManuallyChosen(true);
+
       // 1. Immediately update local state & DOM
       setLanguageState(newLang);
       localStorage.setItem('khetsetu_language', newLang);
       localStorage.setItem('preferredLanguage', newLang);
       document.documentElement.lang = newLang;
 
-      // 2. If user is authenticated, persist in MySQL database asynchronously
+      // 2. If user is authenticated and not on register/login, persist in MySQL database asynchronously
+      const isAuthPage =
+        typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/register') ||
+          window.location.pathname.startsWith('/login'));
+
       const token = localStorage.getItem('accessToken');
-      if (token) {
+      if (token && !isAuthPage) {
         try {
           await updateLanguageMutation.mutateAsync({ language: newLang });
         } catch (err) {

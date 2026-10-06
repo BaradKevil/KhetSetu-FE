@@ -167,13 +167,23 @@ const Register = () => {
     }
   }, [searchParams]);
 
-  // If query parameter specifies language, set it globally if valid
+  // Initialize language once from query parameter on initial mount if provided
   useEffect(() => {
     const paramLang = searchParams.get('lang');
-    if (paramLang && (paramLang === 'en' || paramLang === 'hi' || paramLang === 'gu') && paramLang !== lang) {
+    if (paramLang && (paramLang === 'en' || paramLang === 'hi' || paramLang === 'gu')) {
       setLang(paramLang);
     }
-  }, [searchParams, lang, setLang]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep URL query param in sync with currently selected language without triggering resets
+  useEffect(() => {
+    if (searchParams.get('lang') !== lang) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('lang', lang);
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [lang, searchParams, setSearchParams]);
 
   const [acceptedTerms, setAcceptedTerms] = useState(true);
 
@@ -614,6 +624,7 @@ const Register = () => {
                 selectStateFirst: t.selectStateFirst,
                 selectDistrictFirst: t.selectDistrictFirst,
                 selectCityFirst: t.selectCityFirst,
+                lang: lang,
               }}
             />
           </Box>

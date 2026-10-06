@@ -6,12 +6,16 @@ import {
   MenuItem,
   Button,
 } from '@mui/material';
+import { toast } from 'react-toastify';
+import { useLanguage } from '../../context/LanguageContext';
 import {
-  getStates,
-  getDistricts,
-  getCities,
-  getVillages,
-} from '../../data/locationsData';
+  getLocationLabel,
+  toCanonicalLocation,
+  getLocalizedStates,
+  getLocalizedDistricts,
+  getLocalizedCities,
+  getLocalizedVillages,
+} from '../../data/locationsI18n';
 
 const CUSTOM_VILLAGE_KEY = '__OTHER_CUSTOM_VILLAGE__';
 
@@ -64,6 +68,7 @@ const menuStyleProps = {
 /**
  * Reusable Cascading Location Selector
  * Hierarchy: State -> District -> City / Taluka -> Village
+ * Multilingual: English, Gujarati, Hindi
  *
  * @param {object} values - { state, district, city, village }
  * @param {function} onChange - Callback receiving updated { state, district, city, village }
@@ -87,36 +92,120 @@ export const LocationSelector = ({
     village: 'Village',
   },
 }) => {
-  const currentState = values?.state || '';
-  const currentDistrict = values?.district || '';
-  const currentCity = values?.city || '';
+  // Read current active language from context (default 'en')
+  const { language: contextLang } = useLanguage?.() || { language: 'en' };
+  const lang = labels?.lang || contextLang || 'en';
+
+  const currentState = toCanonicalLocation(values?.state || '');
+  const currentDistrict = toCanonicalLocation(values?.district || '');
+  const currentCity = toCanonicalLocation(values?.city || '');
   const currentVillage = values?.village || '';
 
-  const statesList = useMemo(() => getStates(), []);
-  const districtsList = useMemo(() => (currentState ? getDistricts(currentState) : []), [currentState]);
-  const citiesList = useMemo(() => (currentState && currentDistrict ? getCities(currentState, currentDistrict) : []), [currentState, currentDistrict]);
-  const villagesList = useMemo(() => (currentState && currentDistrict && currentCity ? getVillages(currentState, currentDistrict, currentCity) : []), [currentState, currentDistrict, currentCity]);
+  // Localized list options based on user language
+  const statesList = useMemo(() => getLocalizedStates(lang), [lang]);
+  const districtsList = useMemo(
+    () => (currentState ? getLocalizedDistricts(currentState, lang) : []),
+    [currentState, lang]
+  );
+  const citiesList = useMemo(
+    () => (currentState && currentDistrict ? getLocalizedCities(currentState, currentDistrict, lang) : []),
+    [currentState, currentDistrict, lang]
+  );
+  const villagesList = useMemo(
+    () => (currentState && currentDistrict && currentCity ? getLocalizedVillages(currentState, currentDistrict, currentCity, lang) : []),
+    [currentState, currentDistrict, currentCity, lang]
+  );
 
   // Dynamic placeholders based on hierarchy progress
-  const statePlaceholder = labels.selectState || 'Select State';
+  const statePlaceholder = labels.selectState || (lang === 'gu' ? 'રાજ્ય પસંદ કરો' : lang === 'hi' ? 'राज्य चुनें' : 'Select State');
   const districtPlaceholder = currentState
-    ? (labels.selectDistrict || 'Select District')
-    : (labels.selectStateFirst || 'Select State first');
+    ? (labels.selectDistrict || (lang === 'gu' ? 'જિલ્લો પસંદ કરો' : lang === 'hi' ? 'ज़िला चुनें' : 'Select District'))
+    : (labels.selectStateFirst || (lang === 'gu' ? 'પહેલા રાજ્ય પસંદ કરો' : lang === 'hi' ? 'पहले राज्य चुनें' : 'Select State first'));
   const cityPlaceholder = currentDistrict
-    ? (labels.selectCity || 'Select City / Taluka')
-    : (currentState ? (labels.selectDistrictFirst || 'Select District first') : (labels.selectStateFirst || 'Select State first'));
+    ? (labels.selectCity || (lang === 'gu' ? 'શહેર / તાલુકો પસંદ કરો' : lang === 'hi' ? 'शहर / तालुका चुनें' : 'Select City / Taluka'))
+    : (currentState
+        ? (labels.selectDistrictFirst || (lang === 'gu' ? 'પહેલા જિલ્લો પસંદ કરો' : lang === 'hi' ? 'पहले ज़िला चुनें' : 'Select District first'))
+        : (labels.selectStateFirst || (lang === 'gu' ? 'પહેલા રાજ્ય પસંદ કરો' : lang === 'hi' ? 'पहले राज्य चुनें' : 'Select State first')));
   const villagePlaceholder = currentCity
-    ? (labels.selectVillage || 'Select Village')
-    : (currentDistrict ? (labels.selectCityFirst || 'Select City first') : (labels.selectDistrictFirst || 'Select District first'));
+    ? (labels.selectVillage || (lang === 'gu' ? 'ગામ પસંદ કરો' : lang === 'hi' ? 'गाँव चुनें' : 'Select Village'))
+    : (currentDistrict
+        ? (labels.selectCityFirst || (lang === 'gu' ? 'પહેલા શહેર / તાલુકો પસંદ કરો' : lang === 'hi' ? 'पहले शहर / तालुका चुनें' : 'Select City first'))
+        : (labels.selectDistrictFirst || (lang === 'gu' ? 'પહેલા જિલ્લો પસંદ કરો' : lang === 'hi' ? 'पहले ज़िला चुनें' : 'Select District first')));
+
+  // Disabled states
+  const isDistrictDisabled = disabled || !currentState || !districtsList.length;
+  const isCityDisabled = disabled || !currentDistrict || !citiesList.length;
+  const isVillageDisabled = disabled || !currentCity || !villagesList.length;
+
+  // Intercept click on disabled/prerequisite fields to show helpful warning message
+  const handleDistrictDisabledClick = () => {
+    if (!currentState) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले राज्य चुनें'
+          : 'Please select State first';
+      toast.warn(msg, { toastId: 'loc-warn-state' });
+    }
+  };
+
+  const handleCityDisabledClick = () => {
+    if (!currentState) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले राज्य चुनें'
+          : 'Please select State first';
+      toast.warn(msg, { toastId: 'loc-warn-state' });
+    } else if (!currentDistrict) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા જિલ્લો પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले ज़िला चुनें'
+          : 'Please select District first';
+      toast.warn(msg, { toastId: 'loc-warn-district' });
+    }
+  };
+
+  const handleVillageDisabledClick = () => {
+    if (!currentState) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले राज्य चुनें'
+          : 'Please select State first';
+      toast.warn(msg, { toastId: 'loc-warn-state' });
+    } else if (!currentDistrict) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા જિલ્લો પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले ज़िला चुनें'
+          : 'Please select District first';
+      toast.warn(msg, { toastId: 'loc-warn-district' });
+    } else if (!currentCity) {
+      const msg =
+        lang === 'gu'
+          ? 'કૃપા કરીને પહેલા શહેર / તાલુકો પસંદ કરો'
+          : lang === 'hi'
+          ? 'कृपया पहले शहर / तालुका चुनें'
+          : 'Please select City / Taluka first';
+      toast.warn(msg, { toastId: 'loc-warn-city' });
+    }
+  };
 
   // Determine if current village is a custom user-typed village
-  const isPresetVillage = villagesList.includes(currentVillage);
+  const isPresetVillage = villagesList.some((v) => v.value === currentVillage);
   const [isCustomVillage, setIsCustomVillage] = useState(
     Boolean(currentVillage && !isPresetVillage)
   );
 
   useEffect(() => {
-    if (currentVillage && !villagesList.includes(currentVillage)) {
+    if (currentVillage && !villagesList.some((v) => v.value === currentVillage)) {
       setIsCustomVillage(true);
     } else {
       setIsCustomVillage(false);
@@ -210,13 +299,13 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.state || 'State'} {required && '*'}
+            {labels.state || (lang === 'gu' ? 'રાજ્ય' : lang === 'hi' ? 'राज्य' : 'State')} {required && '*'}
           </Typography>
           <TextField
             select
             fullWidth
             size={size}
-            value={statesList.includes(currentState) ? currentState : ''}
+            value={statesList.some((s) => s.value === currentState) ? currentState : ''}
             onChange={handleStateChange}
             disabled={disabled}
             SelectProps={{
@@ -229,7 +318,7 @@ export const LocationSelector = ({
                     </Box>
                   );
                 }
-                return selected;
+                return getLocationLabel(selected, lang);
               },
               MenuProps: menuStyleProps,
             }}
@@ -239,30 +328,47 @@ export const LocationSelector = ({
               {statePlaceholder}
             </MenuItem>
             {statesList.map((st) => (
-              <MenuItem key={st} value={st}>
-                {st}
+              <MenuItem key={st.value} value={st.value}>
+                {st.label}
               </MenuItem>
             ))}
           </TextField>
         </Box>
 
         {/* Field 2: District Dropdown */}
-        <Box sx={{ minWidth: 0, width: '100%' }}>
+        <Box sx={{ minWidth: 0, width: '100%', position: 'relative' }}>
+          {/* Transparent click interceptor when disabled to inform the user */}
+          {isDistrictDisabled && (
+            <Box
+              onClick={handleDistrictDisabledClick}
+              sx={{
+                position: 'absolute',
+                top: 24,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 4,
+                cursor: 'pointer',
+              }}
+              title={districtPlaceholder}
+            />
+          )}
+
           <Typography
             variant="caption"
             fontWeight={700}
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.district || 'District'} {required && '*'}
+            {labels.district || (lang === 'gu' ? 'જિલ્લો' : lang === 'hi' ? 'ज़िला' : 'District')} {required && '*'}
           </Typography>
           <TextField
             select
             fullWidth
             size={size}
-            value={districtsList.includes(currentDistrict) ? currentDistrict : ''}
+            value={districtsList.some((d) => d.value === currentDistrict) ? currentDistrict : ''}
             onChange={handleDistrictChange}
-            disabled={disabled || !districtsList.length}
+            disabled={isDistrictDisabled}
             SelectProps={{
               displayEmpty: true,
               renderValue: (selected) => {
@@ -273,7 +379,7 @@ export const LocationSelector = ({
                     </Box>
                   );
                 }
-                return selected;
+                return getLocationLabel(selected, lang);
               },
               MenuProps: menuStyleProps,
             }}
@@ -283,8 +389,8 @@ export const LocationSelector = ({
               {districtPlaceholder}
             </MenuItem>
             {districtsList.map((dist) => (
-              <MenuItem key={dist} value={dist}>
-                {dist}
+              <MenuItem key={dist.value} value={dist.value}>
+                {dist.label}
               </MenuItem>
             ))}
           </TextField>
@@ -301,22 +407,39 @@ export const LocationSelector = ({
         }}
       >
         {/* Field 3: City / Taluka Dropdown */}
-        <Box sx={{ minWidth: 0, width: '100%' }}>
+        <Box sx={{ minWidth: 0, width: '100%', position: 'relative' }}>
+          {/* Transparent click interceptor when disabled to inform the user */}
+          {isCityDisabled && (
+            <Box
+              onClick={handleCityDisabledClick}
+              sx={{
+                position: 'absolute',
+                top: 24,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 4,
+                cursor: 'pointer',
+              }}
+              title={cityPlaceholder}
+            />
+          )}
+
           <Typography
             variant="caption"
             fontWeight={700}
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.city || 'City / Taluka'} {required && '*'}
+            {labels.city || (lang === 'gu' ? 'શહેર / તાલુકો' : lang === 'hi' ? 'शहर / तालुका' : 'City / Taluka')} {required && '*'}
           </Typography>
           <TextField
             select
             fullWidth
             size={size}
-            value={citiesList.includes(currentCity) ? currentCity : ''}
+            value={citiesList.some((c) => c.value === currentCity) ? currentCity : ''}
             onChange={handleCityChange}
-            disabled={disabled || !currentDistrict || !citiesList.length}
+            disabled={isCityDisabled}
             SelectProps={{
               displayEmpty: true,
               renderValue: (selected) => {
@@ -327,7 +450,7 @@ export const LocationSelector = ({
                     </Box>
                   );
                 }
-                return selected;
+                return getLocationLabel(selected, lang);
               },
               MenuProps: menuStyleProps,
             }}
@@ -337,8 +460,8 @@ export const LocationSelector = ({
               {cityPlaceholder}
             </MenuItem>
             {citiesList.map((city) => (
-              <MenuItem key={city} value={city}>
-                {city}
+              <MenuItem key={city.value} value={city.value}>
+                {city.label}
               </MenuItem>
             ))}
           </TextField>
@@ -346,23 +469,40 @@ export const LocationSelector = ({
 
         {/* Field 4: Village Dropdown */}
         {showVillage && (
-          <Box sx={{ minWidth: 0, width: '100%' }}>
+          <Box sx={{ minWidth: 0, width: '100%', position: 'relative' }}>
+            {/* Transparent click interceptor when disabled to inform the user */}
+            {!isCustomVillage && isVillageDisabled && (
+              <Box
+                onClick={handleVillageDisabledClick}
+                sx={{
+                  position: 'absolute',
+                  top: 24,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 4,
+                  cursor: 'pointer',
+                }}
+                title={villagePlaceholder}
+              />
+            )}
+
             <Typography
               variant="caption"
               fontWeight={700}
               color="#334155"
               sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
             >
-              {labels.village || 'Village'} {required && '*'}
+              {labels.village || (lang === 'gu' ? 'ગામ' : lang === 'hi' ? 'गाँव' : 'Village')} {required && '*'}
             </Typography>
             {!isCustomVillage ? (
               <TextField
                 select
                 fullWidth
                 size={size}
-                value={villagesList.includes(currentVillage) ? currentVillage : ''}
+                value={villagesList.some((v) => v.value === currentVillage) ? currentVillage : ''}
                 onChange={handleVillageChange}
-                disabled={disabled || !currentCity || !villagesList.length}
+                disabled={isVillageDisabled}
                 SelectProps={{
                   displayEmpty: true,
                   renderValue: (selected) => {
@@ -373,7 +513,7 @@ export const LocationSelector = ({
                         </Box>
                       );
                     }
-                    return selected;
+                    return getLocationLabel(selected, lang);
                   },
                   MenuProps: menuStyleProps,
                 }}
@@ -383,12 +523,12 @@ export const LocationSelector = ({
                   {villagePlaceholder}
                 </MenuItem>
                 {villagesList.map((vil) => (
-                  <MenuItem key={vil} value={vil}>
-                    {vil}
+                  <MenuItem key={vil.value} value={vil.value}>
+                    {vil.label}
                   </MenuItem>
                 ))}
                 <MenuItem value={CUSTOM_VILLAGE_KEY} sx={{ fontWeight: 600, color: '#2E7D32' }}>
-                  ✍️ Other / Type Village...
+                  {lang === 'gu' ? '✍️ અન્ય / ગામનું નામ લખો...' : (lang === 'hi' ? '✍️ अन्य / गाँव का नाम लिखें...' : '✍️ Other / Type Village...')}
                 </MenuItem>
               </TextField>
             ) : (
@@ -398,7 +538,7 @@ export const LocationSelector = ({
                   size={size}
                   value={currentVillage}
                   onChange={handleCustomVillageInput}
-                  placeholder="Type your village name"
+                  placeholder={lang === 'gu' ? 'તમારા ગામનું નામ લખો' : (lang === 'hi' ? 'अपने गाँव का नाम लिखें' : 'Type your village name')}
                   autoFocus
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 />
@@ -419,7 +559,7 @@ export const LocationSelector = ({
                   }}
                   title="Back to dropdown list"
                 >
-                  List
+                  {lang === 'gu' ? 'યાદી' : (lang === 'hi' ? 'सूची' : 'List')}
                 </Button>
               </Box>
             )}
