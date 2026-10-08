@@ -20,6 +20,30 @@ import { useGetPublicMarketQuery, useGetCropsQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
 
+const BACKEND_URL = (import.meta.env.VITE_BASEURL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
+const getImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+const getFirstImage = (item) => {
+  if (!item) return '';
+  let imgs = item.images;
+  if (typeof imgs === 'string') {
+    try {
+      imgs = JSON.parse(imgs);
+    } catch {
+      imgs = [imgs];
+    }
+  }
+  if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
+    return getImageUrl(imgs[0]);
+  }
+  return 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80';
+};
+
 const MarketBrowse = () => {
   const { t, formatCurrency } = useLanguage();
   const [searchCrop, setSearchCrop] = useState('');
@@ -34,6 +58,9 @@ const MarketBrowse = () => {
   });
 
   const cropsList = Array.isArray(crops) ? crops : [];
+  const rawProducts = marketData?.items || marketData?.rows || (Array.isArray(marketData) ? marketData : []);
+  const products = Array.isArray(rawProducts) ? rawProducts : [];
+
   const location = useLocation();
   const isInsidePortal =
     location.pathname.startsWith('/buyer') ||
@@ -198,10 +225,7 @@ const MarketBrowse = () => {
                     <CardMedia
                       component="img"
                       height="180"
-                      image={
-                        item.images?.[0] ||
-                        'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80'
-                      }
+                      image={getFirstImage(item)}
                       alt={item.variety}
                     />
                     {item.is_organic && (

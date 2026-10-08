@@ -255,6 +255,21 @@ export const adminApi = {
   rejectUnlockKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/reject-unlock`, data),
   getLedger: (params) => apiClient.get('/admin/finance/ledger', { params }),
   getPayouts: (params) => apiClient.get('/admin/finance/payouts', { params }),
+  approvePayout: (id, data) => apiClient.patch(`/admin/finance/payouts/${id}/approve`, data),
+  holdPayout: (id, data) => apiClient.patch(`/admin/finance/payouts/${id}/hold`, data),
+  getOrders: (params) => apiClient.get('/admin/orders', { params }),
+  getOrderDetails: (id) => apiClient.get(`/admin/orders/${id}`),
+  orderIntervention: (id, data) => apiClient.patch(`/admin/orders/${id}/intervention`, data),
+  getUsers: (params) => apiClient.get('/admin/users', { params }),
+  getUserDetails: (id) => apiClient.get(`/admin/users/${id}`),
+  updateUserStatus: (id, data) => apiClient.patch(`/admin/users/${id}/status`, data),
+  getListings: (params) => apiClient.get('/admin/listings', { params }),
+  moderateListing: (id, data) => apiClient.patch(`/admin/listings/${id}/moderate`, data),
+  getDisputes: (params) => apiClient.get('/admin/disputes', { params }),
+  getDisputeDetails: (id) => apiClient.get(`/admin/disputes/${id}`),
+  resolveDispute: (id, data) => apiClient.patch(`/admin/disputes/${id}/resolve`, data),
+  getSettings: () => apiClient.get('/admin/settings'),
+  updateSettings: (data) => apiClient.post('/admin/settings', data),
   getAuditLogs: (params) => apiClient.get('/admin/audit-logs', { params }),
 };
 
@@ -342,3 +357,149 @@ export const useGetAuditLogsQuery = (params = {}) => {
     enabled: !!localStorage.getItem('accessToken'),
   });
 };
+
+export const useGetAdminOrdersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-orders', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getOrders(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetAdminOrderDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-order-detail', id],
+    queryFn: async () => unwrap(await adminApi.getOrderDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useOrderInterventionMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.orderIntervention(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-order-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetAdminUsersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-users', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getUsers(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetAdminUserDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-user-detail', id],
+    queryFn: async () => unwrap(await adminApi.getUserDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useUpdateUserStatusMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.updateUserStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail'] });
+    },
+  });
+};
+
+export const useGetAdminListingsQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-listings', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getListings(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useModerateListingMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.moderateListing(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetAdminDisputesQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-disputes', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getDisputes(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetDisputeDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-dispute-detail', id],
+    queryFn: async () => unwrap(await adminApi.getDisputeDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useResolveDisputeMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.resolveDispute(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-disputes'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dispute-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useApprovePayoutMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.approvePayout(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useHoldPayoutMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.holdPayout(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetPlatformSettingsQuery = () => {
+  return useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => unwrap(await adminApi.getSettings()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useUpdatePlatformSettingsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => adminApi.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+

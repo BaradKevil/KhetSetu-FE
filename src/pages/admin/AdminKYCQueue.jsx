@@ -369,6 +369,17 @@ const AdminKYCQueue = () => {
                       <Typography variant="caption" color="text.secondary">
                         {s.masked_account || 'XXXXXXXX5019'} ({s.bank_ifsc || 'SBIN...'})
                       </Typography>
+                      {s.name_mismatch && (
+                        <Box sx={{ mt: 0.5 }}>
+                          <Chip
+                            icon={<MdWarning />}
+                            label={`Name Mismatch ("${s.bank_holder_name}")`}
+                            color="error"
+                            size="small"
+                            sx={{ fontSize: '0.66rem', height: 20, fontWeight: 700 }}
+                          />
+                        </Box>
+                      )}
                     </TableCell>
 
                     <TableCell>
@@ -438,7 +449,22 @@ const AdminKYCQueue = () => {
                           </Button>
                         )}
 
-                        {s.kyc_status !== 'rejected' && !isUnlockPending && (
+                        {s.kyc_status === 'verified' && !isUnlockPending && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            startIcon={<MdClose />}
+                            onClick={() => {
+                              setSelectedSeller(s);
+                              setRejectModalOpen(true);
+                            }}
+                          >
+                            Revoke KYC
+                          </Button>
+                        )}
+
+                        {s.kyc_status !== 'verified' && s.kyc_status !== 'rejected' && !isUnlockPending && (
                           <Button
                             size="small"
                             variant="outlined"

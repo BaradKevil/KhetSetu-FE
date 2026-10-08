@@ -140,16 +140,31 @@ const Navbar = ({ onToggleSidebar }) => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          {/* Public browse shortcut */}
-          <Button
-            component={Link}
-            to="/market"
-            size="small"
-            variant="text"
-            sx={{ display: { xs: 'none', md: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
-          >
-            {t('mandiRatesMarket', 'Mandi Rates & Market')}
-          </Button>
+          {/* Public browse shortcut - Hidden in Admin mode (Issue #9) */}
+          {role !== 'super_admin' && role !== 'staff' ? (
+            <Button
+              component={Link}
+              to="/market"
+              size="small"
+              variant="text"
+              sx={{ display: { xs: 'none', md: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
+            >
+              {t('mandiRatesMarket', 'Mandi Rates & Market')}
+            </Button>
+          ) : (
+            <Chip
+              label="PROD • ESCROW SECURE"
+              size="small"
+              sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
+                bgcolor: '#DCFCE7',
+                color: '#166534',
+                fontWeight: 800,
+                fontSize: '0.72rem',
+                border: '1px solid #86EFAC',
+              }}
+            />
+          )}
 
           {/* Reusable Universal Language Selector */}
           <LanguageSelector variant="menu" size="small" />

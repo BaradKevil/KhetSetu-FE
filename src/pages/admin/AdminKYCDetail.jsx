@@ -184,17 +184,28 @@ const AdminKYCDetail = () => {
             </Button>
           )}
           {isVerified && (
-            <Button
-              variant="outlined"
-              color="warning"
-              startIcon={<MdLockOpen />}
-              onClick={() => setUnlockModalOpen(true)}
-              sx={{ fontWeight: 700, px: 2.5 }}
-            >
-              {t('admin.unlockFarmerBtn', 'Unlock Profile for Updates')}
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<MdLockOpen />}
+                onClick={() => setUnlockModalOpen(true)}
+                sx={{ fontWeight: 700, px: 2.5 }}
+              >
+                {t('admin.unlockFarmerBtn', 'Unlock Profile for Updates')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<MdCancel />}
+                onClick={() => setRejectModalOpen(true)}
+                sx={{ fontWeight: 700, px: 2.5 }}
+              >
+                Revoke KYC (Reason Required)
+              </Button>
+            </>
           )}
-          {!isRejected && (
+          {!isVerified && !isRejected && (
             <Button
               variant="outlined"
               color="error"
@@ -434,12 +445,38 @@ const AdminKYCDetail = () => {
               </Typography>
             </Box>
             <Divider sx={{ mb: 2 }} />
+
+            {/* Automated Name Match & Mismatch Alert */}
+            {profile?.name_mismatch && (
+              <Alert
+                severity="warning"
+                icon={<MdWarning size={22} />}
+                sx={{
+                  mb: 2.5,
+                  borderRadius: 2,
+                  bgcolor: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight={800} color="#92400E">
+                  ⚠️ Name Mismatch Warning ({profile.name_match_score || 0}% Match)
+                </Typography>
+                <Typography variant="body2" color="#B45309" sx={{ mt: 0.5 }}>
+                  Farmer Name: <strong>{profile.full_name}</strong> ≠ Bank Holder: <strong>{profile.bank_account_holder || 'N/A'}</strong>
+                </Typography>
+                <Typography variant="caption" color="#92400E" sx={{ display: 'block', mt: 0.5, fontWeight: 600 }}>
+                  Caution: Payouts to mismatched bank accounts can lead to chargebacks or legal disputes. Verify bank passbook proof carefully.
+                </Typography>
+              </Alert>
+            )}
+
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   {t('farmer.accountHolderName', 'Account Holder')}
                 </Typography>
-                <Typography variant="body2" fontWeight={600}>
+                <Typography variant="body2" fontWeight={600} color={profile?.name_mismatch ? '#DC2626' : 'inherit'}>
                   {profile.bank_account_holder || profile.full_name}
                 </Typography>
               </Box>

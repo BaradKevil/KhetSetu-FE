@@ -35,6 +35,12 @@ import BuyerProfile from './pages/buyer/BuyerProfile';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminKYCQueue from './pages/admin/AdminKYCQueue';
 import AdminKYCDetail from './pages/admin/AdminKYCDetail';
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminUserDetail from './pages/admin/AdminUserDetail';
+import AdminListings from './pages/admin/AdminListings';
+import AdminDisputes from './pages/admin/AdminDisputes';
+import AdminSettings from './pages/admin/AdminSettings';
 import AdminLedger from './pages/admin/AdminLedger';
 import AdminPayouts from './pages/admin/AdminPayouts';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
@@ -130,12 +136,20 @@ function App() {
       ),
       children: [
         { path: '', element: <AdminDashboard /> },
+        { path: 'users', element: <AdminUsers /> },
+        { path: 'users/:id', element: <AdminUserDetail /> },
         { path: 'kyc', element: <AdminKYCQueue /> },
         { path: 'kyc/:sellerId', element: <AdminKYCDetail /> },
-        { path: 'orders', element: <BuyerOrders /> },
+        { path: 'orders', element: <AdminOrders /> },
+        { path: 'listings', element: <AdminListings /> },
+        { path: 'disputes', element: <AdminDisputes /> },
         { path: 'finance/ledger', element: <AdminLedger /> },
+        { path: 'ledger', element: <AdminLedger /> },
         { path: 'finance/payouts', element: <AdminPayouts /> },
+        { path: 'payouts', element: <AdminPayouts /> },
         { path: 'audit', element: <AdminAuditLogs /> },
+        { path: 'audit-logs', element: <AdminAuditLogs /> },
+        { path: 'settings', element: <AdminSettings /> },
       ],
     },
 

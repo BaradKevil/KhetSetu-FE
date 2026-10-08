@@ -215,15 +215,41 @@ export const LanguageProvider = ({ children }) => {
   );
 
   /**
-   * Locale-aware Date Formatter
+   * Locale-aware Date Formatter (Supports boolean includeTime or Intl options)
    */
   const formatDate = useCallback(
     (date, options = { year: 'numeric', month: 'short', day: 'numeric' }) => {
       if (!date) return '';
       try {
-        return new Intl.DateTimeFormat(currentLangObj.locale, options).format(new Date(date));
+        const parsed = new Date(date);
+        if (isNaN(parsed.getTime())) return '';
+        
+        let opts = options;
+        if (typeof options === 'boolean') {
+          opts = options
+            ? {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Kolkata',
+              }
+            : {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                timeZone: 'Asia/Kolkata',
+              };
+        }
+        return new Intl.DateTimeFormat(currentLangObj.locale || 'en-IN', opts).format(parsed);
       } catch {
-        return new Date(date).toLocaleDateString();
+        try {
+          return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        } catch {
+          return String(date);
+        }
       }
     },
     [currentLangObj]
