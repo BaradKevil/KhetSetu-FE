@@ -17,6 +17,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import Navbar from '../../common/Navbar';
 import LiveHarvestSpotlight from './LiveHarvestSpotlight';
 import LiveTicker from './LiveTicker';
+import { getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -311,8 +312,12 @@ const Landing = () => {
                     <CardMedia
                       component="img"
                       height="160"
-                      image={crop.images?.[0] || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=500&q=80'}
+                      image={getFirstImage(crop)}
                       alt={crop.variety}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = crop.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
+                      }}
                     />
                     <CardContent sx={{ flex: 1, p: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" fontWeight={600}>
