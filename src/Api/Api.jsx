@@ -244,12 +244,21 @@ export const useUploadDocumentMutation = () => {
 };
 
 // -------------------------------------------------
-//  Buyer Profile & Market Pulse APIs
+//  Buyer Profile, Market Pulse, Farmers & Addresses APIs
 // -------------------------------------------------
 export const buyerApi = {
   getProfile: () => apiClient.get('/buyer/profile'),
   updateProfile: (data) => apiClient.put('/buyer/profile', data),
   getMarketStats: () => apiClient.get('/buyer/market-stats'),
+  getFarmers: (params) => apiClient.get('/buyer/farmers', { params }),
+  getFarmerById: (id) => apiClient.get(`/buyer/farmers/${id}`),
+  getAddresses: () => apiClient.get('/buyer/addresses'),
+  addAddress: (data) => apiClient.post('/buyer/addresses', data),
+  updateAddress: (id, data) => apiClient.put(`/buyer/addresses/${id}`, data),
+  deleteAddress: (id) => apiClient.delete(`/buyer/addresses/${id}`),
+  setDefaultAddress: (id) => apiClient.patch(`/buyer/addresses/${id}/default`),
+  getDisputes: () => apiClient.get('/buyer/disputes'),
+  raiseDispute: (data) => apiClient.post('/buyer/disputes', data),
 };
 
 export const useGetBuyerProfileQuery = () => {
@@ -275,6 +284,94 @@ export const useGetMarketStatsQuery = () => {
   return useQuery({
     queryKey: ['market-stats'],
     queryFn: async () => unwrap(await buyerApi.getMarketStats()),
+  });
+};
+
+export const useGetVerifiedFarmersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['verified-farmers', params],
+    queryFn: async () => unwrapPaginated(await buyerApi.getFarmers(params)),
+  });
+};
+
+export const useGetFarmerProfileQuery = (id) => {
+  return useQuery({
+    queryKey: ['farmer-profile', id],
+    queryFn: async () => unwrap(await buyerApi.getFarmerById(id)),
+    enabled: !!id,
+  });
+};
+
+export const useGetAddressesQuery = () => {
+  return useQuery({
+    queryKey: ['buyer-addresses'],
+    queryFn: async () => unwrapList(await buyerApi.getAddresses()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useAddAddressMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => buyerApi.addAddress(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+};
+
+export const useUpdateAddressMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => buyerApi.updateAddress(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+    },
+  });
+};
+
+export const useDeleteAddressMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => buyerApi.deleteAddress(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+    },
+  });
+};
+
+export const useSetDefaultAddressMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => buyerApi.setDefaultAddress(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+    },
+  });
+};
+
+export const useGetBuyerDisputesQuery = () => {
+  return useQuery({
+    queryKey: ['buyer-disputes'],
+    queryFn: async () => unwrapList(await buyerApi.getDisputes()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useRaiseDisputeMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => buyerApi.raiseDispute(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-disputes'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order-detail'] });
+    },
   });
 };
 

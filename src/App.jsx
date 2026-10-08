@@ -29,7 +29,16 @@ import SellerKYC from './pages/seller/SellerKYC';
 // Buyer Pages
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import BuyerOrders from './pages/buyer/BuyerOrders';
+import BuyerOrderDetail from './pages/buyer/BuyerOrderDetail';
 import BuyerProfile from './pages/buyer/BuyerProfile';
+import BuyerFarmers from './pages/buyer/BuyerFarmers';
+import FarmerProfile from './pages/buyer/FarmerProfile';
+import BuyerListingDetail from './pages/buyer/BuyerListingDetail';
+import BuyerCart from './pages/buyer/BuyerCart';
+import BuyerCheckout from './pages/buyer/BuyerCheckout';
+import BuyerAddresses from './pages/buyer/BuyerAddresses';
+import BuyerDisputes from './pages/buyer/BuyerDisputes';
+import BuyerRFQ from './pages/buyer/BuyerRFQ';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -119,7 +128,16 @@ function App() {
       children: [
         { path: '', element: <BuyerDashboard /> },
         { path: 'market', element: <MarketBrowse /> },
+        { path: 'listings/:id', element: <BuyerListingDetail /> },
+        { path: 'farmers', element: <BuyerFarmers /> },
+        { path: 'farmers/:id', element: <FarmerProfile /> },
+        { path: 'cart', element: <BuyerCart /> },
+        { path: 'checkout', element: <BuyerCheckout /> },
         { path: 'orders', element: <BuyerOrders /> },
+        { path: 'orders/:id', element: <BuyerOrderDetail /> },
+        { path: 'addresses', element: <BuyerAddresses /> },
+        { path: 'disputes', element: <BuyerDisputes /> },
+        { path: 'rfq', element: <BuyerRFQ /> },
         { path: 'profile', element: <BuyerProfile /> },
       ],
     },

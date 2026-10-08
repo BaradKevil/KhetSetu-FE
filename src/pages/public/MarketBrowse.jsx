@@ -436,7 +436,19 @@ const MarketBrowse = () => {
                     </Typography>
 
                     {farmerName && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                      <Typography
+                        component={Link}
+                        to={location.pathname.startsWith('/buyer') ? `/buyer/farmers/${item.seller_id}` : '#'}
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          mb: 0.5,
+                          display: 'block',
+                          textDecoration: location.pathname.startsWith('/buyer') ? 'underline' : 'none',
+                          color: '#475569',
+                          fontWeight: 600,
+                        }}
+                      >
                         🌾 {farmerName}
                       </Typography>
                     )}
@@ -479,7 +491,7 @@ const MarketBrowse = () => {
                       </Box>
                       <Button
                         component={Link}
-                        to={`/market/${item.id}`}
+                        to={location.pathname.startsWith('/buyer') ? `/buyer/listings/${item.id}` : `/market/${item.id}`}
                         variant="contained"
                         color="primary"
                         size="small"
