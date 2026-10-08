@@ -93,7 +93,7 @@ const AdminOrders = () => {
 
   const interventionMutation = useOrderInterventionMutation();
 
-  const orders = Array.isArray(ordersData) ? ordersData : ordersData?.data || [];
+  const orders = ordersData?.items || ordersData?.data || (Array.isArray(ordersData) ? ordersData : []);
 
   const handleExecuteIntervention = async () => {
     if (!selectedOrder || !interventionAction) return;

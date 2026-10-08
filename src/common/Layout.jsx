@@ -52,9 +52,11 @@ const Layout = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, sm: 3, md: 4 },
+            p: { xs: 1.5, sm: 2, md: 2.5 },
             width: { md: `calc(100% - 260px)` },
             minHeight: 'calc(100vh - 64px)',
+            maxWidth: '100%',
+            overflowX: 'hidden',
           }}
         >
           <AnimatePresence mode="wait">
