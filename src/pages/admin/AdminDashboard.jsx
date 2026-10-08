@@ -44,14 +44,6 @@ const AdminDashboard = () => {
 
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           <Button
-            variant="outlined"
-            size="small"
-            onClick={() => refetch()}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
-          >
-            Refresh Telemetry
-          </Button>
-          <Button
             variant="contained"
             color="primary"
             size="small"

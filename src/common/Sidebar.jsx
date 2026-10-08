@@ -89,25 +89,29 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   );
 
   const drawerContent = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#FFFFFF' }}>
-      <Box sx={{ p: 2.5, borderBottom: '1px solid #F1F5F9' }}>
-        <Typography variant="overline" color="text.secondary" fontWeight={700} letterSpacing="0.08em">
-          {userRole === 'seller'
-            ? t('kisanPortal')
-            : userRole === 'buyer'
-            ? t('traderPortal')
-            : t('adminOperations')}
-        </Typography>
-      </Box>
-
-      <List sx={{ px: 1.5, py: 2, flex: 1, overflowY: 'auto' }}>
+    <Box
+      sx={{
+        minHeight: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#FFFFFF',
+        justifyContent: 'space-between',
+      }}
+    >
+      <List
+        sx={{
+          px: 1.5,
+          py: 1.5,
+          flex: '1 0 auto',
+        }}
+      >
         {filteredMenu.map((item, idx) => {
           const prevItem = filteredMenu[idx - 1];
           const showSection = item.section && (!prevItem || prevItem.section !== item.section);
           const isActive = location.pathname === item.path;
-          const translatedName = menuTranslationKeys[item.id]
-            ? t(menuTranslationKeys[item.id])
-            : item.name;
+          const transKey = menuTranslationKeys[item.id];
+          const translated = transKey ? t(transKey) : null;
+          const translatedName = translated && translated !== transKey ? translated : item.name;
 
           return (
             <Box key={item.id}>
@@ -171,7 +175,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
         })}
       </List>
 
-      <Box sx={{ p: 2, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
+      <Box sx={{ p: 2, borderTop: '1px solid #F1F5F9', textAlign: 'center', flexShrink: 0 }}>
         <Typography variant="caption" color="text.secondary">
           {t('escrowProtectedFooter')}
         </Typography>
@@ -186,7 +190,17 @@ const Sidebar = ({ open, onClose, isMobile }) => {
       onClose={onClose}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+        '& .MuiDrawer-paper': {
+          width: DRAWER_WIDTH,
+          boxSizing: 'border-box',
+          height: '100%',
+          maxHeight: '100vh',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          '&::-webkit-scrollbar': { width: '5px' },
+          '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' },
+        },
       }}
     >
       {drawerContent}
@@ -202,7 +216,12 @@ const Sidebar = ({ open, onClose, isMobile }) => {
           boxSizing: 'border-box',
           borderRight: '1px solid #E2E8F0',
           top: '64px',
-          height: 'calc(100% - 64px)',
+          height: 'calc(100vh - 64px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          '&::-webkit-scrollbar': { width: '5px' },
+          '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' },
         },
       }}
     >

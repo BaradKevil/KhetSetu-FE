@@ -66,11 +66,15 @@ export const navigation = {
   myEscrowOrders: 'My Escrow Orders',
   businessProfile: 'Profile & Settings',
   controlTower: 'Control Tower',
+  usersDirectory: 'Users Directory',
   kycApprovals: 'KYC Approvals',
   ordersOversight: 'Orders Oversight',
+  listingModeration: 'Listing Moderation',
+  disputesClaims: 'Disputes & Claims',
   ledger: 'Double-Entry Ledger',
   payoutApprovals: 'Payout Approvals',
   auditTrail: 'Audit Trail',
+  platformSettings: 'Platform Settings',
   escrowProtectedFooter: 'KhetSetu Escrow Protected © 2026',
 };
 

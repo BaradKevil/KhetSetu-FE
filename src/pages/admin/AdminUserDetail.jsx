@@ -28,8 +28,14 @@ import {
   MdVerifiedUser,
   MdLandscape,
   MdShoppingBag,
+  MdDeleteOutline,
+  MdWarning,
 } from 'react-icons/md';
-import { useGetAdminUserDetailsQuery, useUpdateUserStatusMutation } from '../../Api/Api';
+import {
+  useGetAdminUserDetailsQuery,
+  useUpdateUserStatusMutation,
+  usePermanentlyDeleteUserMutation,
+} from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
@@ -40,10 +46,15 @@ const AdminUserDetail = () => {
 
   const { data: user, isLoading, refetch } = useGetAdminUserDetailsQuery(id);
   const updateStatusMutation = useUpdateUserStatusMutation();
+  const deleteUserMutation = usePermanentlyDeleteUserMutation();
 
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [targetStatus, setTargetStatus] = useState('');
   const [reason, setReason] = useState('');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
 
   if (isLoading) {
     return (
@@ -69,6 +80,9 @@ const AdminUserDetail = () => {
   const isSuspended = user.status === 'suspended';
   const seller = user.seller_profile;
   const buyer = user.buyer_profile;
+  const roleCode = (typeof user.role === 'object' ? user.role?.code : user.role) || (seller ? 'seller' : buyer ? 'buyer' : 'user');
+  const roleDisplay = (typeof user.role === 'object' ? user.role?.name || user.role?.code : user.role) || roleCode;
+  const roleLabel = String(roleDisplay || 'USER').toUpperCase();
 
   const handleExecuteStatusUpdate = async () => {
     if (!targetStatus) return;
@@ -92,8 +106,27 @@ const AdminUserDetail = () => {
     }
   };
 
+  const handleExecutePermanentDeleteUser = async () => {
+    if (deleteConfirmationText.trim() !== 'DELETE') {
+      toast.error('Please type DELETE to confirm permanent purge.');
+      return;
+    }
+
+    try {
+      const res = await deleteUserMutation.mutateAsync({
+        id: Number(id),
+        reason: deleteReason.trim() || 'Permanently deleted by Super Admin from user details page',
+      });
+      toast.success(res?.message || `User #${id} and all related products permanently deleted.`);
+      setDeleteModalOpen(false);
+      navigate('/admin/users');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to permanently delete user.');
+    }
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
       {/* Back button & Action Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Button
@@ -104,7 +137,7 @@ const AdminUserDetail = () => {
           Back to Users Directory
         </Button>
 
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           {isSuspended ? (
             <Button
               variant="contained"
@@ -132,6 +165,24 @@ const AdminUserDetail = () => {
               Suspend Account
             </Button>
           )}
+
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<MdDeleteOutline />}
+            onClick={() => {
+              setDeleteConfirmationText('');
+              setDeleteReason('');
+              setDeleteModalOpen(true);
+            }}
+            sx={{
+              fontWeight: 700,
+              bgcolor: '#DC2626',
+              '&:hover': { bgcolor: '#B91C1C' },
+            }}
+          >
+            Permanently Delete User
+          </Button>
         </Box>
       </Box>
 
@@ -147,11 +198,11 @@ const AdminUserDetail = () => {
                 {user.full_name || user.name || 'Registered User'}
               </Typography>
               <Chip
-                label={user.role?.toUpperCase()}
+                label={roleLabel}
                 size="small"
                 sx={{
-                  bgcolor: user.role === 'seller' ? '#E8F5E9' : user.role === 'buyer' ? '#E0F2FE' : '#F1F5F9',
-                  color: user.role === 'seller' ? '#166534' : user.role === 'buyer' ? '#0369A1' : '#0F172A',
+                  bgcolor: roleCode === 'seller' ? '#E8F5E9' : roleCode === 'buyer' ? '#E0F2FE' : '#F1F5F9',
+                  color: roleCode === 'seller' ? '#166534' : roleCode === 'buyer' ? '#0369A1' : '#0F172A',
                   fontWeight: 800,
                   fontSize: '0.72rem',
                 }}
@@ -174,7 +225,7 @@ const AdminUserDetail = () => {
       </Paper>
 
       {/* Farmer Specific Profile Details */}
-      {user.role === 'seller' && seller && (
+      {roleCode === 'seller' && seller && (
         <Grid container spacing={3} sx={{ mb: 3.5 }}>
           <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', height: '100%' }}>
@@ -256,7 +307,7 @@ const AdminUserDetail = () => {
       )}
 
       {/* Buyer Specific Profile Details */}
-      {user.role === 'buyer' && (
+      {roleCode === 'buyer' && (
         <Grid container spacing={3} sx={{ mb: 3.5 }}>
           <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', height: '100%' }}>
@@ -341,6 +392,82 @@ const AdminUserDetail = () => {
             disabled={updateStatusMutation.isPending || (targetStatus === 'suspended' && !reason.trim())}
           >
             Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Permanent Delete Modal */}
+      <Dialog
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3.5, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, color: '#B91C1C', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <MdWarning size={24} color="#DC2626" /> Permanently Delete User From Database
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ p: 2, mb: 2.5, bgcolor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 2 }}>
+            <Typography variant="body2" fontWeight={700} color="#991B1B" sx={{ mb: 1 }}>
+              ⚠️ CRITICAL WARNING: Permanent Purge from TiDB Database
+            </Typography>
+            <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
+              • Target: <strong>{user.full_name || user.name || user.phone}</strong> (ID: #{user.id}, Role: {roleLabel})
+            </Typography>
+            <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
+              • <strong>All crops & products listed by this user will be automatically and permanently deleted from the database.</strong>
+            </Typography>
+            <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
+              • Associated profiles, KYC records, authentication tokens, and related orders will be purged.
+            </Typography>
+            <Typography variant="caption" color="#B91C1C" display="block">
+              • <strong>This action CANNOT be undone.</strong>
+            </Typography>
+          </Box>
+
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#334155' }}>
+            To confirm permanent deletion, type <strong>DELETE</strong> below:
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Type DELETE"
+            value={deleteConfirmationText}
+            onChange={(e) => setDeleteConfirmationText(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            label="Reason for Deletion (Optional)"
+            placeholder="e.g. Account owner request, fraud termination, database cleanup..."
+            value={deleteReason}
+            onChange={(e) => setDeleteReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setDeleteModalOpen(false)}
+            sx={{ fontWeight: 700, textTransform: 'none', color: '#64748B' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleExecutePermanentDeleteUser}
+            disabled={deleteConfirmationText.trim() !== 'DELETE' || deleteUserMutation.isPending}
+            sx={{
+              fontWeight: 700,
+              px: 3,
+              textTransform: 'none',
+              bgcolor: '#DC2626',
+              '&:hover': { bgcolor: '#B91C1C' },
+            }}
+          >
+            {deleteUserMutation.isPending ? 'Purging from Database...' : 'Permanently Delete User & Products'}
           </Button>
         </DialogActions>
       </Dialog>

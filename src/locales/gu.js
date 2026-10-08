@@ -66,11 +66,15 @@ export const navigation = {
   myEscrowOrders: 'મારા એસ્ક્રો ઓર્ડર્સ',
   businessProfile: 'પ્રોફાઇલ અને સેટિંગ્સ',
   controlTower: 'કંટ્રોલ ટાવર',
+  usersDirectory: 'વપરાશકર્તા નિર્દેશિકા',
   kycApprovals: 'KYC મંજૂરીઓ',
   ordersOversight: 'ઓર્ડર દેખરેખ',
+  listingModeration: 'પાક લિસ્ટિંગ મોડરેશન',
+  disputesClaims: 'વિવાદો અને દાવાઓ',
   ledger: 'ખાતાવહી',
   payoutApprovals: 'ચૂકવણી મંજૂરીઓ',
   auditTrail: 'ઓડિટ ટ્રેઇલ',
+  platformSettings: 'પ્લેટફોર્મ સેટિંગ્સ',
   escrowProtectedFooter: 'ખેતસેતુ એસ્ક્રો સુરક્ષિત © 2026',
 };
 

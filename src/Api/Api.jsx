@@ -263,8 +263,10 @@ export const adminApi = {
   getUsers: (params) => apiClient.get('/admin/users', { params }),
   getUserDetails: (id) => apiClient.get(`/admin/users/${id}`),
   updateUserStatus: (id, data) => apiClient.patch(`/admin/users/${id}/status`, data),
+  permanentlyDeleteUser: (id, data) => apiClient.delete(`/admin/users/${id}`, { data }),
   getListings: (params) => apiClient.get('/admin/listings', { params }),
   moderateListing: (id, data) => apiClient.patch(`/admin/listings/${id}/moderate`, data),
+  permanentlyDeleteListing: (id, data) => apiClient.delete(`/admin/listings/${id}`, { data }),
   getDisputes: (params) => apiClient.get('/admin/disputes', { params }),
   getDisputeDetails: (id) => apiClient.get(`/admin/disputes/${id}`),
   resolveDispute: (id, data) => apiClient.patch(`/admin/disputes/${id}/resolve`, data),
@@ -413,6 +415,20 @@ export const useUpdateUserStatusMutation = () => {
   });
 };
 
+export const usePermanentlyDeleteUserMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }) => adminApi.permanentlyDeleteUser(id, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
 export const useGetAdminListingsQuery = (params = {}) => {
   return useQuery({
     queryKey: ['admin-listings', params],
@@ -427,6 +443,18 @@ export const useModerateListingMutation = () => {
     mutationFn: ({ id, ...data }) => adminApi.moderateListing(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const usePermanentlyDeleteListingMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }) => adminApi.permanentlyDeleteListing(id, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
     },
   });

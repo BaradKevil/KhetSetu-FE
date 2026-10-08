@@ -18,15 +18,19 @@ export const unwrapPaginated = (res) => {
     ? payload
     : [];
 
+  const pagination = payload?.pagination
+    ? {
+        currentPage: payload.pagination.currentPage ?? 1,
+        totalPages: payload.pagination.totalPages ?? 1,
+        totalCount: payload.pagination.totalCount ?? items.length,
+        limit: payload.pagination.limit ?? 10,
+      }
+    : { currentPage: 1, totalPages: 1, totalCount: items.length, limit: 10 };
+
   return {
     items,
-    pagination: payload?.pagination
-      ? {
-          currentPage: payload.pagination.currentPage ?? 1,
-          totalPages: payload.pagination.totalPages ?? 1,
-          totalCount: payload.pagination.totalCount ?? items.length,
-        }
-      : { currentPage: 1, totalPages: 1, totalCount: items.length },
+    data: items, // Ensures compatibility with callers using .data or .items
+    pagination,
     counts: payload?.counts ?? null,
   };
 };
