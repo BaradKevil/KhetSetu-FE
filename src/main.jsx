@@ -8,6 +8,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 
 import { LanguageProvider } from './context/LanguageContext';
+import { CartProvider } from './context/CartContext';
 
 const client = new QueryClient({
   defaultOptions: {
@@ -22,10 +23,12 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={client}>
       <LanguageProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
+        <CartProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </CartProvider>
       </LanguageProvider>
     </QueryClientProvider>
   </StrictMode>

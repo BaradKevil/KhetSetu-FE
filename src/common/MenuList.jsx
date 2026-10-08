@@ -51,9 +51,39 @@ export const menulist = [
     roles: ['buyer'],
   },
   {
+    id: 'buyer-farmers',
+    name: 'Verified Farmers',
+    path: '/buyer/farmers',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-cart',
+    name: 'My Cart',
+    path: '/buyer/cart',
+    roles: ['buyer'],
+  },
+  {
     id: 'buyer-orders',
     name: 'My Escrow Orders',
     path: '/buyer/orders',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-addresses',
+    name: 'Delivery Addresses',
+    path: '/buyer/addresses',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-disputes',
+    name: 'Disputes & Claims',
+    path: '/buyer/disputes',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-rfq',
+    name: 'Post Requirement / RFQ',
+    path: '/buyer/rfq',
     roles: ['buyer'],
   },
   {

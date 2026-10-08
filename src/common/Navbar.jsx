@@ -10,6 +10,7 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  Badge,
 } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -17,14 +18,17 @@ import {
   MdAccountCircle,
   MdLogout,
   MdAgriculture,
+  MdShoppingCart,
 } from 'react-icons/md';
 import { clearSessionAndRedirect } from '../Api/ApiClient';
 import { useLanguage } from '../context/LanguageContext';
+import { useCart } from '../context/CartContext';
 import LanguageSelector from './custom/LanguageSelector';
 
 const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { totalItemsCount } = useCart();
 
   const role = localStorage.getItem('role') || 'guest';
   const phone = localStorage.getItem('phone') || '';
@@ -168,6 +172,27 @@ const Navbar = ({ onToggleSidebar }) => {
 
           {/* Reusable Universal Language Selector */}
           <LanguageSelector variant="menu" size="small" />
+
+          {/* Cart Shortcut for Buyers */}
+          {role === 'buyer' && (
+            <IconButton
+              component={Link}
+              to="/buyer/cart"
+              size="small"
+              sx={{
+                color: '#1E293B',
+                bgcolor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                p: 0.9,
+                '&:hover': { bgcolor: '#F1F5F9' },
+              }}
+              title={t('cart', 'Cart')}
+            >
+              <Badge badgeContent={totalItemsCount} color="success" max={99}>
+                <MdShoppingCart size={20} />
+              </Badge>
+            </IconButton>
+          )}
 
           {/* User Account Menu with Photo Support */}
           {localStorage.getItem('accessToken') ? (
