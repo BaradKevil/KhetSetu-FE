@@ -244,6 +244,41 @@ export const useUploadDocumentMutation = () => {
 };
 
 // -------------------------------------------------
+//  Buyer Profile & Market Pulse APIs
+// -------------------------------------------------
+export const buyerApi = {
+  getProfile: () => apiClient.get('/buyer/profile'),
+  updateProfile: (data) => apiClient.put('/buyer/profile', data),
+  getMarketStats: () => apiClient.get('/buyer/market-stats'),
+};
+
+export const useGetBuyerProfileQuery = () => {
+  return useQuery({
+    queryKey: ['buyer-profile'],
+    queryFn: async () => unwrap(await buyerApi.getProfile()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useUpdateBuyerProfileMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => buyerApi.updateProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+};
+
+export const useGetMarketStatsQuery = () => {
+  return useQuery({
+    queryKey: ['market-stats'],
+    queryFn: async () => unwrap(await buyerApi.getMarketStats()),
+  });
+};
+
+// -------------------------------------------------
 //  Admin Control Tower APIs
 // -------------------------------------------------
 export const adminApi = {

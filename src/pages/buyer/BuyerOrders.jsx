@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,8 +17,11 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import { MdCheckCircle, MdTimeline } from 'react-icons/md';
+import { Link } from 'react-router-dom';
+import { MdCheckCircle, MdTimeline, MdStorefront } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useUpdateOrderStatusMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
@@ -30,8 +33,17 @@ const BuyerOrders = () => {
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [timelineModalOpen, setTimelineModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   const orders = ordersData?.items || [];
+
+  const filteredOrders = useMemo(() => {
+    if (activeTab === 'all') return orders;
+    if (activeTab === 'escrow') return orders.filter((o) => ['escrow_held', 'accepted'].includes(o.status));
+    if (activeTab === 'dispatched') return orders.filter((o) => o.status === 'dispatched');
+    if (activeTab === 'delivered') return orders.filter((o) => ['delivered', 'completed'].includes(o.status));
+    return orders;
+  }, [orders, activeTab]);
 
   const orderSteps = [
     t('buyer.stepPlaced', 'Order Placed'),
@@ -68,7 +80,7 @@ const BuyerOrders = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3.5 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="h4" fontWeight={800} color="#0F172A">
           {t('buyer.buyerOrdersTitle', '📦 My Escrow Orders')}
         </Typography>
@@ -76,6 +88,34 @@ const BuyerOrders = () => {
           {t('buyer.buyerOrdersSubtitle', 'Track real-time dispatch progress. Confirm delivery once goods arrive to release farmer payout.')}
         </Typography>
       </Box>
+
+      {/* Filter Tabs */}
+      <Paper elevation={0} sx={{ mb: 3, borderRadius: 2.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_e, val) => setActiveTab(val)}
+          indicatorColor="primary"
+          textColor="primary"
+          sx={{ px: 2 }}
+        >
+          <Tab value="all" label={`${t('common.all', 'All Orders')} (${orders.length})`} sx={{ fontWeight: 700 }} />
+          <Tab
+            value="escrow"
+            label={`${t('buyer.inEscrow', 'In Escrow')} (${orders.filter((o) => ['escrow_held', 'accepted'].includes(o.status)).length})`}
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="dispatched"
+            label={`${t('buyer.dispatched', 'Dispatched')} (${orders.filter((o) => o.status === 'dispatched').length})`}
+            sx={{ fontWeight: 700 }}
+          />
+          <Tab
+            value="delivered"
+            label={`${t('buyer.completed', 'Delivered')} (${orders.filter((o) => ['delivered', 'completed'].includes(o.status)).length})`}
+            sx={{ fontWeight: 700 }}
+          />
+        </Tabs>
+      </Paper>
 
       <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
         <Table>
@@ -96,14 +136,48 @@ const BuyerOrders = () => {
                   {t('common.loading', 'Loading orders...')}
                 </TableCell>
               </TableRow>
-            ) : orders.length === 0 ? (
+            ) : filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">{t('buyer.noPurchasesYet', 'No orders placed yet.')}</Typography>
+                  <Box sx={{ maxWidth: 380, mx: 'auto', textAlign: 'center' }}>
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        bgcolor: '#F8FAF9',
+                        border: '2px dashed #CBD5E1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        mb: 2,
+                        fontSize: 26,
+                      }}
+                    >
+                      📦
+                    </Box>
+                    <Typography variant="subtitle1" fontWeight={700} color="#0F172A" gutterBottom>
+                      {t('buyer.noPurchasesYet', 'No orders found')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                      {t('buyer.startProcuring', 'Start exploring verified harvest listings with direct farmer pricing and escrow buyer protection.')}
+                    </Typography>
+                    <Button
+                      component={Link}
+                      to="/buyer/market"
+                      variant="contained"
+                      color="primary"
+                      startIcon={<MdStorefront />}
+                      sx={{ borderRadius: 2.5, fontWeight: 700 }}
+                    >
+                      {t('exploreMandiListings', 'Explore Mandi Listings')}
+                    </Button>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((o) => (
+              filteredOrders.map((o) => (
                 <TableRow key={o.id} hover>
                   <TableCell sx={{ fontWeight: 700 }}>#{o.order_number}</TableCell>
                   <TableCell>

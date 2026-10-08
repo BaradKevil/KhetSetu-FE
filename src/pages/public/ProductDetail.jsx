@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -47,14 +47,30 @@ const ProductDetail = () => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [orderQty, setOrderQty] = useState(10);
   const [address, setAddress] = useState({
-    recipient_name: 'Jayesh Shah',
-    phone: '+919812345678',
-    address_line: 'Warehouse 4, APMC Market Yard',
-    city: 'Ahmedabad',
-    district: 'Ahmedabad',
-    state: 'Gujarat',
-    pincode: '380002',
+    recipient_name: '',
+    phone: '',
+    address_line: '',
+    city: '',
+    district: '',
+    state: '',
+    pincode: '',
   });
+
+  useEffect(() => {
+    if (userProfile) {
+      const bProf = userProfile.buyer_profile || {};
+      const shipAddr = bProf.shipping_address;
+      setAddress((prev) => ({
+        recipient_name: prev.recipient_name || bProf.contact_person || bProf.company_name || userProfile.full_name || '',
+        phone: prev.phone || userProfile.phone || '',
+        address_line: prev.address_line || (typeof shipAddr === 'string' ? shipAddr : shipAddr?.address_line || shipAddr?.address || ''),
+        city: prev.city || shipAddr?.city || '',
+        district: prev.district || shipAddr?.district || '',
+        state: prev.state || shipAddr?.state || '',
+        pincode: prev.pincode || shipAddr?.pincode || '',
+      }));
+    }
+  }, [userProfile]);
 
   if (isLoading) {
     return (
