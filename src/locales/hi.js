@@ -143,6 +143,7 @@ export const farmer = {
   cropListingsTitle: '🌾 मेरी फसल लिस्टिंग',
   cropListingsSubtitle: 'खेतसेतु मंडी में सूचीबद्ध अपनी फसलों का प्रबंधन करें।',
   addCropBtn: 'फसल जोड़ें',
+  completeKycFirst: 'कृपया पहले केवाईसी (KYC) पूरा करें',
   cropAndVariety: 'फसल और किस्म',
   grade: 'ग्रेड',
   availableStock: 'उपलब्ध स्टॉक',

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,23 +11,118 @@ import {
   TableCell,
   Chip,
   IconButton,
-  Avatar,
   Tooltip,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { MdAddCircleOutline, MdVisibility } from 'react-icons/md';
-import { useGetSellerProductsQuery } from '../../Api/Api';
+import { useGetSellerProductsQuery, useGetProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import { toast } from 'react-toastify';
+
+/**
+ * Resilient Crop Image Component:
+ * Automatically falls back to crop catalog photo if custom harvest photo fails to load.
+ * Prevents MUI Avatar from collapsing to a plain single-letter grey circle.
+ */
+const CropImageThumbnail = ({ product }) => {
+  const cropUrl = product?.crop?.image_url;
+  const primaryUrl = getFirstImage(product);
+  const initial = primaryUrl && !primaryUrl.startsWith('blob:') ? primaryUrl : cropUrl || DEFAULT_FALLBACK_IMAGE;
+
+  const [imgUrl, setImgUrl] = useState(initial);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    const updated = getFirstImage(product);
+    setImgUrl(updated && !updated.startsWith('blob:') ? updated : cropUrl || DEFAULT_FALLBACK_IMAGE);
+    setLoadFailed(false);
+  }, [product, cropUrl]);
+
+  const handleImgError = () => {
+    if (cropUrl && imgUrl !== cropUrl) {
+      setImgUrl(cropUrl);
+    } else if (imgUrl !== DEFAULT_FALLBACK_IMAGE) {
+      setImgUrl(DEFAULT_FALLBACK_IMAGE);
+    } else {
+      setLoadFailed(true);
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        width: 48,
+        height: 48,
+        minWidth: 48,
+        borderRadius: 2.5,
+        overflow: 'hidden',
+        bgcolor: '#F8FAFC',
+        border: '1.5px solid #E2E8F0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      {!loadFailed ? (
+        <Box
+          component="img"
+          src={imgUrl}
+          alt={product.variety || product.crop?.name || 'Crop'}
+          onError={handleImgError}
+          sx={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            bgcolor: '#DCFCE7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#166534',
+            fontWeight: 800,
+            fontSize: '1.1rem',
+          }}
+        >
+          {product.variety?.[0] || '🌾'}
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 const MyProducts = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const { data: userProfile } = useGetProfileQuery();
   const { data: productsData, isLoading } = useGetSellerProductsQuery();
+
+  const kycStatus = userProfile?.seller_profile?.kyc_status || 'unverified';
   const products = productsData?.items || [];
 
+  const handleAddCropClick = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (kycStatus !== 'verified') {
+      toast.warning(t('farmer.completeKycFirst', 'Please complete the KYC first'));
+      navigate('/seller/kyc');
+      return;
+    }
+    navigate('/seller/products/new');
+  };
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3.5 }}>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Header Bar */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
             {t('farmer.cropListingsTitle', '🌾 My Crop Listings')}
@@ -36,18 +132,18 @@ const MyProducts = () => {
           </Typography>
         </Box>
         <Button
-          component={Link}
-          to="/seller/products/new"
+          onClick={handleAddCropClick}
           variant="contained"
           color="primary"
           startIcon={<MdAddCircleOutline />}
-          sx={{ borderRadius: 2.5, fontWeight: 700 }}
+          sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
         >
           {t('farmer.addCropBtn', 'Add Crop')}
         </Button>
       </Box>
 
-      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+      {/* Product Listings Table */}
+      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <Table>
           <TableHead sx={{ bgcolor: '#F8FAF9' }}>
             <TableRow>
@@ -70,40 +166,23 @@ const MyProducts = () => {
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                   <Typography color="text.secondary">{t('farmer.noCropsListed', 'No crops listed yet.')}</Typography>
-                  <Button component={Link} to="/seller/products/new" sx={{ mt: 1 }} variant="outlined" size="small">
+                  <Button onClick={handleAddCropClick} sx={{ mt: 1.5, fontWeight: 700 }} variant="outlined" size="small">
                     {t('farmer.listYourFirstCrop', 'List Your First Crop')}
                   </Button>
                 </TableCell>
               </TableRow>
             ) : (
               products.map((p) => (
-                <TableRow key={p.id} hover>
+                <TableRow key={p.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar
-                        variant="rounded"
-                        src={getFirstImage(p)}
-                        alt={p.variety}
-                        imgProps={{
-                          onError: (e) => {
-                            e.target.onerror = null;
-                            e.target.src = p.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
-                          },
-                        }}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 2,
-                          bgcolor: '#F1F5F9',
-                          border: '1px solid #E2E8F0',
-                        }}
-                      />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.8 }}>
+                      <CropImageThumbnail product={p} />
                       <Box>
-                        <Typography variant="subtitle2" fontWeight={700}>
-                          {p.crop?.name} ({p.variety})
+                        <Typography variant="subtitle2" fontWeight={700} color="#0F172A">
+                          {p.crop?.name || 'Crop'} ({p.variety})
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {p.pickup_village}, {p.pickup_district}
+                          {[p.pickup_village, p.pickup_district].filter(Boolean).join(', ') || 'Farm Gate'}
                         </Typography>
                       </Box>
                     </Box>

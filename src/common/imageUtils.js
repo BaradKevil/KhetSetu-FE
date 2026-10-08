@@ -43,6 +43,8 @@ export const getImageUrl = (url, fallback = DEFAULT_FALLBACK_IMAGE) => {
 export const getFirstImage = (item, fallback = DEFAULT_FALLBACK_IMAGE) => {
   if (!item) return fallback;
 
+  const cropFallback = item.crop?.image_url ? getImageUrl(item.crop.image_url, fallback) : fallback;
+
   let imgs = item.images || item.photos;
   if (typeof imgs === 'string') {
     try {
@@ -53,8 +55,12 @@ export const getFirstImage = (item, fallback = DEFAULT_FALLBACK_IMAGE) => {
   }
 
   if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
-    const cropFallback = item.crop?.image_url ? getImageUrl(item.crop.image_url, fallback) : fallback;
-    return getImageUrl(imgs[0], cropFallback);
+    const raw = String(imgs[0]).trim();
+    // Dead blob URLs from past sessions cannot be reloaded by browser
+    if (raw.startsWith('blob:')) {
+      return cropFallback;
+    }
+    return getImageUrl(raw, cropFallback);
   }
 
   if (item.crop?.image_url) {
