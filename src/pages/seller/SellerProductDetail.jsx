@@ -38,6 +38,7 @@ import {
 import { useGetProductDetailsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
 const SellerProductDetail = () => {
   const { id } = useParams();
@@ -114,9 +115,24 @@ const SellerProductDetail = () => {
     ? Math.round(((product.available_quantity || 0) / product.total_quantity) * 100)
     : 0;
 
-  const images = Array.isArray(product.images) && product.images.length > 0
-    ? product.images
-    : ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80'];
+  const fallbackImg = product.crop?.image_url
+    ? getImageUrl(product.crop.image_url)
+    : DEFAULT_FALLBACK_IMAGE;
+
+  let rawImages = [];
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    rawImages = product.images;
+  } else if (typeof product.images === 'string') {
+    try {
+      rawImages = JSON.parse(product.images);
+    } catch {
+      rawImages = [product.images];
+    }
+  }
+
+  const images = Array.isArray(rawImages) && rawImages.length > 0
+    ? rawImages.map((img) => getImageUrl(img, fallbackImg))
+    : [fallbackImg];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -251,6 +267,10 @@ const SellerProductDetail = () => {
               height="380"
               image={images[selectedPhotoIndex] || images[0]}
               alt={product.variety}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = fallbackImg;
+              }}
               sx={{ objectFit: 'cover' }}
             />
 
@@ -331,6 +351,10 @@ const SellerProductDetail = () => {
                       component="img"
                       src={img}
                       alt={`Photo ${idx + 1}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = fallbackImg;
+                      }}
                       sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     {idx === 0 && (

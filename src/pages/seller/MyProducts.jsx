@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import { MdAddCircleOutline, MdVisibility } from 'react-icons/md';
 import { useGetSellerProductsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import { getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
 const MyProducts = () => {
   const { t } = useLanguage();
@@ -81,8 +82,14 @@ const MyProducts = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Avatar
                         variant="rounded"
-                        src={p.images?.[0]}
+                        src={getFirstImage(p)}
                         alt={p.variety}
+                        imgProps={{
+                          onError: (e) => {
+                            e.target.onerror = null;
+                            e.target.src = p.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
+                          },
+                        }}
                         sx={{
                           width: 44,
                           height: 44,

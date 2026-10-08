@@ -39,6 +39,7 @@ import { useGetCropsQuery, useCreateProductMutation, useUploadDocumentMutation }
 import { useLanguage } from '../../context/LanguageContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
+import { getImageUrl } from '../../common/imageUtils';
 
 const PINCODE_REGEX = /^[1-9][0-9]{5}$/;
 
@@ -966,8 +967,12 @@ const AddProduct = () => {
                         >
                           <Box
                             component="img"
-                            src={imgUrl}
+                            src={getImageUrl(imgUrl)}
                             alt={`Crop Photo ${idx + 1}`}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80';
+                            }}
                             sx={{
                               width: '100%',
                               height: '100%',

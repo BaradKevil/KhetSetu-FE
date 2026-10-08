@@ -30,6 +30,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import PhoneInput from '../../common/custom/PhoneInput';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -115,6 +116,25 @@ const ProductDetail = () => {
     }
   };
 
+  const fallbackImg = product.crop?.image_url
+    ? getImageUrl(product.crop.image_url)
+    : DEFAULT_FALLBACK_IMAGE;
+
+  let rawImages = [];
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    rawImages = product.images;
+  } else if (typeof product.images === 'string') {
+    try {
+      rawImages = JSON.parse(product.images);
+    } catch {
+      rawImages = [product.images];
+    }
+  }
+
+  const images = Array.isArray(rawImages) && rawImages.length > 0
+    ? rawImages.map((img) => getImageUrl(img, fallbackImg))
+    : [fallbackImg];
+
   return (
     <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
@@ -127,12 +147,12 @@ const ProductDetail = () => {
               <CardMedia
                 component="img"
                 height="380"
-                image={
-                  product.images?.[selectedPhotoIndex] ||
-                  product.images?.[0] ||
-                  'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80'
-                }
+                image={images[selectedPhotoIndex] || images[0]}
                 alt={product.variety}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = fallbackImg;
+                }}
                 sx={{ objectFit: 'cover' }}
               />
               {selectedPhotoIndex === 0 && (
@@ -153,9 +173,9 @@ const ProductDetail = () => {
             </Card>
 
             {/* Thumbnail Gallery Row if multiple photos exist */}
-            {Array.isArray(product.images) && product.images.length > 1 && (
+            {images.length > 1 && (
               <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5, overflowX: 'auto', pb: 0.5 }}>
-                {product.images.map((img, i) => (
+                {images.map((img, i) => (
                   <Box
                     key={i}
                     onClick={() => setSelectedPhotoIndex(i)}
@@ -177,26 +197,12 @@ const ProductDetail = () => {
                       component="img"
                       src={img}
                       alt={`Thumbnail ${i + 1}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = fallbackImg;
+                      }}
                       sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    {i === 0 && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          bgcolor: 'rgba(37, 99, 235, 0.85)',
-                          color: '#fff',
-                          fontSize: '0.55rem',
-                          textAlign: 'center',
-                          fontWeight: 700,
-                          py: 0.2,
-                        }}
-                      >
-                        Cover
-                      </Box>
-                    )}
                   </Box>
                 ))}
               </Box>

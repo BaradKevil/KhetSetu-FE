@@ -19,30 +19,7 @@ import { MdSearch, MdLocationOn } from 'react-icons/md';
 import { useGetPublicMarketQuery, useGetCropsQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
-
-const BACKEND_URL = (import.meta.env.VITE_BASEURL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
-
-const getImageUrl = (url) => {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
-  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-};
-
-const getFirstImage = (item) => {
-  if (!item) return '';
-  let imgs = item.images;
-  if (typeof imgs === 'string') {
-    try {
-      imgs = JSON.parse(imgs);
-    } catch {
-      imgs = [imgs];
-    }
-  }
-  if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
-    return getImageUrl(imgs[0]);
-  }
-  return 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80';
-};
+import { getImageUrl, getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
 const MarketBrowse = () => {
   const { t, formatCurrency } = useLanguage();
