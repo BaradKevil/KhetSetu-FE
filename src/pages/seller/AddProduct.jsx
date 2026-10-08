@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -35,7 +35,12 @@ import {
   MdStar,
   MdPhotoLibrary,
 } from 'react-icons/md';
-import { useGetCropsQuery, useCreateProductMutation, useUploadDocumentMutation } from '../../Api/Api';
+import {
+  useGetCropsQuery,
+  useCreateProductMutation,
+  useUploadDocumentMutation,
+  useGetProfileQuery,
+} from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
@@ -78,12 +83,33 @@ const menuStyleProps = {
   },
 };
 
+const convertFileToBase64 = (file) =>
+  new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+
 const AddProduct = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { data: userProfile, isLoading: isProfileLoading } = useGetProfileQuery();
   const { data: crops, isLoading: isCropsLoading } = useGetCropsQuery();
   const createProductMutation = useCreateProductMutation();
   const uploadDocMutation = useUploadDocumentMutation();
+
+  const kycStatus = userProfile?.seller_profile?.kyc_status || 'unverified';
+
+  // Strict Farmer KYC Gate: If KYC is not completed/approved, redirect directly to KYC page
+  useEffect(() => {
+    if (!isProfileLoading && userProfile) {
+      if (kycStatus !== 'verified') {
+        toast.warning(t('farmer.completeKycFirst', 'Please complete the KYC first'));
+        navigate('/seller/kyc', { replace: true });
+      }
+    }
+  }, [isProfileLoading, userProfile, kycStatus, navigate, t]);
 
   const fileInputRef = useRef(null);
   const photoInputRef = useRef(null);
@@ -305,10 +331,12 @@ const AddProduct = () => {
           if (res?.file_url) {
             newUploadedUrls.push(res.file_url);
           } else {
-            newUploadedUrls.push(URL.createObjectURL(file));
+            const base64 = await convertFileToBase64(file);
+            if (base64) newUploadedUrls.push(base64);
           }
         } catch {
-          newUploadedUrls.push(URL.createObjectURL(file));
+          const base64 = await convertFileToBase64(file);
+          if (base64) newUploadedUrls.push(base64);
         }
       }
 
@@ -469,6 +497,19 @@ const AddProduct = () => {
       return;
     }
 
+    if (kycStatus !== 'verified') {
+      toast.warning(t('farmer.completeKycFirst', 'Please complete the KYC first'));
+      navigate('/seller/kyc', { replace: true });
+      return;
+    }
+
+    const finalImages =
+      formData.images.length > 0
+        ? formData.images
+        : selectedCrop?.image_url
+        ? [selectedCrop.image_url]
+        : [];
+
     try {
       await createProductMutation.mutateAsync({
         crop_id: Number(formData.crop_id),
@@ -488,7 +529,7 @@ const AddProduct = () => {
         pickup_pincode: formData.pickup_pincode.trim(),
         pickup_address_type: formData.pickup_address_type,
         pickup_exact_address: formData.pickup_exact_address.trim(),
-        images: formData.images,
+        images: finalImages,
       });
 
       toast.success(t('farmer.cropListedSuccess', 'Crop listed successfully! Live on KhetSetu Mandi.'));

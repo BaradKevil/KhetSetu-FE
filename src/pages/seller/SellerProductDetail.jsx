@@ -130,9 +130,13 @@ const SellerProductDetail = () => {
     }
   }
 
-  const images = Array.isArray(rawImages) && rawImages.length > 0
-    ? rawImages.map((img) => getImageUrl(img, fallbackImg))
-    : [fallbackImg];
+  const validImages = Array.isArray(rawImages) && rawImages.length > 0
+    ? rawImages
+        .filter((img) => img && !String(img).startsWith('blob:'))
+        .map((img) => getImageUrl(img, fallbackImg))
+    : [];
+
+  const images = validImages.length > 0 ? validImages : [fallbackImg];
 
   const getStatusColor = (status) => {
     switch (status) {

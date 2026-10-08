@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Paper, Button, Card, CardContent } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   MdAddCircleOutline,
   MdShoppingBag,
@@ -11,8 +11,10 @@ import {
 } from 'react-icons/md';
 import { useGetSellerProductsQuery, useGetSellerOrdersQuery, useGetProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import { toast } from 'react-toastify';
 
 const SellerDashboard = () => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const { data: userProfile } = useGetProfileQuery();
   const { data: productsData } = useGetSellerProductsQuery({ limit: 5 });
@@ -50,8 +52,14 @@ const SellerDashboard = () => {
           </Typography>
         </Box>
         <Button
-          component={Link}
-          to="/seller/products/new"
+          onClick={() => {
+            if (kycStatus !== 'verified') {
+              toast.warning(t('farmer.completeKycFirst', 'Please complete the KYC first'));
+              navigate('/seller/kyc');
+              return;
+            }
+            navigate('/seller/products/new');
+          }}
           variant="contained"
           color="primary"
           size="large"

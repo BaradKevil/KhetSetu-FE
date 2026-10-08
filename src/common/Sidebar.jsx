@@ -29,6 +29,8 @@ import {
 } from 'react-icons/md';
 
 import { useLanguage } from '../context/LanguageContext';
+import { useGetProfileQuery } from '../Api/Api';
+import { toast } from 'react-toastify';
 
 const DRAWER_WIDTH = 260;
 
@@ -83,6 +85,8 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const userRole = localStorage.getItem('role') || 'buyer';
+  const { data: userProfile } = useGetProfileQuery();
+  const kycStatus = userProfile?.seller_profile?.kyc_status || 'unverified';
 
   const filteredMenu = menulist.filter((item) =>
     item.roles.includes(userRole)
@@ -136,6 +140,14 @@ const Sidebar = ({ open, onClose, isMobile }) => {
               <ListItem disablePadding sx={{ mb: 0.6 }}>
                 <ListItemButton
                   onClick={() => {
+                    if (item.id === 'seller-new-product' || item.path === '/seller/products/new') {
+                      if (kycStatus !== 'verified') {
+                        toast.warning(t('farmer.completeKycFirst', 'Please complete the KYC first'));
+                        navigate('/seller/kyc');
+                        if (isMobile && onClose) onClose();
+                        return;
+                      }
+                    }
                     navigate(item.path);
                     if (isMobile && onClose) onClose();
                   }}

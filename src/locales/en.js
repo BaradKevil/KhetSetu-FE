@@ -143,6 +143,7 @@ export const farmer = {
   cropListingsTitle: '🌾 My Crop Listings',
   cropListingsSubtitle: 'Manage your crops listed on KhetSetu Mandi.',
   addCropBtn: 'Add Crop',
+  completeKycFirst: 'Please complete the KYC first',
   cropAndVariety: 'Crop & Variety',
   grade: 'Grade',
   availableStock: 'Available Stock',

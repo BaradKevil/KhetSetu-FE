@@ -143,6 +143,7 @@ export const farmer = {
   cropListingsTitle: '🌾 મારી પાક યાદી',
   cropListingsSubtitle: 'ખેતસેતુ મંડી પર સૂચિબદ્ધ તમારા પાકનું સંચાલન કરો.',
   addCropBtn: 'પાક ઉમેરો',
+  completeKycFirst: 'કૃપા કરીને પહેલા કેવાયસી (KYC) પૂર્ણ કરો',
   cropAndVariety: 'પાક અને જાત',
   grade: 'ગ્રેડ',
   availableStock: 'ઉપલબ્ધ જથ્થો',
