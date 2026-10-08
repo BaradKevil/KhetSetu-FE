@@ -66,11 +66,15 @@ export const navigation = {
   myEscrowOrders: 'मेरे एस्क्रो ऑर्डर',
   businessProfile: 'प्रोफाइल और सेटिंग्स',
   controlTower: 'कंट्रोल टॉवर',
+  usersDirectory: 'उपयोगकर्ता निर्देशिका',
   kycApprovals: 'केवाईसी सत्यापन',
   ordersOversight: 'ऑर्डर निगरानी',
+  listingModeration: 'फसल लिस्टिंग मॉडरेशन',
+  disputesClaims: 'विवाद व दावे',
   ledger: 'लेखा बही (खाता)',
   payoutApprovals: 'भुगतान अनुमोदन',
   auditTrail: 'ऑडिट लॉग',
+  platformSettings: 'प्लेटफॉर्म सेटिंग्स',
   escrowProtectedFooter: 'खेतसेतु एस्क्रो सुरक्षित © 2026',
 };
 

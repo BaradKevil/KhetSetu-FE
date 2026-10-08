@@ -10,7 +10,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton,
   Button,
   Dialog,
   DialogTitle,
@@ -21,16 +20,21 @@ import {
   Grid,
   Divider,
   InputAdornment,
+  Tabs,
+  Tab,
+  TablePagination,
+  TableSortLabel,
 } from '@mui/material';
 import {
   MdSearch,
-  MdVisibility,
   MdGavel,
-  MdRefresh,
   MdAssignmentReturn,
   MdCheckCircle,
   MdCancel,
   MdWarning,
+  MdFileDownload,
+  MdHourglassTop,
+  MdReportProblem,
 } from 'react-icons/md';
 import { useGetAdminDisputesQuery, useResolveDisputeMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -50,6 +54,8 @@ const getStatusChip = (status) => {
     case 'investigating':
       return <Chip label="UNDER REVIEW" size="small" color="warning" sx={{ fontWeight: 800, fontSize: '0.72rem' }} />;
     case 'resolved':
+    case 'resolved_seller':
+    case 'resolved_buyer_refund':
       return <Chip label="ARBITRATED & SETTLED" size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.72rem' }} />;
     case 'dismissed':
     default:
@@ -59,25 +65,62 @@ const getStatusChip = (status) => {
 
 const AdminDisputes = () => {
   const { formatDate } = useLanguage();
+
+  // Search & Tab States
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('all');
+
+  // Sorting & Pagination States (handled by backend)
   const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('DESC');
 
   // Arbitration Dialog
   const [selectedDispute, setSelectedDispute] = useState(null);
-  const [resolutionAction, setResolutionAction] = useState(''); // 'refund_to_buyer' | 'release_to_seller' | 'dismiss'
+  const [resolutionAction, setResolutionAction] = useState(''); // 'resolved_buyer_refund' | 'resolved_seller' | 'dismissed'
   const [resolutionNotes, setResolutionNotes] = useState('');
 
   const { data: disputesData, isLoading, refetch } = useGetAdminDisputesQuery({
-    search: searchTerm || undefined,
-    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: searchTerm.trim() || undefined,
+    status: activeTab !== 'all' ? activeTab : undefined,
+    sortBy,
+    sortOrder,
     page,
-    limit: 50,
+    limit: rowsPerPage,
   });
 
   const resolveDisputeMutation = useResolveDisputeMutation();
 
-  const disputes = Array.isArray(disputesData) ? disputesData : disputesData?.data || [];
+  const disputes = disputesData?.items || disputesData?.data || (Array.isArray(disputesData) ? disputesData : []);
+  const pagination = disputesData?.pagination || {
+    currentPage: page,
+    totalPages: Math.ceil(disputes.length / rowsPerPage) || 1,
+    totalCount: disputes.length,
+    limit: rowsPerPage,
+  };
+  const counts = disputesData?.counts || {};
+
+  const handleTabChange = (_event, newValue) => {
+    setActiveTab(newValue);
+    setPage(1);
+  };
+
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'ASC';
+    setSortOrder(isAsc ? 'DESC' : 'ASC');
+    setSortBy(property);
+    setPage(1);
+  };
+
+  const handleChangePage = (_event, newPage) => {
+    setPage(newPage + 1);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  };
 
   const handleExecuteArbitration = async () => {
     if (!selectedDispute || !resolutionAction) return;
@@ -89,8 +132,8 @@ const AdminDisputes = () => {
     try {
       await resolveDisputeMutation.mutateAsync({
         id: selectedDispute.id,
-        resolution: resolutionAction,
-        notes: resolutionNotes,
+        outcome: resolutionAction,
+        resolutionNotes: resolutionNotes,
       });
       toast.success(`Dispute #${selectedDispute.id} arbitration concluded with: ${resolutionAction.replace(/_/g, ' ')}.`);
       setSelectedDispute(null);
@@ -102,78 +145,272 @@ const AdminDisputes = () => {
     }
   };
 
+  const exportDisputesCSV = () => {
+    if (!disputes.length) {
+      toast.info('No disputes to export.');
+      return;
+    }
+    const headers = [
+      'Dispute ID',
+      'Dispute Number',
+      'Order ID',
+      'Order Number',
+      'Order Total',
+      'Claimant Phone',
+      'Reason',
+      'Status',
+      'Filed Date',
+    ];
+
+    const rows = disputes.map((d) => [
+      d.id,
+      d.dispute_number || `DSP-${d.id}`,
+      d.order_id || d.order?.id,
+      d.order?.order_number || `ORD-${d.order_id}`,
+      Number(d.order?.total_price || d.order?.total_amount || 0),
+      `"${d.raised_by_user?.phone || d.claimant?.phone || ''}"`,
+      `"${(d.reason || '').replace(/"/g, '""')}"`,
+      d.status || 'open',
+      new Date(d.createdAt || d.created_at || Date.now()).toISOString(),
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `khetsetu_disputes_${activeTab}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
       {/* Page Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} color="#0F172A">
-            Disputes & Arbitration Tribunal
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Adjudicate contested escrow transactions, damaged consignments, weight discrepancies, and contract non-fulfillment.
-          </Typography>
-        </Box>
-        <IconButton onClick={() => refetch()} sx={{ bgcolor: '#F1F5F9' }}>
-          <MdRefresh />
-        </IconButton>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" fontWeight={800} color="#0F172A">
+          Disputes & Arbitration Tribunal
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Adjudicate contested escrow transactions, damaged consignments, weight discrepancies, and contract non-fulfillment.
+        </Typography>
       </Box>
 
-      {/* Filter and Search Bar */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={5} size={{ xs: 12, md: 5 }}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Search by Claim ID, Order # or Party Name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <MdSearch color="#94A3B8" size={20} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={7} size={{ xs: 12, md: 7 }}>
-            <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto' }}>
-              {[
-                { label: 'All Disputes', val: 'all' },
-                { label: 'Open Claims', val: 'open' },
-                { label: 'Under Review', val: 'under_review' },
-                { label: 'Resolved', val: 'resolved' },
-                { label: 'Dismissed', val: 'dismissed' },
-              ].map((tab) => (
-                <Chip
-                  key={tab.val}
-                  label={tab.label}
-                  clickable
-                  color={statusFilter === tab.val ? 'primary' : 'default'}
-                  variant={statusFilter === tab.val ? 'filled' : 'outlined'}
-                  onClick={() => setStatusFilter(tab.val)}
-                  sx={{ fontWeight: 700, fontSize: '0.8rem' }}
-                />
-              ))}
-            </Box>
-          </Grid>
-        </Grid>
+      {/* Top Controls: Search Bar on Left + Export Button on Far Right (Refresh removed) */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 2.5,
+          borderRadius: 3,
+          border: '1px solid #E2E8F0',
+          bgcolor: '#FFFFFF',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: { xs: '100%', sm: 320 } }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search by Dispute #, Reason or Details..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MdSearch size={20} color="#64748B" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ maxWidth: 460 }}
+          />
+        </Box>
+
+        <Button
+          variant="contained"
+          startIcon={<MdFileDownload size={18} />}
+          onClick={exportDisputesCSV}
+          sx={{
+            fontWeight: 700,
+            bgcolor: '#166534',
+            '&:hover': { bgcolor: '#14532D' },
+            borderRadius: 2,
+            px: 2.5,
+            py: 0.9,
+            textTransform: 'none',
+          }}
+        >
+          Export Disputes CSV
+        </Button>
       </Paper>
 
-      {/* Disputes Table */}
+      {/* Distinct Tabs Row Below Controls with Count Badges */}
+      <Box sx={{ borderBottom: 1, borderColor: '#E2E8F0', mb: 2.5 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          textColor="primary"
+          indicatorColor="primary"
+          sx={{
+            '& .MuiTab-root': {
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              textTransform: 'none',
+              minHeight: 48,
+              px: { xs: 2, sm: 2.8 },
+            },
+          }}
+        >
+          <Tab
+            value="all"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdGavel size={18} />
+                <span>All Claims</span>
+                {counts.all !== undefined && (
+                  <Chip
+                    label={counts.all}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'all' ? '#DCFCE7' : '#F1F5F9',
+                      color: activeTab === 'all' ? '#15803D' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="open"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdReportProblem size={17} />
+                <span>Open Claims</span>
+                {counts.open !== undefined && (
+                  <Chip
+                    label={counts.open}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'open' ? '#FEE2E2' : '#F1F5F9',
+                      color: activeTab === 'open' ? '#991B1B' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="under_review"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdHourglassTop size={17} />
+                <span>Under Review</span>
+                {counts.under_review !== undefined && (
+                  <Chip
+                    label={counts.under_review}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'under_review' ? '#FEF3C7' : '#F1F5F9',
+                      color: activeTab === 'under_review' ? '#92400E' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="resolved"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdCheckCircle size={17} />
+                <span>Resolved & Settled</span>
+                {counts.resolved !== undefined && (
+                  <Chip
+                    label={counts.resolved}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'resolved' ? '#DCFCE7' : '#F1F5F9',
+                      color: activeTab === 'resolved' ? '#15803D' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="dismissed"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdCancel size={17} />
+                <span>Dismissed</span>
+                {counts.dismissed !== undefined && (
+                  <Chip
+                    label={counts.dismissed}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'dismissed' ? '#F1F5F9' : '#F8FAFC',
+                      color: activeTab === 'dismissed' ? '#334155' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+        </Tabs>
+      </Box>
+
+      {/* Disputes Table with Server-Side Sorting & Pagination */}
       <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <TableContainer>
           <Table>
             <TableHead sx={{ bgcolor: '#F8FAFC' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>CLAIM ID</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>
+                  <TableSortLabel
+                    active={sortBy === 'id'}
+                    direction={sortBy === 'id' ? sortOrder.toLowerCase() : 'desc'}
+                    onClick={() => handleSort('id')}
+                  >
+                    CLAIM ID
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>ORDER # & ESCROW</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>CLAIMANT</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>DISPUTE REASON</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>STATUS</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>FILED DATE</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>
+                  <TableSortLabel
+                    active={sortBy === 'created_at'}
+                    direction={sortBy === 'created_at' ? sortOrder.toLowerCase() : 'desc'}
+                    onClick={() => handleSort('created_at')}
+                  >
+                    FILED DATE
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>ACTIONS</TableCell>
               </TableRow>
             </TableHead>
@@ -188,7 +425,7 @@ const AdminDisputes = () => {
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                     <Typography variant="body1" fontWeight={600} color="text.secondary">
-                      No active disputes or claims on file.
+                      No active disputes or claims match this filter.
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       All escrow contracts are executing within normal delivery parameters.
@@ -203,7 +440,7 @@ const AdminDisputes = () => {
                         CLAIM #{d.id}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Type: {d.dispute_type || 'Escrow Hold Contested'}
+                        {d.dispute_number || 'Escrow Hold Contested'}
                       </Typography>
                     </TableCell>
 
@@ -218,15 +455,15 @@ const AdminDisputes = () => {
 
                     <TableCell>
                       <Typography variant="body2" fontWeight={700} color="#0F172A">
-                        {d.claimant?.full_name || d.claimant?.name || 'Complainant'}
+                        {d.raised_by_user?.phone || d.claimant?.full_name || 'Complainant'}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {d.claimant?.phone || ''}
+                        ID: #{d.raised_by || 'User'}
                       </Typography>
                     </TableCell>
 
                     <TableCell>
-                      <Typography variant="body2" fontWeight={600} color="#0F172A" sx={{ maxWidth: 260 }}>
+                      <Typography variant="body2" fontWeight={600} color="#0F172A" sx={{ maxWidth: 280 }}>
                         {d.reason || d.claim_notes || 'Contract disagreement or consignment defect.'}
                       </Typography>
                     </TableCell>
@@ -252,7 +489,11 @@ const AdminDisputes = () => {
                           setResolutionAction('');
                           setResolutionNotes('');
                         }}
-                        sx={{ fontWeight: 700 }}
+                        sx={{
+                          fontWeight: 700,
+                          borderRadius: 2,
+                          textTransform: 'none',
+                        }}
                       >
                         Arbitrate
                       </Button>
@@ -263,6 +504,18 @@ const AdminDisputes = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Server-Side Pagination */}
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50]}
+          component="div"
+          count={pagination.totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page - 1}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ borderTop: '1px solid #E2E8F0' }}
+        />
       </Paper>
 
       {/* Arbitration Modal */}
@@ -313,7 +566,7 @@ const AdminDisputes = () => {
                   <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
                     <Typography variant="caption" color="text.secondary">Volume</Typography>
                     <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
-                      {selectedDispute.order?.quantity} {selectedDispute.order?.unit || 'kg'}
+                      {selectedDispute.order?.quantity || 1} {selectedDispute.order?.unit || 'kg'}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -328,11 +581,11 @@ const AdminDisputes = () => {
                   <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
                     <Button
                       fullWidth
-                      variant={resolutionAction === 'refund_to_buyer' ? 'contained' : 'outlined'}
+                      variant={resolutionAction === 'resolved_buyer_refund' ? 'contained' : 'outlined'}
                       color="error"
                       startIcon={<MdAssignmentReturn />}
-                      onClick={() => setResolutionAction('refund_to_buyer')}
-                      sx={{ fontWeight: 700, py: 1.5 }}
+                      onClick={() => setResolutionAction('resolved_buyer_refund')}
+                      sx={{ fontWeight: 700, py: 1.5, textTransform: 'none' }}
                     >
                       Full Refund to Buyer
                     </Button>
@@ -340,11 +593,11 @@ const AdminDisputes = () => {
                   <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
                     <Button
                       fullWidth
-                      variant={resolutionAction === 'release_to_seller' ? 'contained' : 'outlined'}
+                      variant={resolutionAction === 'resolved_seller' ? 'contained' : 'outlined'}
                       color="success"
                       startIcon={<MdCheckCircle />}
-                      onClick={() => setResolutionAction('release_to_seller')}
-                      sx={{ fontWeight: 700, py: 1.5 }}
+                      onClick={() => setResolutionAction('resolved_seller')}
+                      sx={{ fontWeight: 700, py: 1.5, textTransform: 'none' }}
                     >
                       Release Funds to Farmer
                     </Button>
@@ -352,11 +605,11 @@ const AdminDisputes = () => {
                   <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
                     <Button
                       fullWidth
-                      variant={resolutionAction === 'dismiss' ? 'contained' : 'outlined'}
+                      variant={resolutionAction === 'dismissed' ? 'contained' : 'outlined'}
                       color="inherit"
                       startIcon={<MdCancel />}
-                      onClick={() => setResolutionAction('dismiss')}
-                      sx={{ fontWeight: 700, py: 1.5 }}
+                      onClick={() => setResolutionAction('dismissed')}
+                      sx={{ fontWeight: 700, py: 1.5, textTransform: 'none' }}
                     >
                       Dismiss Claim
                     </Button>
@@ -390,7 +643,7 @@ const AdminDisputes = () => {
                   color="primary"
                   onClick={handleExecuteArbitration}
                   disabled={resolveDisputeMutation.isPending || !resolutionNotes.trim()}
-                  sx={{ fontWeight: 700, px: 3 }}
+                  sx={{ fontWeight: 700, px: 3, textTransform: 'none' }}
                 >
                   {resolveDisputeMutation.isPending ? 'Executing Ruling...' : 'Enforce Arbitration Ruling'}
                 </Button>

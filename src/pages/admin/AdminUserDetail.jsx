@@ -80,6 +80,9 @@ const AdminUserDetail = () => {
   const isSuspended = user.status === 'suspended';
   const seller = user.seller_profile;
   const buyer = user.buyer_profile;
+  const roleCode = (typeof user.role === 'object' ? user.role?.code : user.role) || (seller ? 'seller' : buyer ? 'buyer' : 'user');
+  const roleDisplay = (typeof user.role === 'object' ? user.role?.name || user.role?.code : user.role) || roleCode;
+  const roleLabel = String(roleDisplay || 'USER').toUpperCase();
 
   const handleExecuteStatusUpdate = async () => {
     if (!targetStatus) return;
@@ -195,11 +198,11 @@ const AdminUserDetail = () => {
                 {user.full_name || user.name || 'Registered User'}
               </Typography>
               <Chip
-                label={user.role?.toUpperCase()}
+                label={roleLabel}
                 size="small"
                 sx={{
-                  bgcolor: user.role === 'seller' ? '#E8F5E9' : user.role === 'buyer' ? '#E0F2FE' : '#F1F5F9',
-                  color: user.role === 'seller' ? '#166534' : user.role === 'buyer' ? '#0369A1' : '#0F172A',
+                  bgcolor: roleCode === 'seller' ? '#E8F5E9' : roleCode === 'buyer' ? '#E0F2FE' : '#F1F5F9',
+                  color: roleCode === 'seller' ? '#166534' : roleCode === 'buyer' ? '#0369A1' : '#0F172A',
                   fontWeight: 800,
                   fontSize: '0.72rem',
                 }}
@@ -222,7 +225,7 @@ const AdminUserDetail = () => {
       </Paper>
 
       {/* Farmer Specific Profile Details */}
-      {user.role === 'seller' && seller && (
+      {roleCode === 'seller' && seller && (
         <Grid container spacing={3} sx={{ mb: 3.5 }}>
           <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', height: '100%' }}>
@@ -304,7 +307,7 @@ const AdminUserDetail = () => {
       )}
 
       {/* Buyer Specific Profile Details */}
-      {user.role === 'buyer' && (
+      {roleCode === 'buyer' && (
         <Grid container spacing={3} sx={{ mb: 3.5 }}>
           <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', height: '100%' }}>
@@ -410,7 +413,7 @@ const AdminUserDetail = () => {
               ⚠️ CRITICAL WARNING: Permanent Purge from TiDB Database
             </Typography>
             <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
-              • Target: <strong>{user.full_name || user.name || user.phone}</strong> (ID: #{user.id}, Role: {user.role?.toUpperCase()})
+              • Target: <strong>{user.full_name || user.name || user.phone}</strong> (ID: #{user.id}, Role: {roleLabel})
             </Typography>
             <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
               • <strong>All crops & products listed by this user will be automatically and permanently deleted from the database.</strong>

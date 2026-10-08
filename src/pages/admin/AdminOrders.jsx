@@ -10,7 +10,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton,
   Button,
   Dialog,
   DialogTitle,
@@ -18,31 +17,25 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-  Tooltip,
-  Card,
-  CardContent,
   Grid,
-  Divider,
   Tabs,
   Tab,
   InputAdornment,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
+  TablePagination,
+  TableSortLabel,
 } from '@mui/material';
 import {
   MdSearch,
-  MdFilterList,
   MdVisibility,
   MdLock,
   MdLocalShipping,
   MdCancel,
-  MdCheckCircle,
-  MdRefresh,
-  MdWarning,
   MdFileDownload,
   MdGavel,
+  MdReceiptLong,
+  MdHourglassTop,
+  MdDoneAll,
+  MdWarning,
 } from 'react-icons/md';
 import { useGetAdminOrdersQuery, useOrderInterventionMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -56,9 +49,12 @@ const formatINR = (val) => {
 const getStatusChip = (status) => {
   switch (status) {
     case 'paid':
+    case 'escrow_held':
       return <Chip label="ESCROW SECURED" size="small" sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 800, fontSize: '0.72rem' }} />;
     case 'in_transit':
     case 'shipped':
+    case 'dispatched':
+    case 'accepted':
       return <Chip label="IN TRANSIT" size="small" sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 800, fontSize: '0.72rem' }} />;
     case 'delivered':
       return <Chip label="DELIVERED (48H SLA)" size="small" sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 800, fontSize: '0.72rem' }} />;
@@ -77,23 +73,63 @@ const getStatusChip = (status) => {
 
 const AdminOrders = () => {
   const { formatDate } = useLanguage();
+
+  // Search & Tab States
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('all');
+
+  // Sorting & Pagination States (handled by backend)
   const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('DESC');
+
+  // Inspection & Intervention State
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [interventionAction, setInterventionAction] = useState(''); // 'freeze_escrow' | 'manual_mark_delivered' | 'force_cancel'
   const [interventionReason, setInterventionReason] = useState('');
 
+  // Fetch orders with server-side query params
   const { data: ordersData, isLoading, refetch } = useGetAdminOrdersQuery({
-    search: searchTerm || undefined,
-    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: searchTerm.trim() || undefined,
+    status: activeTab !== 'all' ? activeTab : undefined,
+    sortBy,
+    sortOrder,
     page,
-    limit: 50,
+    limit: rowsPerPage,
   });
 
   const interventionMutation = useOrderInterventionMutation();
 
   const orders = ordersData?.items || ordersData?.data || (Array.isArray(ordersData) ? ordersData : []);
+  const pagination = ordersData?.pagination || {
+    currentPage: page,
+    totalPages: Math.ceil(orders.length / rowsPerPage) || 1,
+    totalCount: orders.length,
+    limit: rowsPerPage,
+  };
+  const counts = ordersData?.counts || {};
+
+  const handleTabChange = (_event, newValue) => {
+    setActiveTab(newValue);
+    setPage(1);
+  };
+
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'ASC';
+    setSortOrder(isAsc ? 'DESC' : 'ASC');
+    setSortBy(property);
+    setPage(1);
+  };
+
+  const handleChangePage = (_event, newPage) => {
+    setPage(newPage + 1);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  };
 
   const handleExecuteIntervention = async () => {
     if (!selectedOrder || !interventionAction) return;
@@ -147,14 +183,14 @@ const AdminOrders = () => {
       return [
         o.id,
         o.order_number || `ORD-${o.id}`,
-        new Date(o.createdAt || o.created_at).toISOString(),
-        `"${o.buyer?.full_name || o.buyer?.name || 'Buyer'}"`,
+        new Date(o.createdAt || o.created_at || Date.now()).toISOString(),
+        `"${o.buyer?.full_name || o.buyer?.buyer_profile?.company_name || o.buyer?.name || 'Buyer'}"`,
         `"${o.buyer?.phone || ''}"`,
-        `"${o.seller?.full_name || o.seller?.farm_name || 'Farmer'}"`,
+        `"${o.seller?.full_name || o.seller?.seller_profile?.full_name || o.seller?.farm_name || 'Farmer'}"`,
         `"${o.seller?.phone || ''}"`,
-        `"${o.product?.crop_name || o.product?.title || 'Agri Commodity'}"`,
-        o.quantity || 1,
-        o.unit || 'kg',
+        `"${o.items?.[0]?.product?.crop?.name_en || o.product?.crop_name || o.product?.variety || 'Agri Commodity'}"`,
+        o.quantity || o.items?.[0]?.quantity || 1,
+        o.unit || o.items?.[0]?.unit || 'kg',
         gross,
         fee,
         sellerNet,
@@ -166,97 +202,292 @@ const AdminOrders = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `khetsetu_orders_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `khetsetu_orders_${activeTab}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
       {/* Page Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} color="#0F172A">
-            Orders Oversight & Escrow Vault
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Cross-marketplace view of all crop procurement contracts, logistics tracking, and dispute intervention.
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Button
-            variant="outlined"
-            startIcon={<MdFileDownload />}
-            onClick={exportOrdersCSV}
-            sx={{ fontWeight: 700 }}
-          >
-            Export CSV
-          </Button>
-          <IconButton onClick={() => refetch()} sx={{ bgcolor: '#F1F5F9' }}>
-            <MdRefresh />
-          </IconButton>
-        </Box>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" fontWeight={800} color="#0F172A">
+          Orders Oversight & Escrow Vault
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Cross-marketplace view of all crop procurement contracts, logistics tracking, and dispute intervention.
+        </Typography>
       </Box>
 
-      {/* Filter and Search Bar */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={5} size={{ xs: 12, md: 5 }}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Search by Order ID, Buyer, Farmer or Crop..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <MdSearch color="#94A3B8" size={20} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={7} size={{ xs: 12, md: 7 }}>
-            <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: { xs: 1, md: 0 } }}>
-              {[
-                { label: 'All Orders', val: 'all' },
-                { label: 'Escrow Secured', val: 'paid' },
-                { label: 'In Transit', val: 'in_transit' },
-                { label: 'Delivered', val: 'delivered' },
-                { label: 'Completed', val: 'completed' },
-                { label: 'Disputed', val: 'disputed' },
-                { label: 'Cancelled', val: 'cancelled' },
-              ].map((tab) => (
-                <Chip
-                  key={tab.val}
-                  label={tab.label}
-                  clickable
-                  color={statusFilter === tab.val ? 'primary' : 'default'}
-                  variant={statusFilter === tab.val ? 'filled' : 'outlined'}
-                  onClick={() => setStatusFilter(tab.val)}
-                  sx={{ fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap' }}
-                />
-              ))}
-            </Box>
-          </Grid>
-        </Grid>
+      {/* Top Controls: Search Bar on Left + Export Button on Far Right (Refresh removed) */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 2.5,
+          borderRadius: 3,
+          border: '1px solid #E2E8F0',
+          bgcolor: '#FFFFFF',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: { xs: '100%', sm: 320 } }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search by Order ID, Buyer, Farmer or Crop..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MdSearch size={20} color="#64748B" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ maxWidth: 460 }}
+          />
+        </Box>
+
+        <Button
+          variant="contained"
+          startIcon={<MdFileDownload size={18} />}
+          onClick={exportOrdersCSV}
+          sx={{
+            fontWeight: 700,
+            bgcolor: '#166534',
+            '&:hover': { bgcolor: '#14532D' },
+            borderRadius: 2,
+            px: 2.5,
+            py: 0.9,
+            textTransform: 'none',
+          }}
+        >
+          Export Orders CSV
+        </Button>
       </Paper>
 
-      {/* Orders Table */}
+      {/* Distinct Tabs Row Below Controls with Count Badges */}
+      <Box sx={{ borderBottom: 1, borderColor: '#E2E8F0', mb: 2.5 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          textColor="primary"
+          indicatorColor="primary"
+          sx={{
+            '& .MuiTab-root': {
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              textTransform: 'none',
+              minHeight: 48,
+              px: { xs: 2, sm: 2.8 },
+            },
+          }}
+        >
+          <Tab
+            value="all"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdReceiptLong size={18} />
+                <span>All Orders</span>
+                {counts.all !== undefined && (
+                  <Chip
+                    label={counts.all}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'all' ? '#DCFCE7' : '#F1F5F9',
+                      color: activeTab === 'all' ? '#15803D' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="paid"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdLock size={17} />
+                <span>Escrow Secured</span>
+                {(counts.paid !== undefined || counts.escrow_held !== undefined) && (
+                  <Chip
+                    label={counts.paid ?? counts.escrow_held}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'paid' ? '#DCFCE7' : '#F1F5F9',
+                      color: activeTab === 'paid' ? '#15803D' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="in_transit"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdLocalShipping size={18} />
+                <span>In Transit</span>
+                {counts.in_transit !== undefined && (
+                  <Chip
+                    label={counts.in_transit}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'in_transit' ? '#E0F2FE' : '#F1F5F9',
+                      color: activeTab === 'in_transit' ? '#0369A1' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="delivered"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdHourglassTop size={18} />
+                <span>Delivered</span>
+                {counts.delivered !== undefined && (
+                  <Chip
+                    label={counts.delivered}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'delivered' ? '#FEF3C7' : '#F1F5F9',
+                      color: activeTab === 'delivered' ? '#92400E' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="completed"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdDoneAll size={18} />
+                <span>Completed</span>
+                {counts.completed !== undefined && (
+                  <Chip
+                    label={counts.completed}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'completed' ? '#DCFCE7' : '#F1F5F9',
+                      color: activeTab === 'completed' ? '#15803D' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="disputed"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdWarning size={17} />
+                <span>Disputed</span>
+                {counts.disputed !== undefined && (
+                  <Chip
+                    label={counts.disputed}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'disputed' ? '#FEE2E2' : '#F1F5F9',
+                      color: activeTab === 'disputed' ? '#991B1B' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            value="cancelled"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MdCancel size={17} />
+                <span>Cancelled</span>
+                {counts.cancelled !== undefined && (
+                  <Chip
+                    label={counts.cancelled}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      bgcolor: activeTab === 'cancelled' ? '#F1F5F9' : '#F8FAFC',
+                      color: activeTab === 'cancelled' ? '#334155' : '#64748B',
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
+        </Tabs>
+      </Box>
+
+      {/* Orders Table with Server-Side Sorting & Pagination */}
       <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <TableContainer>
           <Table>
             <TableHead sx={{ bgcolor: '#F8FAFC' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>ORDER #</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>
+                  <TableSortLabel
+                    active={sortBy === 'order_number'}
+                    direction={sortBy === 'order_number' ? sortOrder.toLowerCase() : 'desc'}
+                    onClick={() => handleSort('order_number')}
+                  >
+                    ORDER #
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>BUYER</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>FARMER (SELLER)</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>COMMODITY</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>AMOUNT & FEES</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>
+                  <TableSortLabel
+                    active={sortBy === 'total_price'}
+                    direction={sortBy === 'total_price' ? sortOrder.toLowerCase() : 'desc'}
+                    onClick={() => handleSort('total_price')}
+                  >
+                    AMOUNT & FEES
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>STATUS</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>DATE (IST)</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>
+                  <TableSortLabel
+                    active={sortBy === 'created_at'}
+                    direction={sortBy === 'created_at' ? sortOrder.toLowerCase() : 'desc'}
+                    onClick={() => handleSort('created_at')}
+                  >
+                    DATE (IST)
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, color: '#475569', fontSize: '0.8rem' }}>ACTIONS</TableCell>
               </TableRow>
             </TableHead>
@@ -283,6 +514,10 @@ const AdminOrders = () => {
                   const gross = Number(order.total_price || order.total_amount || 0);
                   const fee = Number(order.platform_fee || Math.round(gross * 0.03));
                   const sellerNet = Number(order.seller_amount || (gross - fee));
+                  const item = order.items?.[0];
+                  const commodityName = item?.product?.crop?.name_en || order.product?.crop_name || order.product?.variety || 'Agri Produce';
+                  const quantity = order.quantity || item?.quantity || 1;
+                  const unit = order.unit || item?.unit || 'kg';
 
                   return (
                     <TableRow key={order.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
@@ -297,7 +532,7 @@ const AdminOrders = () => {
 
                       <TableCell>
                         <Typography variant="body2" fontWeight={700} color="#0F172A">
-                          {order.buyer?.full_name || order.buyer?.name || 'Buyer User'}
+                          {order.buyer?.full_name || order.buyer?.buyer_profile?.company_name || order.buyer?.name || 'Buyer User'}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {order.buyer?.phone || 'No phone'}
@@ -306,7 +541,7 @@ const AdminOrders = () => {
 
                       <TableCell>
                         <Typography variant="body2" fontWeight={700} color="#0F172A">
-                          {order.seller?.full_name || order.seller?.farm_name || 'Farmer'}
+                          {order.seller?.full_name || order.seller?.seller_profile?.full_name || order.seller?.farm_name || 'Farmer'}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {order.seller?.phone || 'No phone'}
@@ -315,10 +550,10 @@ const AdminOrders = () => {
 
                       <TableCell>
                         <Typography variant="body2" fontWeight={700} color="#0F172A">
-                          {order.product?.crop_name || order.product?.title || 'Agri Produce'}
+                          {commodityName}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {order.quantity} {order.unit || 'kg'} • {formatINR(order.unit_price || Math.round(gross / (order.quantity || 1)))}/{order.unit || 'kg'}
+                          {quantity} {unit} • {formatINR(order.unit_price || Math.round(gross / (quantity || 1)))}/{unit}
                         </Typography>
                       </TableCell>
 
@@ -351,7 +586,14 @@ const AdminOrders = () => {
                             setInterventionAction('');
                             setInterventionReason('');
                           }}
-                          sx={{ fontWeight: 700 }}
+                          sx={{
+                            fontWeight: 700,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            color: '#166534',
+                            borderColor: '#86EFAC',
+                            '&:hover': { bgcolor: '#F0FDF4', borderColor: '#166534' },
+                          }}
                         >
                           Inspect
                         </Button>
@@ -363,6 +605,18 @@ const AdminOrders = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Server-Side Pagination */}
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50]}
+          component="div"
+          count={pagination.totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page - 1}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ borderTop: '1px solid #E2E8F0' }}
+        />
       </Paper>
 
       {/* Order Inspection & Intervention Dialog */}
@@ -428,7 +682,7 @@ const AdminOrders = () => {
                     <Typography variant="subtitle2" fontWeight={800} color="#0F172A" sx={{ mb: 1 }}>
                       👤 Buyer Information
                     </Typography>
-                    <Typography variant="body2"><strong>Name:</strong> {selectedOrder.buyer?.full_name || selectedOrder.buyer?.name || 'Buyer'}</Typography>
+                    <Typography variant="body2"><strong>Name:</strong> {selectedOrder.buyer?.full_name || selectedOrder.buyer?.buyer_profile?.company_name || selectedOrder.buyer?.name || 'Buyer'}</Typography>
                     <Typography variant="body2"><strong>Phone:</strong> {selectedOrder.buyer?.phone || 'N/A'}</Typography>
                     <Typography variant="body2"><strong>Email:</strong> {selectedOrder.buyer?.email || 'N/A'}</Typography>
                     <Typography variant="body2" sx={{ mt: 1 }}><strong>Delivery Address:</strong> {selectedOrder.delivery_address || selectedOrder.shipping_address || 'Standard Registered Business Location'}</Typography>
@@ -439,10 +693,10 @@ const AdminOrders = () => {
                     <Typography variant="subtitle2" fontWeight={800} color="#0F172A" sx={{ mb: 1 }}>
                       🌾 Farmer / Seller Details
                     </Typography>
-                    <Typography variant="body2"><strong>Farmer:</strong> {selectedOrder.seller?.full_name || selectedOrder.seller?.farm_name || 'Farmer'}</Typography>
+                    <Typography variant="body2"><strong>Farmer:</strong> {selectedOrder.seller?.full_name || selectedOrder.seller?.seller_profile?.full_name || selectedOrder.seller?.farm_name || 'Farmer'}</Typography>
                     <Typography variant="body2"><strong>Phone:</strong> {selectedOrder.seller?.phone || 'N/A'}</Typography>
-                    <Typography variant="body2"><strong>Commodity:</strong> {selectedOrder.product?.crop_name || selectedOrder.product?.title}</Typography>
-                    <Typography variant="body2"><strong>Contract Volume:</strong> {selectedOrder.quantity} {selectedOrder.unit || 'kg'}</Typography>
+                    <Typography variant="body2"><strong>Commodity:</strong> {selectedOrder.items?.[0]?.product?.crop?.name_en || selectedOrder.product?.crop_name || selectedOrder.product?.variety || 'Agri Produce'}</Typography>
+                    <Typography variant="body2"><strong>Contract Volume:</strong> {selectedOrder.quantity || selectedOrder.items?.[0]?.quantity || 1} {selectedOrder.unit || selectedOrder.items?.[0]?.unit || 'kg'}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -467,7 +721,7 @@ const AdminOrders = () => {
                       color="warning"
                       startIcon={<MdLock />}
                       onClick={() => setInterventionAction('freeze_escrow')}
-                      sx={{ fontWeight: 700 }}
+                      sx={{ fontWeight: 700, textTransform: 'none' }}
                     >
                       Freeze Escrow
                     </Button>
@@ -479,7 +733,7 @@ const AdminOrders = () => {
                       color="info"
                       startIcon={<MdLocalShipping />}
                       onClick={() => setInterventionAction('manual_mark_delivered')}
-                      sx={{ fontWeight: 700 }}
+                      sx={{ fontWeight: 700, textTransform: 'none' }}
                     >
                       Force Mark Delivered
                     </Button>
@@ -491,7 +745,7 @@ const AdminOrders = () => {
                       color="error"
                       startIcon={<MdCancel />}
                       onClick={() => setInterventionAction('force_cancel')}
-                      sx={{ fontWeight: 700 }}
+                      sx={{ fontWeight: 700, textTransform: 'none' }}
                     >
                       Force Cancel & Refund
                     </Button>
@@ -525,7 +779,7 @@ const AdminOrders = () => {
                   color={interventionAction === 'force_cancel' ? 'error' : interventionAction === 'freeze_escrow' ? 'warning' : 'primary'}
                   onClick={handleExecuteIntervention}
                   disabled={interventionMutation.isPending || !interventionReason.trim()}
-                  sx={{ fontWeight: 700, px: 3 }}
+                  sx={{ fontWeight: 700, px: 3, textTransform: 'none' }}
                 >
                   {interventionMutation.isPending ? 'Executing...' : 'Confirm Intervention'}
                 </Button>

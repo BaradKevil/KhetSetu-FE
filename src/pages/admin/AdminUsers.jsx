@@ -46,8 +46,21 @@ import { useGetAdminUsersQuery, useUpdateUserStatusMutation, usePermanentlyDelet
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
+const getRoleCode = (role) => {
+  if (!role) return 'user';
+  if (typeof role === 'string') return role.toLowerCase();
+  return (role.code || role.name || 'user').toLowerCase();
+};
+
+const getRoleDisplay = (role) => {
+  if (!role) return 'USER';
+  if (typeof role === 'string') return role.toUpperCase();
+  return String(role.name || role.code || 'USER').toUpperCase();
+};
+
 const getRoleChip = (role) => {
-  switch (role) {
+  const code = getRoleCode(role);
+  switch (code) {
     case 'seller':
       return (
         <Chip
@@ -77,7 +90,7 @@ const getRoleChip = (role) => {
         />
       );
     default:
-      return <Chip label={role?.toUpperCase() || 'USER'} size="small" />;
+      return <Chip label={getRoleDisplay(role)} size="small" />;
   }
 };
 
@@ -740,7 +753,7 @@ const AdminUsers = () => {
                   ⚠️ CRITICAL WARNING: Permanent Purge from TiDB Database
                 </Typography>
                 <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
-                  • Target: <strong>{userToDelete.full_name || userToDelete.name || userToDelete.phone}</strong> (ID: #{userToDelete.id}, Role: {userToDelete.role?.toUpperCase()})
+                  • Target: <strong>{userToDelete.full_name || userToDelete.name || userToDelete.phone}</strong> (ID: #{userToDelete.id}, Role: {getRoleDisplay(userToDelete.role)})
                 </Typography>
                 <Typography variant="caption" color="#B91C1C" display="block" sx={{ mb: 0.5 }}>
                   • <strong>All crops & products listed by this user will be automatically and permanently deleted from the database.</strong>

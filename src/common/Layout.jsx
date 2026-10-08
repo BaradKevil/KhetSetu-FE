@@ -52,7 +52,8 @@ const Layout = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 1.5, sm: 2, md: 2.5 },
+            px: { xs: 2, sm: 3, md: 3.5 },
+            py: { xs: 2, sm: 2.5, md: 3 },
             width: { md: `calc(100% - 260px)` },
             minHeight: 'calc(100vh - 64px)',
             maxWidth: '100%',

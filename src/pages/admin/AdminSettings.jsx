@@ -104,7 +104,7 @@ const AdminSettings = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 }, maxWidth: 1100 }}>
+    <Box sx={{ width: '100%', maxWidth: 1200 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
         <Box>
