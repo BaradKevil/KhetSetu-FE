@@ -64,16 +64,16 @@ const BuyerProfile = () => {
         </Typography>
 
         <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('auth.companyOptional', 'Company Name')} fullWidth defaultValue={profile.company_name || 'Gujarat Agro Commodities Pvt Ltd'} />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('auth.fullName', 'Authorized Contact Person')} fullWidth defaultValue={profile.contact_person || 'Jayesh Shah'} />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('buyer.businessType', 'Buyer Type')} fullWidth defaultValue={profile.buyer_type?.toUpperCase() || 'TRADER'} />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
             <TextField label={t('buyer.gstin', 'GSTIN Number')} fullWidth defaultValue={profile.gstin || '24AAACG1234F1Z5'} />
           </Grid>
         </Grid>

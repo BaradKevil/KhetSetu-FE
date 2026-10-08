@@ -14,11 +14,35 @@ import {
   Paper,
   InputAdornment,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MdSearch, MdLocationOn } from 'react-icons/md';
 import { useGetPublicMarketQuery, useGetCropsQuery } from '../../Api/Api';
 import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
+
+const BACKEND_URL = (import.meta.env.VITE_BASEURL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
+const getImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+const getFirstImage = (item) => {
+  if (!item) return '';
+  let imgs = item.images;
+  if (typeof imgs === 'string') {
+    try {
+      imgs = JSON.parse(imgs);
+    } catch {
+      imgs = [imgs];
+    }
+  }
+  if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
+    return getImageUrl(imgs[0]);
+  }
+  return 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80';
+};
 
 const MarketBrowse = () => {
   const { t, formatCurrency } = useLanguage();
@@ -34,13 +58,17 @@ const MarketBrowse = () => {
   });
 
   const cropsList = Array.isArray(crops) ? crops : [];
-  const products = marketData?.items || [];
+  const rawProducts = marketData?.items || marketData?.rows || (Array.isArray(marketData) ? marketData : []);
+  const products = Array.isArray(rawProducts) ? rawProducts : [];
 
-  return (
-    <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
+  const location = useLocation();
+  const isInsidePortal =
+    location.pathname.startsWith('/buyer') ||
+    location.pathname.startsWith('/seller') ||
+    location.pathname.startsWith('/admin');
 
-      <Container maxWidth="lg" sx={{ py: 5 }}>
+  const mainContent = (
+    <>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight={800} color="#0F172A">
@@ -63,7 +91,7 @@ const MarketBrowse = () => {
           }}
         >
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -80,7 +108,7 @@ const MarketBrowse = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -98,7 +126,7 @@ const MarketBrowse = () => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -125,28 +153,60 @@ const MarketBrowse = () => {
             {t('market.loadingListings', 'Loading verified crop listings...')}
           </Typography>
         ) : products.length === 0 ? (
-          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px solid #E2E8F0' }}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>
-              {t('market.noListingsCriteria', 'No listings matched your criteria')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              {t('market.clearFiltersHint', 'Try clearing filters to see all available agricultural produce.')}
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearchCrop('');
-                setSelectedCropId('');
-                setSelectedState('');
+          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: '#F8FAF9',
+                border: '2px dashed #CBD5E1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+                fontSize: 32,
               }}
             >
-              {t('market.resetFilters', 'Reset Filters')}
-            </Button>
+              🌾
+            </Box>
+            <Typography variant="h5" fontWeight={800} color="#0F172A" gutterBottom>
+              {t('market.noProductFound', 'No product found')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 460, mx: 'auto', lineHeight: 1.6 }}>
+              {searchCrop || selectedCropId || selectedState
+                ? t('market.noFilteredProduce', 'No products matched your search or filter criteria. Try resetting filters.')
+                : t('market.noLiveProduce', 'Currently there are no active crop listings available in the marketplace. Verified farmers can list crops directly.')}
+            </Typography>
+            {searchCrop || selectedCropId || selectedState ? (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => {
+                  setSearchCrop('');
+                  setSelectedCropId('');
+                  setSelectedState('');
+                }}
+              >
+                {t('market.resetFilters', 'Reset Filters')}
+              </Button>
+            ) : (
+              <Button
+                component={Link}
+                to="/register?role=seller"
+                variant="contained"
+                color="primary"
+                sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
+              >
+                {t('market.registerAsFarmer', 'Register as Farmer to List Crops')}
+              </Button>
+            )}
           </Paper>
         ) : (
           <Grid container spacing={3}>
             {products.map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
+              <Grid item xs={12} sm={6} md={4} size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                 <Card
                   sx={{
                     height: '100%',
@@ -165,10 +225,7 @@ const MarketBrowse = () => {
                     <CardMedia
                       component="img"
                       height="180"
-                      image={
-                        item.images?.[0] ||
-                        'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80'
-                      }
+                      image={getFirstImage(item)}
                       alt={item.variety}
                     />
                     {item.is_organic && (
@@ -200,7 +257,7 @@ const MarketBrowse = () => {
 
                     <Box sx={{ p: 1.5, bgcolor: '#F8FAF9', borderRadius: 2, mb: 2 }}>
                       <Grid container spacing={1}>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} size={6}>
                           <Typography variant="caption" color="text.secondary">
                             {t('market.available', 'Available')}
                           </Typography>
@@ -208,7 +265,7 @@ const MarketBrowse = () => {
                             {item.available_quantity} {item.unit}
                           </Typography>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} size={6}>
                           <Typography variant="caption" color="text.secondary">
                             {t('market.minOrder', 'Min Order')}
                           </Typography>
@@ -246,6 +303,18 @@ const MarketBrowse = () => {
             ))}
           </Grid>
         )}
+    </>
+  );
+
+  if (isInsidePortal) {
+    return <Box sx={{ pb: 4 }}>{mainContent}</Box>;
+  }
+
+  return (
+    <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navbar />
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        {mainContent}
       </Container>
     </Box>
   );

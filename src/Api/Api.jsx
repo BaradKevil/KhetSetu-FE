@@ -188,15 +188,123 @@ export const useUpdateOrderStatusMutation = () => {
 };
 
 // -------------------------------------------------
+//  Seller & KYC Verification APIs
+// -------------------------------------------------
+export const sellerApi = {
+  getProfile: () => apiClient.get('/seller/profile'),
+  submitKYC: (data) => apiClient.put('/seller/kyc', data),
+  requestUnlock: (data) => apiClient.post('/seller/kyc/request-unlock', data),
+  uploadDocument: (formData) =>
+    apiClient.post('/seller/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
+export const useGetSellerProfileQuery = () => {
+  return useQuery({
+    queryKey: ['seller-profile'],
+    queryFn: async () => unwrap(await sellerApi.getProfile()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useSubmitKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => sellerApi.submitKYC(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+    },
+  });
+};
+
+export const useRequestUnlockMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => sellerApi.requestUnlock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useUploadDocumentMutation = () => {
+  return useMutation({
+    mutationFn: async (file) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      const res = await sellerApi.uploadDocument(formData);
+      return unwrap(res);
+    },
+  });
+};
+
+// -------------------------------------------------
 //  Admin Control Tower APIs
 // -------------------------------------------------
 export const adminApi = {
   getMetrics: () => apiClient.get('/admin/metrics'),
   getKYCQueue: (params) => apiClient.get('/admin/kyc/queue', { params }),
+  getKYCDetails: (sellerId) => apiClient.get(`/admin/kyc/${sellerId}`),
   moderateKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/moderate`, data),
+  unlockKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/unlock`, data),
+  rejectUnlockKYC: (sellerId, data) => apiClient.patch(`/admin/kyc/${sellerId}/reject-unlock`, data),
   getLedger: (params) => apiClient.get('/admin/finance/ledger', { params }),
   getPayouts: (params) => apiClient.get('/admin/finance/payouts', { params }),
+  approvePayout: (id, data) => apiClient.patch(`/admin/finance/payouts/${id}/approve`, data),
+  holdPayout: (id, data) => apiClient.patch(`/admin/finance/payouts/${id}/hold`, data),
+  getOrders: (params) => apiClient.get('/admin/orders', { params }),
+  getOrderDetails: (id) => apiClient.get(`/admin/orders/${id}`),
+  orderIntervention: (id, data) => apiClient.patch(`/admin/orders/${id}/intervention`, data),
+  getUsers: (params) => apiClient.get('/admin/users', { params }),
+  getUserDetails: (id) => apiClient.get(`/admin/users/${id}`),
+  updateUserStatus: (id, data) => apiClient.patch(`/admin/users/${id}/status`, data),
+  getListings: (params) => apiClient.get('/admin/listings', { params }),
+  moderateListing: (id, data) => apiClient.patch(`/admin/listings/${id}/moderate`, data),
+  getDisputes: (params) => apiClient.get('/admin/disputes', { params }),
+  getDisputeDetails: (id) => apiClient.get(`/admin/disputes/${id}`),
+  resolveDispute: (id, data) => apiClient.patch(`/admin/disputes/${id}/resolve`, data),
+  getSettings: () => apiClient.get('/admin/settings'),
+  updateSettings: (data) => apiClient.post('/admin/settings', data),
   getAuditLogs: (params) => apiClient.get('/admin/audit-logs', { params }),
+};
+
+export const useUnlockKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sellerId, ...data }) => adminApi.unlockKYC(sellerId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useRejectUnlockKYCMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sellerId, ...data }) => adminApi.rejectUnlockKYC(sellerId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-kyc-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetKYCDetailsQuery = (sellerId) => {
+  return useQuery({
+    queryKey: ['admin-kyc-detail', sellerId],
+    queryFn: async () => unwrap(await adminApi.getKYCDetails(sellerId)),
+    enabled: !!sellerId && !!localStorage.getItem('accessToken'),
+  });
 };
 
 export const useGetAdminMetricsQuery = () => {
@@ -249,3 +357,149 @@ export const useGetAuditLogsQuery = (params = {}) => {
     enabled: !!localStorage.getItem('accessToken'),
   });
 };
+
+export const useGetAdminOrdersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-orders', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getOrders(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetAdminOrderDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-order-detail', id],
+    queryFn: async () => unwrap(await adminApi.getOrderDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useOrderInterventionMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.orderIntervention(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-order-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetAdminUsersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-users', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getUsers(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetAdminUserDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-user-detail', id],
+    queryFn: async () => unwrap(await adminApi.getUserDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useUpdateUserStatusMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.updateUserStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail'] });
+    },
+  });
+};
+
+export const useGetAdminListingsQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-listings', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getListings(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useModerateListingMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.moderateListing(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetAdminDisputesQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['admin-disputes', params],
+    queryFn: async () => unwrapPaginated(await adminApi.getDisputes(params)),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useGetDisputeDetailsQuery = (id) => {
+  return useQuery({
+    queryKey: ['admin-dispute-detail', id],
+    queryFn: async () => unwrap(await adminApi.getDisputeDetails(id)),
+    enabled: !!id && !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useResolveDisputeMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.resolveDispute(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-disputes'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dispute-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useApprovePayoutMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.approvePayout(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useHoldPayoutMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.holdPayout(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+
+export const useGetPlatformSettingsQuery = () => {
+  return useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => unwrap(await adminApi.getSettings()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useUpdatePlatformSettingsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => adminApi.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
+    },
+  });
+};
+

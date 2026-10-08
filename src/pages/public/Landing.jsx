@@ -15,6 +15,8 @@ import {
 import { useGetPublicMarketQuery, useGetMandiPricesQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import Navbar from '../../common/Navbar';
+import LiveHarvestSpotlight from './LiveHarvestSpotlight';
+import LiveTicker from './LiveTicker';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ const Landing = () => {
   const headlineRef = useRef(null);
   const subtitleRef = useRef(null);
 
-  const { data: marketData } = useGetPublicMarketQuery({ limit: 4 });
+  const { data: marketData, isLoading: isMarketLoading } = useGetPublicMarketQuery({ limit: 12 });
   const { data: mandiPrices } = useGetMandiPricesQuery();
 
   useEffect(() => {
@@ -47,55 +49,16 @@ const Landing = () => {
     return () => ctx.revert();
   }, []);
 
-  const featuredCrops = marketData?.items || [];
+  const allProducts = marketData?.items || [];
+  const featuredCrops = allProducts.slice(0, 4);
   const rates = Array.isArray(mandiPrices) ? mandiPrices : [];
 
   return (
     <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
-      {/* Live Mandi Rate Ticker */}
-      <Box
-        sx={{
-          bgcolor: '#1E293B',
-          color: '#FFFFFF',
-          py: 1.2,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          borderBottom: '1px solid #334155',
-        }}
-      >
-        <Container maxWidth="xl">
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#4ADE80', fontWeight: 700, fontSize: '0.85rem' }}>
-              <MdTrendingUp size={18} />
-              <span>{t('market.liveMandiBenchmark', 'LIVE MANDI BENCHMARK RATES:')}</span>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
-              {rates.length > 0 ? (
-                rates.map((rate) => (
-                  <Typography key={rate.id} variant="caption" sx={{ color: '#E2E8F0', display: 'inline-flex', gap: 0.8 }}>
-                    <strong>{rate.crop?.name || 'Crop'} ({rate.mandi_name}):</strong>
-                    <span style={{ color: '#FCD34D' }}>₹{(rate.modal_price_paise / 100).toFixed(0)}/Qtl</span>
-                  </Typography>
-                ))
-              ) : (
-                <>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Wheat Lokwan (Unjha APMC): <span style={{ color: '#FCD34D' }}>₹2,740/Qtl</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Basmati 1121 (Khanna Mandi): <span style={{ color: '#FCD34D' }}>₹3,820/Qtl</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#E2E8F0' }}>
-                    Shankar-6 Cotton (Rajkot): <span style={{ color: '#FCD34D' }}>₹6,850/Qtl</span>
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      {/* Live Products Auto-Scrolling Ticker */}
+      <LiveTicker products={allProducts} isLoading={isMarketLoading} />
 
       {/* Hero Section */}
       <Box
@@ -107,7 +70,7 @@ const Landing = () => {
       >
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={7}>
+            <Grid item xs={12} md={7} size={{ xs: 12, md: 7 }}>
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
                 <Chip
                   icon={<MdSecurity style={{ color: '#2E7D32' }} />}
@@ -205,74 +168,14 @@ const Landing = () => {
               </Box>
             </Grid>
 
-            {/* Visual Hero Card */}
-            <Grid item xs={12} md={5}>
+            {/* Visual Hero Card - Rotating Live Harvest Spotlight */}
+            <Grid item xs={12} md={5} size={{ xs: 12, md: 5 }}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    borderRadius: 4,
-                    border: '1px solid #E2E8F0',
-                    bgcolor: '#FFFFFF',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)',
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight={700} color="#1E293B">
-                      🌾 Live Harvest Spotlight
-                    </Typography>
-                    <Chip label="Verified Farmer" size="small" color="success" variant="outlined" />
-                  </Box>
-
-                  <Box
-                    component="img"
-                    src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80"
-                    alt="Basmati Rice"
-                    sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 3, mb: 2 }}
-                  />
-
-                  <Typography variant="h6" fontWeight={800} color="#0F172A">
-                    Basmati 1121 Extra Long Grain
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Farmer Rameshwar Patel • Mehsana, Gujarat • Moisture 12.5%
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#F8FAF9', borderRadius: 2.5, mb: 2 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Price Per Quintal
-                      </Typography>
-                      <Typography variant="h5" fontWeight={800} color="#2E7D32">
-                        ₹3,850
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Available Stock
-                      </Typography>
-                      <Typography variant="subtitle1" fontWeight={700} color="#0F172A">
-                        120 Quintals
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Button
-                    component={Link}
-                    to="/market"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    sx={{ py: 1.2, fontWeight: 700 }}
-                  >
-                    View All Live Listings
-                  </Button>
-                </Paper>
+                <LiveHarvestSpotlight products={allProducts} isLoading={isMarketLoading} />
               </motion.div>
             </Grid>
           </Grid>
@@ -292,7 +195,7 @@ const Landing = () => {
           </Box>
 
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#E8F5E9', color: '#2E7D32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdAgriculture />
@@ -306,7 +209,7 @@ const Landing = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#FFF4E5', color: '#E65100', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdSecurity />
@@ -320,7 +223,7 @@ const Landing = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Paper elevation={0} sx={{ p: 4, height: '100%', borderRadius: 3.5, bgcolor: '#F8FAF9', border: '1px solid #E2E8F0' }}>
                 <Box sx={{ width: 52, height: 52, borderRadius: 2.5, bgcolor: '#E0F2FE', color: '#0288D1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, mb: 2.5 }}>
                   <MdAccountBalance />
@@ -354,51 +257,99 @@ const Landing = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={3}>
-            {featuredCrops.map((crop) => (
-              <Grid item xs={12} sm={6} md={3} key={crop.id}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
-                  <CardMedia
-                    component="img"
-                    height="160"
-                    image={crop.images?.[0] || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=500&q=80'}
-                    alt={crop.variety}
-                  />
-                  <CardContent sx={{ flex: 1, p: 2.5 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      {crop.crop?.name || 'Crop'}
-                    </Typography>
-                    <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ mt: 0.5, mb: 1 }}>
-                      {crop.variety}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      📍 {crop.pickup_district}, {crop.pickup_state}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px solid #F1F5F9' }}>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Rate
-                        </Typography>
-                        <Typography variant="subtitle1" fontWeight={800} color="#2E7D32">
-                          ₹{(crop.price_per_unit_paise / 100).toFixed(0)}/{crop.unit}
-                        </Typography>
+          {featuredCrops.length === 0 ? (
+            <Paper
+              sx={{
+                p: 6,
+                textAlign: 'center',
+                borderRadius: 3.5,
+                border: '1px solid #E2E8F0',
+                bgcolor: '#FFFFFF',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  bgcolor: '#F8FAF9',
+                  border: '2px dashed #CBD5E1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 2,
+                  fontSize: 30,
+                }}
+              >
+                🌾
+              </Box>
+              <Typography variant="h5" fontWeight={800} color="#0F172A" gutterBottom>
+                {t('market.noProductFound', 'No product found')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 450, mx: 'auto', lineHeight: 1.6 }}>
+                {t(
+                  'market.noFeaturedCropsDesc',
+                  'There are currently no active crop lots listed by farmers in the marketplace.'
+                )}
+              </Typography>
+              <Button
+                component={Link}
+                to="/register?role=seller"
+                variant="contained"
+                color="primary"
+                sx={{ px: 3, py: 1.2, fontWeight: 700, borderRadius: 2 }}
+              >
+                {t('market.registerAsFarmer', 'Register as Farmer to List Crops')}
+              </Button>
+            </Paper>
+          ) : (
+            <Grid container spacing={3}>
+              {featuredCrops.map((crop) => (
+                <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }} key={crop.id}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                    <CardMedia
+                      component="img"
+                      height="160"
+                      image={crop.images?.[0] || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=500&q=80'}
+                      alt={crop.variety}
+                    />
+                    <CardContent sx={{ flex: 1, p: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                        {crop.crop?.name || 'Crop'}
+                      </Typography>
+                      <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ mt: 0.5, mb: 1 }}>
+                        {crop.variety}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        📍 {crop.pickup_district}, {crop.pickup_state}
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px solid #F1F5F9' }}>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            Rate
+                          </Typography>
+                          <Typography variant="subtitle1" fontWeight={800} color="#2E7D32">
+                            ₹{(crop.price_per_unit_paise / 100).toFixed(0)}/{crop.unit}
+                          </Typography>
+                        </Box>
+                        <Button
+                          component={Link}
+                          to={`/market/${crop.id}`}
+                          variant="contained"
+                          size="small"
+                          color="primary"
+                          sx={{ borderRadius: 2 }}
+                        >
+                          View
+                        </Button>
                       </Box>
-                      <Button
-                        component={Link}
-                        to={`/market/${crop.id}`}
-                        variant="contained"
-                        size="small"
-                        color="primary"
-                        sx={{ borderRadius: 2 }}
-                      >
-                        View
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Container>
       </Box>
 
@@ -406,7 +357,7 @@ const Landing = () => {
       <Box sx={{ mt: 'auto', bgcolor: '#0F172A', color: '#94A3B8', py: 6, borderTop: '1px solid #1E293B' }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} justifyContent="space-between">
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
               <Typography variant="h6" fontWeight={800} color="#FFFFFF" sx={{ mb: 1 }}>
                 🌾 Khet<span style={{ color: '#4ADE80' }}>Setu</span>
               </Typography>
@@ -414,7 +365,7 @@ const Landing = () => {
                 Empowering Indian agriculture through equitable market access, transparent APMC pricing, and secure escrow settlement.
               </Typography>
             </Grid>
-            <Grid item xs={6} md={2}>
+            <Grid item xs={6} md={2} size={{ xs: 6, md: 2 }}>
               <Typography variant="subtitle2" fontWeight={700} color="#FFFFFF" sx={{ mb: 1.5 }}>
                 Platform
               </Typography>
@@ -424,7 +375,7 @@ const Landing = () => {
                 <Link to="/login" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.85rem' }}>Sign In</Link>
               </Box>
             </Grid>
-            <Grid item xs={6} md={2}>
+            <Grid item xs={6} md={2} size={{ xs: 6, md: 2 }}>
               <Typography variant="subtitle2" fontWeight={700} color="#FFFFFF" sx={{ mb: 1.5 }}>
                 Legal & Safety
               </Typography>

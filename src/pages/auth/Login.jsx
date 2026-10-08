@@ -9,7 +9,7 @@ import {
   Fade,
   Collapse,
 } from '@mui/material';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   MdAgriculture,
   MdPhoneIphone,
@@ -81,13 +81,26 @@ const UI_TEXT = {
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { language: lang, changeLanguage: setLang } = useLanguage();
   const t = UI_TEXT[lang] || UI_TEXT.en;
 
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Sync phone and lang from URL searchParams
+  useEffect(() => {
+    const urlPhone = searchParams.get('phone');
+    if (urlPhone) setPhone(urlPhone);
+
+    const urlLang = searchParams.get('lang');
+    if (urlLang && ['en', 'hi', 'gu'].includes(urlLang) && urlLang !== lang) {
+      setLang(urlLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const sendOtpMutation = useSendOtpMutation();
   const verifyOtpMutation = useVerifyOtpMutation();
@@ -103,13 +116,14 @@ const Login = () => {
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
-    const cleanPhone = phone.trim();
-    if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 10) {
+    const cleanDigits = phone.replace(/\D/g, '').slice(-10);
+    if (!cleanDigits || cleanDigits.length < 10) {
       toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
+    const fullPhone = `+91${cleanDigits}`;
     try {
-      const res = await sendOtpMutation.mutateAsync({ phone: cleanPhone });
+      const res = await sendOtpMutation.mutateAsync({ phone: fullPhone });
       setOtpSent(true);
       setResendCooldown(30);
       toast.success(res.data?.message || res.message || 'OTP sent! Test OTP is 123456');
@@ -126,9 +140,12 @@ const Login = () => {
       return;
     }
 
+    const cleanDigits = phone.replace(/\D/g, '').slice(-10);
+    const fullPhone = `+91${cleanDigits}`;
+
     try {
       const res = await verifyOtpMutation.mutateAsync({
-        phone: phone.trim(),
+        phone: fullPhone,
         otp: cleanOtp,
       });
 
@@ -177,22 +194,30 @@ const Login = () => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'stretch', sm: 'center' },
         justifyContent: 'center',
-        p: 2.5,
-        background: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        p: { xs: 0, sm: 2.5, md: 4 },
+        bgcolor: { xs: '#FFFFFF', sm: '#F8FAF9' },
+        background: {
+          xs: '#FFFFFF',
+          sm: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, sm: 4.5 },
+          p: { xs: 2.5, sm: 4, md: 4.5 },
           width: '100%',
-          maxWidth: 440,
-          borderRadius: 4,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.05)',
+          maxWidth: { xs: '100%', sm: 440 },
+          minHeight: { xs: '100vh', sm: 'auto' },
+          borderRadius: { xs: 0, sm: 4 },
+          border: { xs: 'none', sm: '1px solid #E2E8F0' },
+          boxShadow: { xs: 'none', sm: '0 20px 40px rgba(0, 0, 0, 0.05)' },
           bgcolor: '#FFFFFF',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
         {/* Universal Language Switcher Bar */}
@@ -235,7 +260,7 @@ const Login = () => {
         </Box>
 
         {/* Main Phone Input Form */}
-        <Box component="form" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
+        <Box component="form" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} noValidate>
           <Box sx={{ mb: 2.5 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.8, display: 'block' }}>
               {t.phoneLabel}

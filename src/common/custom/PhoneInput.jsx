@@ -40,16 +40,31 @@ export const IndiaFlag = ({ size = 'medium' }) => {
 };
 
 /**
- * Strips non-digits and leading +91 or 0 to yield strictly 10 digits
+ * Strips non-digits and leading +91 or trunk 0 to yield strictly 10 national digits
  */
 export const extractTenDigits = (val) => {
   if (!val) return '';
-  let digits = String(val).replace(/\D/g, '');
-  if (digits.startsWith('91') && digits.length > 10) {
-    digits = digits.slice(2);
-  } else if (digits.startsWith('0') && digits.length > 10) {
+  let str = String(val).trim();
+
+  // If explicitly prefixed with +91 or +, remove the country code prefix
+  if (str.startsWith('+91')) {
+    str = str.slice(3);
+  } else if (str.startsWith('+')) {
+    str = str.slice(1);
+  }
+
+  // Extract digits from the national number portion
+  let digits = str.replace(/\D/g, '');
+
+  // If trunk 0 prefix was included (e.g. 09876543210 -> 11 digits)
+  if (digits.startsWith('0') && digits.length > 10) {
     digits = digits.slice(1);
   }
+  // If 12 digits without '+' prefix (e.g. 919876543210 -> 12 digits)
+  else if (digits.startsWith('91') && digits.length > 10) {
+    digits = digits.slice(2);
+  }
+
   return digits.slice(0, 10);
 };
 
@@ -201,8 +216,7 @@ const PhoneInput = ({
         input: mergedInputProps,
         htmlInput: {
           inputMode: 'numeric',
-          pattern: '[0-9]*',
-          maxLength: 11, // 10 digits + 1 space separator
+          maxLength: 16, // Allows full paste of +91 numbers without browser clipping
           autoComplete,
           ...(slotProps?.htmlInput || props.inputProps || {}),
         },
@@ -211,8 +225,7 @@ const PhoneInput = ({
       InputProps={mergedInputProps}
       inputProps={{
         inputMode: 'numeric',
-        pattern: '[0-9]*',
-        maxLength: 11,
+        maxLength: 16,
         autoComplete,
         ...props.inputProps,
       }}

@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
   Typography,
   TextField,
   Button,
-  Grid,
   Card,
   CardActionArea,
   MenuItem,
@@ -27,6 +26,7 @@ import { unwrap } from '../../Api/apiUtils';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSelector from '../../common/custom/LanguageSelector';
 import PhoneInput from '../../common/custom/PhoneInput';
+import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
 const UI_TEXT = {
@@ -43,8 +43,16 @@ const UI_TEXT = {
     phone: 'Mobile Number',
     phonePlaceholder: 'Enter 10-digit mobile number',
     state: 'State',
-    district: 'District / City',
-    village: 'Village / Taluka (Optional)',
+    district: 'District',
+    city: 'City / Taluka',
+    village: 'Village',
+    selectState: 'Select State',
+    selectDistrict: 'Select District',
+    selectCity: 'Select City / Taluka',
+    selectVillage: 'Select Village',
+    selectStateFirst: 'Select State first',
+    selectDistrictFirst: 'Select District first',
+    selectCityFirst: 'Select City first',
     buyerType: 'Account Type',
     individualBuyer: 'Individual (Personal / Household Use)',
     tradeBuyer: 'Trader / Merchant',
@@ -57,6 +65,8 @@ const UI_TEXT = {
     createBuyerBtn: 'Create Buyer Account',
     alreadyAccount: 'Already have an account?',
     signIn: 'Sign In',
+    registerSuccessFarmer: 'Farmer account created successfully! Please sign in to continue.',
+    registerSuccessBuyer: 'Buyer account created successfully! Please sign in to continue.',
   },
   hi: {
     language: 'भाषा',
@@ -71,8 +81,16 @@ const UI_TEXT = {
     phone: 'मोबाइल नंबर',
     phonePlaceholder: '10-अंकीय मोबाइल नंबर दर्ज करें',
     state: 'राज्य',
-    district: 'जिला / शहर',
-    village: 'गाँव / तालुका (वैकल्पिक)',
+    district: 'ज़िला',
+    city: 'शहर / तालुका',
+    village: 'गाँव',
+    selectState: 'राज्य चुनें',
+    selectDistrict: 'ज़िला चुनें',
+    selectCity: 'शहर / तालुका चुनें',
+    selectVillage: 'गाँव चुनें',
+    selectStateFirst: 'पहले राज्य चुनें',
+    selectDistrictFirst: 'पहले ज़िला चुनें',
+    selectCityFirst: 'पहले शहर / तालुका चुनें',
     buyerType: 'खाता प्रकार',
     individualBuyer: 'व्यक्तिगत (घरेलू उपयोग)',
     tradeBuyer: 'व्यापारी / आढ़ती',
@@ -85,6 +103,8 @@ const UI_TEXT = {
     createBuyerBtn: 'खरीदार खाता बनाएं',
     alreadyAccount: 'पहले से खाता है?',
     signIn: 'प्रवेश करें',
+    registerSuccessFarmer: 'किसान खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
+    registerSuccessBuyer: 'खरीदार खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
   },
   gu: {
     language: 'ભાષા',
@@ -99,8 +119,16 @@ const UI_TEXT = {
     phone: 'મોબાઇલ નંબર',
     phonePlaceholder: '10-અંકનો મોબાઈલ નંબર દાખલ કરો',
     state: 'રાજ્ય',
-    district: 'જિલ્લો / શહેર',
-    village: 'ગામ / તાલુકો (વૈકલ્પિક)',
+    district: 'જિલ્લો',
+    city: 'શહેર / તાલુકો',
+    village: 'ગામ',
+    selectState: 'રાજ્ય પસંદ કરો',
+    selectDistrict: 'જિલ્લો પસંદ કરો',
+    selectCity: 'શહેર / તાલુકો પસંદ કરો',
+    selectVillage: 'ગામ પસંદ કરો',
+    selectStateFirst: 'પહેલા રાજ્ય પસંદ કરો',
+    selectDistrictFirst: 'પહેલા જિલ્લો પસંદ કરો',
+    selectCityFirst: 'પહેલા શહેર / તાલુકો પસંદ કરો',
     buyerType: 'ખાતાનો પ્રકાર',
     individualBuyer: 'વ્યક્તિગત (ઘર વપરાશ માટે)',
     tradeBuyer: 'વેપારી / દલાલ',
@@ -113,34 +141,66 @@ const UI_TEXT = {
     createBuyerBtn: 'ખરીદનાર ખાતું બનાવો',
     alreadyAccount: 'પહેલેથી ખાતું છે?',
     signIn: 'લૉગિન કરો',
+    registerSuccessFarmer: 'ખેડૂત ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
+    registerSuccessBuyer: 'ખરીદનાર ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
   },
 };
 
 const Register = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { language: lang, changeLanguage: setLang } = useLanguage();
   const t = UI_TEXT[lang] || UI_TEXT.en;
 
-  // If query parameter specifies language, set it globally if valid
-  useState(() => {
+  // Initialize role based on URL parameter (?role=buyer or ?role=seller)
+  const initialRole = searchParams.get('role') === 'buyer' ? 'buyer' : 'seller';
+  const [role, setRole] = useState(initialRole);
+
+  // Sync role state and update URL query parameter immediately
+  const handleRoleSelect = (newRole) => {
+    setRole(newRole);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('role', newRole);
+    setSearchParams(newParams, { replace: true });
+  };
+
+  // Keep state in sync if user navigates back/forward or URL changes
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'buyer' || roleParam === 'seller') {
+      setRole(roleParam);
+    }
+  }, [searchParams]);
+
+  // Initialize language once from query parameter on initial mount if provided
+  useEffect(() => {
     const paramLang = searchParams.get('lang');
-    if (paramLang && (paramLang === 'en' || paramLang === 'hi' || paramLang === 'gu') && paramLang !== lang) {
+    if (paramLang && (paramLang === 'en' || paramLang === 'hi' || paramLang === 'gu')) {
       setLang(paramLang);
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const [role, setRole] = useState('seller'); // 'seller' or 'buyer'
+  // Keep URL query param in sync with currently selected language without triggering resets
+  useEffect(() => {
+    if (searchParams.get('lang') !== lang) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('lang', lang);
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [lang, searchParams, setSearchParams]);
+
   const [acceptedTerms, setAcceptedTerms] = useState(true);
 
   const [formData, setFormData] = useState({
     full_name: '',
     phone: searchParams.get('phone') || '',
     password: '',
-    state: 'Gujarat',
-    district: 'Mehsana',
-    village: 'Alampur',
+    state: '',
+    district: '',
+    city: '',
+    village: '',
     buyer_type: 'individual',
     company_name: '',
   });
@@ -155,11 +215,12 @@ const Register = () => {
       return;
     }
 
-    const cleanPhone = formData.phone.trim();
-    if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 10) {
+    const cleanDigits = formData.phone.replace(/\D/g, '').slice(-10);
+    if (!cleanDigits || cleanDigits.length < 10) {
       toast.error('Please provide a valid 10-digit mobile number.');
       return;
     }
+    const fullPhone = `+91${cleanDigits}`;
 
     if (!acceptedTerms) {
       toast.error('Please accept the Terms of Service to continue.');
@@ -171,7 +232,7 @@ const Register = () => {
       const payload = {
         role,
         full_name: formData.full_name.trim(),
-        phone: cleanPhone,
+        phone: fullPhone,
         preferred_language: lang,
       };
 
@@ -182,6 +243,7 @@ const Register = () => {
       if (role === 'seller') {
         if (formData.state?.trim()) payload.state = formData.state.trim();
         if (formData.district?.trim()) payload.district = formData.district.trim();
+        if (formData.city?.trim()) payload.sub_district = formData.city.trim();
         if (formData.village?.trim()) payload.village = formData.village.trim();
       } else {
         payload.buyer_type = formData.buyer_type || 'individual';
@@ -191,29 +253,20 @@ const Register = () => {
         }
         if (formData.state?.trim()) payload.state = formData.state.trim();
         if (formData.district?.trim()) payload.district = formData.district.trim();
+        if (formData.city?.trim()) payload.sub_district = formData.city.trim();
       }
 
-      const res = await registerMutation.mutateAsync(payload);
-      const authData = unwrap(res);
+      await registerMutation.mutateAsync(payload);
 
-      if (authData?.accessToken) {
-        localStorage.setItem('accessToken', authData.accessToken);
-        localStorage.setItem('refreshToken', authData.refreshToken);
-        localStorage.setItem('role', authData.user?.role || role);
-        localStorage.setItem('phone', authData.user?.phone || cleanPhone);
-        localStorage.setItem('fullName', authData.user?.full_name || formData.full_name);
-        localStorage.setItem('profilePhoto', authData.user?.profile_photo || '');
-        setLang(lang);
-      }
-
-      toast.success(
+      const successMsg =
         role === 'seller'
-          ? 'Welcome to KhetSetu! Your farmer account is ready.'
-          : 'Welcome to KhetSetu! Your buyer account is ready.'
-      );
+          ? (t.registerSuccessFarmer || 'Farmer account created successfully! Please sign in to continue.')
+          : (t.registerSuccessBuyer || 'Buyer account created successfully! Please sign in to continue.');
 
-      if (role === 'seller') navigate('/seller');
-      else navigate('/buyer');
+      toast.success(successMsg);
+
+      // Production-grade flow: Redirect to /login after successful account registration
+      navigate(`/login?phone=${encodeURIComponent(cleanDigits)}&role=${role}&lang=${lang}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     }
@@ -224,22 +277,30 @@ const Register = () => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'stretch', sm: 'center' },
         justifyContent: 'center',
-        p: 2.5,
-        background: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        p: { xs: 0, sm: 2.5, md: 4 },
+        bgcolor: { xs: '#FFFFFF', sm: '#F8FAF9' },
+        background: {
+          xs: '#FFFFFF',
+          sm: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+        },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, sm: 4.5 },
+          p: { xs: 2.5, sm: 4, md: 4.5 },
           width: '100%',
-          maxWidth: 540,
-          borderRadius: 4,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.05)',
+          maxWidth: { xs: '100%', sm: 540 },
+          minHeight: { xs: '100vh', sm: 'auto' },
+          borderRadius: { xs: 0, sm: 4 },
+          border: { xs: 'none', sm: '1px solid #E2E8F0' },
+          boxShadow: { xs: 'none', sm: '0 20px 40px rgba(0, 0, 0, 0.05)' },
           bgcolor: '#FFFFFF',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
         {/* Universal Language Selection Bar */}
@@ -285,55 +346,227 @@ const Register = () => {
           </Typography>
         </Box>
 
-        {/* Clean Role Toggle Cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                border: role === 'seller' ? '2px solid #2E7D32' : '1px solid #E2E8F0',
-                bgcolor: role === 'seller' ? '#F0FDF4' : '#FFFFFF',
-                boxShadow: role === 'seller' ? '0 4px 12px rgba(46, 125, 50, 0.1)' : 'none',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <CardActionArea onClick={() => setRole('seller')} sx={{ p: 2, textAlign: 'center' }}>
-                <MdAgriculture size={30} color={role === 'seller' ? '#2E7D32' : '#64748B'} />
-                <Typography variant="subtitle2" fontWeight={800} sx={{ mt: 1, color: role === 'seller' ? '#166534' : '#1E293B' }}>
-                  {t.farmerTitle}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.72rem', mt: 0.3 }}>
-                  {t.farmerDesc}
-                </Typography>
-              </CardActionArea>
-            </Card>
-          </Grid>
+        {/* Clean Production-Grade Role Toggle Cards */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2,
+            mb: 3,
+            width: '100%',
+          }}
+        >
+          {/* Card 1: Farmer (Seller) */}
+          <Card
+            elevation={0}
+            onClick={() => handleRoleSelect('seller')}
+            sx={{
+              position: 'relative',
+              cursor: 'pointer',
+              borderRadius: 3,
+              border: role === 'seller' ? '2px solid #2E7D32' : '1.5px solid #E2E8F0',
+              bgcolor: role === 'seller' ? '#F0FDF4' : '#FFFFFF',
+              boxShadow:
+                role === 'seller'
+                  ? '0 6px 16px rgba(46, 125, 50, 0.12)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.02)',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              userSelect: 'none',
+              '&:hover': {
+                borderColor: role === 'seller' ? '#2E7D32' : '#CBD5E1',
+                transform: 'translateY(-2px)',
+                boxShadow:
+                  role === 'seller'
+                    ? '0 8px 20px rgba(46, 125, 50, 0.16)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.06)',
+              },
+            }}
+          >
+            {/* Top-right active checkmark badge */}
+            {role === 'seller' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  color: '#2E7D32',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <MdCheckCircle size={18} />
+              </Box>
+            )}
 
-          <Grid item xs={6}>
-            <Card
+            <Box
               sx={{
-                borderRadius: 3,
-                border: role === 'buyer' ? '2px solid #0288D1' : '1px solid #E2E8F0',
-                bgcolor: role === 'buyer' ? '#F0F9FF' : '#FFFFFF',
-                boxShadow: role === 'buyer' ? '0 4px 12px rgba(2, 136, 209, 0.1)' : 'none',
-                transition: 'all 0.2s ease',
+                p: { xs: 2, sm: 2.2 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                height: '100%',
+                justifyContent: 'center',
               }}
             >
-              <CardActionArea onClick={() => setRole('buyer')} sx={{ p: 2, textAlign: 'center' }}>
-                <MdShoppingCart size={30} color={role === 'buyer' ? '#0288D1' : '#64748B'} />
-                <Typography variant="subtitle2" fontWeight={800} sx={{ mt: 1, color: role === 'buyer' ? '#0369A1' : '#1E293B' }}>
-                  {t.buyerTitle}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.72rem', mt: 0.3 }}>
-                  {t.buyerDesc}
-                </Typography>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        </Grid>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: role === 'seller' ? 'rgba(46, 125, 50, 0.14)' : '#F1F5F9',
+                  color: role === 'seller' ? '#2E7D32' : '#64748B',
+                  mb: 1.2,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <MdAgriculture size={24} />
+              </Box>
+
+              <Typography
+                variant="subtitle2"
+                fontWeight={800}
+                sx={{
+                  color: role === 'seller' ? '#166534' : '#1E293B',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.2,
+                }}
+              >
+                {t.farmerTitle}
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: role === 'seller' ? '#15803D' : '#64748B',
+                  fontSize: '0.72rem',
+                  mt: 0.6,
+                  lineHeight: 1.35,
+                  minHeight: 32,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {t.farmerDesc}
+              </Typography>
+            </Box>
+          </Card>
+
+          {/* Card 2: Buyer (Personal / Trade) */}
+          <Card
+            elevation={0}
+            onClick={() => handleRoleSelect('buyer')}
+            sx={{
+              position: 'relative',
+              cursor: 'pointer',
+              borderRadius: 3,
+              border: role === 'buyer' ? '2px solid #0288D1' : '1.5px solid #E2E8F0',
+              bgcolor: role === 'buyer' ? '#F0F9FF' : '#FFFFFF',
+              boxShadow:
+                role === 'buyer'
+                  ? '0 6px 16px rgba(2, 136, 209, 0.12)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.02)',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              userSelect: 'none',
+              '&:hover': {
+                borderColor: role === 'buyer' ? '#0288D1' : '#CBD5E1',
+                transform: 'translateY(-2px)',
+                boxShadow:
+                  role === 'buyer'
+                    ? '0 8px 20px rgba(2, 136, 209, 0.16)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.06)',
+              },
+            }}
+          >
+            {/* Top-right active checkmark badge */}
+            {role === 'buyer' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  color: '#0288D1',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <MdCheckCircle size={18} />
+              </Box>
+            )}
+
+            <Box
+              sx={{
+                p: { xs: 2, sm: 2.2 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: role === 'buyer' ? 'rgba(2, 136, 209, 0.14)' : '#F1F5F9',
+                  color: role === 'buyer' ? '#0288D1' : '#64748B',
+                  mb: 1.2,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <MdShoppingCart size={24} />
+              </Box>
+
+              <Typography
+                variant="subtitle2"
+                fontWeight={800}
+                sx={{
+                  color: role === 'buyer' ? '#0369A1' : '#1E293B',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.2,
+                }}
+              >
+                {t.buyerTitle}
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: role === 'buyer' ? '#0284C7' : '#64748B',
+                  fontSize: '0.72rem',
+                  mt: 0.6,
+                  lineHeight: 1.35,
+                  minHeight: 32,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {t.buyerDesc}
+              </Typography>
+            </Box>
+          </Card>
+        </Box>
 
         {/* User-Friendly Form */}
-        <Box component="form" onSubmit={handleRegister}>
+        <Box component="form" onSubmit={handleRegister} noValidate>
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
               {t.fullName} *
@@ -364,50 +597,33 @@ const Register = () => {
             />
           </Box>
 
-          {/* Location fields */}
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.state}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.district}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.district}
-                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Farmer Specific: Village */}
-          {role === 'seller' && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                {t.village}
-              </Typography>
-              <TextField
-                fullWidth
-                value={formData.village}
-                onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                placeholder="e.g. Alampur"
-                size="medium"
-                InputProps={{ sx: { borderRadius: 2.5 } }}
-              />
-            </Box>
-          )}
+          {/* Cascading Location Selector (State -> District -> City / Taluka -> Village) */}
+          <Box sx={{ mb: 2 }}>
+            <LocationSelector
+              values={{
+                state: formData.state,
+                district: formData.district,
+                city: formData.city,
+                village: formData.village,
+              }}
+              onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
+              showVillage={role === 'seller'}
+              labels={{
+                state: t.state,
+                district: t.district,
+                city: t.city,
+                village: t.village,
+                selectState: t.selectState,
+                selectDistrict: t.selectDistrict,
+                selectCity: t.selectCity,
+                selectVillage: t.selectVillage,
+                selectStateFirst: t.selectStateFirst,
+                selectDistrictFirst: t.selectDistrictFirst,
+                selectCityFirst: t.selectCityFirst,
+                lang: lang,
+              }}
+            />
+          </Box>
 
           {/* Buyer Specific: Individual vs Business (Company NOT required) */}
           {role === 'buyer' && (

@@ -15,12 +15,19 @@ export const LanguageProvider = ({ children }) => {
     return saved === 'hi' || saved === 'gu' || saved === 'en' ? saved : 'en';
   });
 
+  const [hasUserManuallyChosen, setHasUserManuallyChosen] = useState(false);
+
   const updateLanguageMutation = useUpdateLanguageMutation();
   const { data: userProfile } = useGetProfileQuery();
 
   // If user profile is loaded from DB and has an explicit preferred_language, sync it
   useEffect(() => {
-    if (userProfile?.preferred_language) {
+    const isAuthPage =
+      typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/register') ||
+        window.location.pathname.startsWith('/login'));
+
+    if (!hasUserManuallyChosen && !isAuthPage && userProfile?.preferred_language) {
       const dbLang = userProfile.preferred_language;
       if (['en', 'hi', 'gu'].includes(dbLang) && dbLang !== language) {
         setLanguageState(dbLang);
@@ -29,7 +36,7 @@ export const LanguageProvider = ({ children }) => {
         document.documentElement.lang = dbLang;
       }
     }
-  }, [userProfile]);
+  }, [userProfile, hasUserManuallyChosen, language]);
 
   // Keep HTML root lang tag updated
   useEffect(() => {
@@ -43,15 +50,22 @@ export const LanguageProvider = ({ children }) => {
     async (newLang) => {
       if (!['en', 'hi', 'gu'].includes(newLang)) return;
 
+      setHasUserManuallyChosen(true);
+
       // 1. Immediately update local state & DOM
       setLanguageState(newLang);
       localStorage.setItem('khetsetu_language', newLang);
       localStorage.setItem('preferredLanguage', newLang);
       document.documentElement.lang = newLang;
 
-      // 2. If user is authenticated, persist in MySQL database asynchronously
+      // 2. If user is authenticated and not on register/login, persist in MySQL database asynchronously
+      const isAuthPage =
+        typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/register') ||
+          window.location.pathname.startsWith('/login'));
+
       const token = localStorage.getItem('accessToken');
-      if (token) {
+      if (token && !isAuthPage) {
         try {
           await updateLanguageMutation.mutateAsync({ language: newLang });
         } catch (err) {
@@ -201,15 +215,41 @@ export const LanguageProvider = ({ children }) => {
   );
 
   /**
-   * Locale-aware Date Formatter
+   * Locale-aware Date Formatter (Supports boolean includeTime or Intl options)
    */
   const formatDate = useCallback(
     (date, options = { year: 'numeric', month: 'short', day: 'numeric' }) => {
       if (!date) return '';
       try {
-        return new Intl.DateTimeFormat(currentLangObj.locale, options).format(new Date(date));
+        const parsed = new Date(date);
+        if (isNaN(parsed.getTime())) return '';
+        
+        let opts = options;
+        if (typeof options === 'boolean') {
+          opts = options
+            ? {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Kolkata',
+              }
+            : {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                timeZone: 'Asia/Kolkata',
+              };
+        }
+        return new Intl.DateTimeFormat(currentLangObj.locale || 'en-IN', opts).format(parsed);
       } catch {
-        return new Date(date).toLocaleDateString();
+        try {
+          return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        } catch {
+          return String(date);
+        }
       }
     },
     [currentLangObj]

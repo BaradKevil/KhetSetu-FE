@@ -110,6 +110,60 @@ const theme = createTheme({
         },
       },
     },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          margin: '2px 6px',
+          padding: '8px 14px',
+          fontSize: '0.875rem',
+          fontWeight: 500,
+          color: '#1E293B',
+          transition: 'all 0.15s ease-in-out',
+          '&:hover': {
+            backgroundColor: '#EFF6FF',
+            color: '#1D4ED8',
+          },
+          '&.Mui-selected': {
+            backgroundColor: '#2563EB !important',
+            color: '#FFFFFF !important',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#1D4ED8 !important',
+              color: '#FFFFFF !important',
+            },
+            '&.Mui-focusVisible': {
+              backgroundColor: '#1D4ED8 !important',
+            },
+            '& .MuiTypography-root': {
+              color: '#FFFFFF !important',
+            },
+            '& svg': {
+              color: '#FFFFFF !important',
+            },
+          },
+          '&.Mui-disabled, &.Mui-disabled.Mui-selected': {
+            opacity: 0.65,
+            color: '#94A3B8 !important',
+            backgroundColor: 'transparent !important',
+          },
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 12,
+          marginTop: 4,
+          boxShadow: '0 10px 35px -5px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.08)',
+          border: '1px solid #E2E8F0',
+          maxHeight: 320,
+        },
+        list: {
+          padding: '6px',
+        },
+      },
+    },
   },
 });
 

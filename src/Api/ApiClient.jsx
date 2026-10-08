@@ -33,7 +33,7 @@ export const clearSessionAndRedirect = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('role');
   localStorage.removeItem('user');
-  window.location.href = '/login';
+  window.location.href = '/';
 };
 
 apiClient.interceptors.response.use(
@@ -63,6 +63,9 @@ apiClient.interceptors.response.use(
 
     const isAuthEndpoint =
       originalRequest.url?.includes(`${AUTH_PREFIX}/login`) ||
+      originalRequest.url?.includes(`${AUTH_PREFIX}/register`) ||
+      originalRequest.url?.includes(`${AUTH_PREFIX}/language`) ||
+      originalRequest.url?.includes(`${AUTH_PREFIX}/send-otp`) ||
       originalRequest.url?.includes(`${AUTH_PREFIX}/verify-otp`) ||
       originalRequest.url?.includes(`${AUTH_PREFIX}/refresh-token`);
 
@@ -83,6 +86,11 @@ apiClient.interceptors.response.use(
 
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
+        // Do not force redirect if user is on an unauthenticated page like /register or /login
+        const pathname = window.location.pathname || '';
+        if (pathname.startsWith('/register') || pathname.startsWith('/login')) {
+          return Promise.reject(error);
+        }
         clearSessionAndRedirect();
         return Promise.reject(error);
       }

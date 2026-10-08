@@ -10,6 +10,8 @@ import {
   TableCell,
   Chip,
   IconButton,
+  Avatar,
+  Tooltip,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { MdAddCircleOutline, MdVisibility } from 'react-icons/md';
@@ -76,12 +78,28 @@ const MyProducts = () => {
               products.map((p) => (
                 <TableRow key={p.id} hover>
                   <TableCell>
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      {p.crop?.name} ({p.variety})
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {p.pickup_village}, {p.pickup_district}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Avatar
+                        variant="rounded"
+                        src={p.images?.[0]}
+                        alt={p.variety}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 2,
+                          bgcolor: '#F1F5F9',
+                          border: '1px solid #E2E8F0',
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={700}>
+                          {p.crop?.name} ({p.variety})
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {p.pickup_village}, {p.pickup_district}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </TableCell>
                   <TableCell>{p.grade}</TableCell>
                   <TableCell>
@@ -100,9 +118,11 @@ const MyProducts = () => {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton component={Link} to={`/market/${p.id}`} size="small" color="primary">
-                      <MdVisibility />
-                    </IconButton>
+                    <Tooltip title={t('farmer.viewDetailsTooltip', 'View Crop Details (પાકની વિગતો જુઓ)')}>
+                      <IconButton component={Link} to={`/seller/products/${p.id}`} size="small" color="primary">
+                        <MdVisibility />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))

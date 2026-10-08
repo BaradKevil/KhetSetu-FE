@@ -22,6 +22,10 @@ import {
   MdAccountTree,
   MdLocalAtm,
   MdHistory,
+  MdPeople,
+  MdInventory2,
+  MdGavel,
+  MdSettings,
 } from 'react-icons/md';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -40,11 +44,15 @@ const menuTranslationKeys = {
   'buyer-orders': 'myEscrowOrders',
   'buyer-profile': 'businessProfile',
   'admin-dashboard': 'controlTower',
+  'admin-users': 'usersDirectory',
   'admin-kyc': 'kycApprovals',
   'admin-orders': 'ordersOversight',
+  'admin-listings': 'listingModeration',
+  'admin-disputes': 'disputesClaims',
   'admin-ledger': 'ledger',
   'admin-payouts': 'payoutApprovals',
   'admin-audit': 'auditTrail',
+  'admin-settings': 'platformSettings',
 };
 
 const iconMap = {
@@ -59,11 +67,15 @@ const iconMap = {
   'buyer-orders': <MdShoppingBag size={20} />,
   'buyer-profile': <MdVerifiedUser size={20} />,
   'admin-dashboard': <MdAdminPanelSettings size={20} />,
+  'admin-users': <MdPeople size={20} />,
   'admin-kyc': <MdVerifiedUser size={20} />,
   'admin-orders': <MdShoppingBag size={20} />,
+  'admin-listings': <MdInventory2 size={20} />,
+  'admin-disputes': <MdGavel size={20} />,
   'admin-ledger': <MdAccountTree size={20} />,
   'admin-payouts': <MdLocalAtm size={20} />,
   'admin-audit': <MdHistory size={20} />,
+  'admin-settings': <MdSettings size={20} />,
 };
 
 const Sidebar = ({ open, onClose, isMobile }) => {
@@ -88,51 +100,73 @@ const Sidebar = ({ open, onClose, isMobile }) => {
         </Typography>
       </Box>
 
-      <List sx={{ px: 1.5, py: 2, flex: 1 }}>
-        {filteredMenu.map((item) => {
+      <List sx={{ px: 1.5, py: 2, flex: 1, overflowY: 'auto' }}>
+        {filteredMenu.map((item, idx) => {
+          const prevItem = filteredMenu[idx - 1];
+          const showSection = item.section && (!prevItem || prevItem.section !== item.section);
           const isActive = location.pathname === item.path;
           const translatedName = menuTranslationKeys[item.id]
             ? t(menuTranslationKeys[item.id])
             : item.name;
 
           return (
-            <ListItem key={item.id} disablePadding sx={{ mb: 0.6 }}>
-              <ListItemButton
-                onClick={() => {
-                  navigate(item.path);
-                  if (isMobile && onClose) onClose();
-                }}
-                sx={{
-                  borderRadius: 2.5,
-                  py: 1.2,
-                  px: 2,
-                  bgcolor: isActive ? '#E8F5E9' : 'transparent',
-                  color: isActive ? '#1B5E20' : '#475569',
-                  fontWeight: isActive ? 700 : 500,
-                  transition: 'all 0.15s ease',
-                  '&:hover': {
-                    bgcolor: isActive ? '#E8F5E9' : '#F8FAFC',
-                    color: isActive ? '#1B5E20' : '#1E293B',
-                  },
-                }}
-              >
-                <ListItemIcon
+            <Box key={item.id}>
+              {showSection && (
+                <Typography
+                  variant="caption"
                   sx={{
-                    minWidth: 36,
-                    color: isActive ? '#2E7D32' : '#94A3B8',
+                    px: 2,
+                    pt: idx === 0 ? 0.5 : 1.8,
+                    pb: 0.6,
+                    display: 'block',
+                    fontWeight: 800,
+                    letterSpacing: '0.08em',
+                    color: '#94A3B8',
+                    fontSize: '0.68rem',
+                    textTransform: 'uppercase',
                   }}
                 >
-                  {iconMap[item.id] || <MdDashboard size={20} />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={translatedName}
-                  primaryTypographyProps={{
-                    fontSize: '0.92rem',
-                    fontWeight: isActive ? 700 : 500,
+                  {item.section}
+                </Typography>
+              )}
+              <ListItem disablePadding sx={{ mb: 0.6 }}>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(item.path);
+                    if (isMobile && onClose) onClose();
                   }}
-                />
-              </ListItemButton>
-            </ListItem>
+                  sx={{
+                    borderRadius: 2.5,
+                    py: 1.1,
+                    px: 2,
+                    bgcolor: isActive ? '#E8F5E9' : 'transparent',
+                    color: isActive ? '#1B5E20' : '#475569',
+                    fontWeight: isActive ? 700 : 500,
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      bgcolor: isActive ? '#E8F5E9' : '#F8FAFC',
+                      color: isActive ? '#1B5E20' : '#1E293B',
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 36,
+                      color: isActive ? '#2E7D32' : '#94A3B8',
+                    }}
+                  >
+                    {iconMap[item.id] || <MdDashboard size={20} />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={translatedName}
+                    primaryTypographyProps={{
+                      fontSize: '0.9rem',
+                      fontWeight: isActive ? 700 : 500,
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </Box>
           );
         })}
       </List>
