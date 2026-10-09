@@ -49,11 +49,14 @@ const BuyerOrderDetail = () => {
     );
   }
 
-  if (!order) {
+  if (!order || !id || id === 'undefined') {
     return (
       <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3.5 }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
-          Order #{id} Not Found
+          {id && id !== 'undefined' ? `Order #${id} Not Found` : 'Order Details Unavailable'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Please select an order from your Escrow Orders list to view full tracking and inspection details.
         </Typography>
         <Button component={Link} to="/buyer/orders" startIcon={<MdArrowBack />} variant="contained">
           Back to Orders

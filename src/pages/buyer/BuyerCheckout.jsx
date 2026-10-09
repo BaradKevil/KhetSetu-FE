@@ -168,6 +168,13 @@ const BuyerCheckout = () => {
         payment_method: 'sandbox',
       });
 
+      // Robust order ID resolution supporting unwrapped object, nested data, or fallback
+      const resolvedOrderId =
+        createdOrder?.id ||
+        createdOrder?.data?.id ||
+        createdOrder?.data?.data?.id ||
+        (typeof createdOrder === 'number' ? createdOrder : null);
+
       if (productIdParam) {
         removeFromCart(Number(productIdParam));
       } else if (sellerIdParam) {
@@ -175,7 +182,11 @@ const BuyerCheckout = () => {
       }
 
       toast.success('Escrow Payment Authorized! Funds secured in KhetSetu vault.');
-      navigate(`/buyer/orders/${createdOrder.id}`);
+      if (resolvedOrderId && String(resolvedOrderId) !== 'undefined') {
+        navigate(`/buyer/orders/${resolvedOrderId}`);
+      } else {
+        navigate('/buyer/orders');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error authorizing payment');
     }

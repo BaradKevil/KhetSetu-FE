@@ -142,7 +142,7 @@ export const orderApi = {
 export const useCreateOrderMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data) => orderApi.createOrder(data),
+    mutationFn: async (data) => unwrap(await orderApi.createOrder(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
       queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
@@ -171,7 +171,7 @@ export const useGetOrderDetailsQuery = (id) => {
   return useQuery({
     queryKey: ['order-detail', id],
     queryFn: async () => unwrap(await orderApi.getOrderById(id)),
-    enabled: !!id && !!localStorage.getItem('accessToken'),
+    enabled: !!id && id !== 'undefined' && id !== 'null' && !!localStorage.getItem('accessToken'),
   });
 };
 
