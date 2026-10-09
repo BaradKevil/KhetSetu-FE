@@ -9,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   Button,
   Grid,
   Dialog,
@@ -28,6 +27,9 @@ import {
 } from 'react-icons/md';
 import { useGetBuyerOrdersQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BuyerInvoices = () => {
   const { t, formatCurrency, formatDate } = useLanguage();
@@ -39,95 +41,52 @@ const BuyerInvoices = () => {
   // Compute Invoice Stats
   const totalSpendPaise = orders.reduce((sum, o) => sum + Number(o.total_paise || 0), 0);
   const totalEscrowFeePaise = orders.reduce((sum, o) => sum + Number(o.buyer_fee_paise || 0), 0);
-
-  const getStatusChip = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
-        return <Chip label="SETTLED & PAID" size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.72rem' }} />;
-      case 'disputed':
-        return <Chip label="DISPUTE HOLD" size="small" color="error" sx={{ fontWeight: 800, fontSize: '0.72rem' }} />;
-      case 'cancelled':
-        return <Chip label="REFUNDED" size="small" sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#F1F5F9' }} />;
-      default:
-        return <Chip label="ESCROW SECURED" size="small" color="warning" sx={{ fontWeight: 800, fontSize: '0.72rem' }} />;
-    }
-  };
+  const settledOrdersCount = orders.filter((o) => ['delivered', 'completed'].includes(o.status)).length;
 
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('buyer.invoicesTitle', '📄 Invoices & Escrow Statements')}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {t('buyer.invoicesSubtitle', 'Download official Mandi GST tax invoices and platform escrow transaction statements.')}
-        </Typography>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.invoicesTitle', '📄 Invoices & Escrow Statements')}
+        subtitle={t('buyer.invoicesSubtitle', 'Download official Mandi GST tax invoices and platform escrow transaction statements.')}
+      />
+
+      {/* Overview Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label="Total Invoiced Value"
+          value={formatCurrency(totalSpendPaise, true)}
+          subtitle={`Across ${orders.length} Mandi orders`}
+          icon={<MdReceipt />}
+          color="blue"
+        />
+        <KPICard
+          label="Escrow Protection Fees (0.5%)"
+          value={formatCurrency(totalEscrowFeePaise, true)}
+          subtitle="Institutional vault protected"
+          icon={<MdAccountBalanceWallet />}
+          color="cyan"
+        />
+        <KPICard
+          label="Verified GST Settlements"
+          value={settledOrdersCount}
+          subtitle="Ready for ITC filing"
+          icon={<MdVerified />}
+          color="green"
+        />
       </Box>
-
-      {/* Overview Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E8F5E9', color: '#2E7D32' }}>
-                <MdReceipt size={22} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                Total Invoiced Value
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#0F172A">
-              {formatCurrency(totalSpendPaise, true)}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Across {orders.length} Mandi procurement orders
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E0F2FE', color: '#0288D1' }}>
-                <MdAccountBalanceWallet size={22} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                Escrow Protection Fees (0.5%)
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#0288D1">
-              {formatCurrency(totalEscrowFeePaise, true)}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              100% Institutional Vault Protected
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#F8FAFC', color: '#64748B' }}>
-                <MdVerified size={22} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                Verified GST Settlements
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#2E7D32">
-              {orders.filter((o) => ['delivered', 'completed'].includes(o.status)).length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Ready for Input Tax Credit (ITC) filing
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
 
       {/* Invoices Table */}
       <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
@@ -179,7 +138,7 @@ const BuyerInvoices = () => {
                         {formatCurrency(order.total_paise, true)}
                       </TableCell>
                       <TableCell>
-                        {getStatusChip(order.status)}
+                        <StatusBadge status={order.status} />
                       </TableCell>
                       <TableCell sx={{ textAlign: 'right' }}>
                         <Button

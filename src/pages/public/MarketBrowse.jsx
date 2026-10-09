@@ -30,6 +30,10 @@ import Navbar from '../../common/Navbar';
 import { useLanguage } from '../../context/LanguageContext';
 import { getFirstImage } from '../../common/imageUtils';
 
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import { MdPeople, MdStorefront, MdGrass, MdInventory } from 'react-icons/md';
+
 const MarketBrowse = () => {
   const { t, formatCurrency } = useLanguage();
   const [searchCrop, setSearchCrop] = useState('');
@@ -81,64 +85,57 @@ const MarketBrowse = () => {
 
   const mainContent = (
     <>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('market.exploreLiveMandi', '🌾 Explore Live Crop Mandi')}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {t('market.exploreLiveMandiSubtitle', 'Browse verified harvest listings with direct farmer pricing and escrow buyer protection.')}
-        </Typography>
-      </Box>
+      <PageHeader
+        title={t('market.exploreLiveMandi', 'Explore Live Crop Mandi')}
+        subtitle={t('market.exploreLiveMandiSubtitle', 'Browse verified harvest listings with direct farmer pricing and escrow buyer protection.')}
+      />
 
-      {/* Market Pulse Metric Strip */}
+      {/* Market Pulse Metric Strip (Uniform full-width grid) */}
       {marketStats && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.verifiedFarmers', 'Verified Farmers')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#2E7D32">
-                {marketStats.verifiedFarmers ?? 0}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.liveListings', 'Active Listings')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#0F172A">
-                {marketStats.liveListings ?? products.length}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.cropsAvailable', 'Crops Available')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#0288D1">
-                {marketStats.cropsAvailable ?? cropsList.length}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.totalVolume', 'Available Volume')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#7C3AED">
-                {marketStats.totalQtyTonnes > 0
-                  ? `${marketStats.totalQtyTonnes} MT`
-                  : marketStats.liveListings > 0
-                  ? `${marketStats.liveListings} Lots Available`
-                  : '0 MT'}
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: 2.5,
+            mb: 3.5,
+            width: '100%',
+          }}
+        >
+          <KPICard
+            title={t('market.verifiedFarmers', 'Verified Farmers')}
+            value={marketStats.verifiedFarmers ?? 0}
+            icon={MdPeople}
+            color="green"
+            subtitle={t('market.kycApproved', 'KYC Approved Growers')}
+          />
+          <KPICard
+            title={t('market.liveListings', 'Active Listings')}
+            value={marketStats.liveListings ?? products.length}
+            icon={MdStorefront}
+            color="blue"
+            subtitle={t('market.readyToShip', 'Ready for Escrow Lock')}
+          />
+          <KPICard
+            title={t('market.cropsAvailable', 'Crops Available')}
+            value={marketStats.cropsAvailable ?? cropsList.length}
+            icon={MdGrass}
+            color="purple"
+            subtitle={t('market.commodities', 'Distinct Commodities')}
+          />
+          <KPICard
+            title={t('market.totalVolume', 'Available Volume')}
+            value={
+              marketStats.totalQtyTonnes > 0
+                ? `${marketStats.totalQtyTonnes} MT`
+                : marketStats.liveListings > 0
+                ? `${marketStats.liveListings} Lots`
+                : '0 MT'
+            }
+            icon={MdInventory}
+            color="amber"
+            subtitle={t('market.mandiAggregated', 'Mandi Aggregated')}
+          />
+        </Box>
       )}
 
       {/* Filter & Sort Bar */}

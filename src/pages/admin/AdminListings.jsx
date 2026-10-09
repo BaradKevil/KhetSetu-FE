@@ -49,6 +49,9 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 import { getFirstImage, getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const formatINR = (val) => {
   const num = Number(val) || 0;
@@ -210,17 +213,59 @@ const AdminListings = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Page Header */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant="h5" fontWeight={800} color="#0F172A">
-          Crop Listings Moderation & Quality Control
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Ensure fair pricing, organic certification validity, and authentic agricultural harvests on KhetSetu.
-        </Typography>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title="Crop Listings Moderation & Quality Control"
+        subtitle="Ensure fair pricing, organic certification validity, and authentic agricultural harvests on KhetSetu."
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportListingsCSV}
+            sx={{
+              fontWeight: 700,
+              borderRadius: 2,
+              px: 2.5,
+              py: 1,
+            }}
+          >
+            Export Listings CSV
+          </Button>
+        }
+      />
+
+      {/* 3 KPI Stat Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdAgriculture size={24} />}
+          label="Total Crop Listings"
+          value={pagination.totalCount || products.length}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdCheckCircle size={24} />}
+          label="Live on Mandi"
+          value={counts.live ?? products.filter(p => p.status === 'live').length}
+          color="green"
+        />
+        <KPICard
+          icon={<MdWarning size={24} />}
+          label="Draft / Moderation Pending"
+          value={counts.draft ?? products.filter(p => p.status === 'draft').length}
+          color="amber"
+        />
       </Box>
 
-      {/* Top Controls: Search Bar + Filter Dropdown + Export Button */}
+      {/* Top Controls: Search Bar + Filter Dropdown */}
       <Paper
         elevation={0}
         sx={{
@@ -258,11 +303,11 @@ const AdminListings = () => {
           />
 
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="listing-status-filter-label">Listing Status</InputLabel>
+            <InputLabel id="listing-status-filter-label">Filter Status</InputLabel>
             <Select
               labelId="listing-status-filter-label"
               value={statusFilter}
-              label="Listing Status"
+              label="Filter Status"
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setActiveTab('all');
@@ -281,24 +326,6 @@ const AdminListings = () => {
             </Select>
           </FormControl>
         </Box>
-
-        {/* Right: Export Button */}
-        <Button
-          variant="contained"
-          startIcon={<MdFileDownload size={18} />}
-          onClick={exportListingsCSV}
-          sx={{
-            fontWeight: 700,
-            bgcolor: '#166534',
-            '&:hover': { bgcolor: '#14532D' },
-            borderRadius: 2,
-            px: 2.5,
-            py: 0.9,
-            textTransform: 'none',
-          }}
-        >
-          Export Listings
-        </Button>
       </Paper>
 
       {/* Tabs: All Listings | Live on Mandi | Draft / Pending | Sold Out */}

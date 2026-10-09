@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { MdStorefront, MdShoppingBag, MdSecurity, MdArrowForward, MdVerified, MdAgriculture } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useGetProfileQuery, useGetMarketStatsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BuyerDashboard = () => {
   const { t, formatCurrency } = useLanguage();
@@ -26,28 +29,24 @@ const BuyerDashboard = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('buyerDashboardTitle', '🌾 Buyer Overview')}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {t('buyerDashboardSubtitle', 'Direct farm produce procurement with institutional escrow protection.')}
-          </Typography>
-        </Box>
-        <Button
-          component={Link}
-          to="/buyer/market"
-          variant="contained"
-          color="primary"
-          size="large"
-          startIcon={<MdStorefront size={22} />}
-          sx={{ borderRadius: 3, fontWeight: 700 }}
-        >
-          {t('exploreMandiListings', 'Explore Mandi Listings')}
-        </Button>
-      </Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyerDashboardTitle', '🌾 Buyer Overview')}
+        subtitle={t('buyerDashboardSubtitle', 'Direct farm produce procurement with institutional escrow protection.')}
+        action={
+          <Button
+            component={Link}
+            to="/buyer/market"
+            variant="contained"
+            color="primary"
+            startIcon={<MdStorefront size={20} />}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            {t('exploreMandiListings', 'Explore Mandi Listings')}
+          </Button>
+        }
+      />
 
       {/* Business Trust Verification Banner */}
       {!isVerified && (
@@ -55,7 +54,7 @@ const BuyerDashboard = () => {
           elevation={0}
           sx={{
             p: 2.5,
-            mb: 4,
+            mb: 3.5,
             borderRadius: 3.5,
             border: '1px solid #BAE6FD',
             bgcolor: '#F0F9FF',
@@ -109,67 +108,38 @@ const BuyerDashboard = () => {
         </Paper>
       )}
 
-      {/* Metric Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E0F2FE', color: '#0288D1' }}>
-                <MdShoppingBag size={24} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('activeOrders', 'Active Orders')}
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#0F172A">
-              {activeOrders.length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('ordersBeingDispatched', 'In fulfillment / inspection')}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#E8F5E9', color: '#2E7D32' }}>
-                <MdSecurity size={24} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('escrowProtectionTitle', 'Escrow Protected')}
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#2E7D32">
-              {activeEscrowPaise > 0 ? formatCurrency(activeEscrowPaise, true) : '₹0'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {activeEscrowPaise > 0
-                ? t('escrowProtectionActiveDesc', 'Funds held safely in escrow')
-                : t('escrowProtectionEmptyDesc', 'Your payments stay protected until delivery')}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#F8FAFC', color: '#475569' }}>
-                <MdStorefront size={24} />
-              </Box>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('totalPurchasesTitle', 'Total Purchases')}
-              </Typography>
-            </Box>
-            <Typography variant="h4" fontWeight={800} color="#0F172A">
-              {formatCurrency(totalEscrowPaid, true)}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('totalPurchasesSubtitle', 'Settled & fulfilled escrow orders')}
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label={t('activeOrders', 'Active Orders')}
+          value={activeOrders.length}
+          subtitle={t('ordersBeingDispatched', 'In fulfillment / inspection')}
+          icon={<MdShoppingBag />}
+          color="blue"
+        />
+        <KPICard
+          label={t('escrowProtectionTitle', 'Escrow Protected')}
+          value={activeEscrowPaise > 0 ? formatCurrency(activeEscrowPaise, true) : '₹0'}
+          subtitle={activeEscrowPaise > 0 ? t('escrowProtectionActiveDesc', 'Funds held safely in escrow') : t('escrowProtectionEmptyDesc', 'Your payments stay protected')}
+          icon={<MdSecurity />}
+          color="green"
+        />
+        <KPICard
+          label={t('totalPurchasesTitle', 'Total Purchases')}
+          value={formatCurrency(totalEscrowPaid, true)}
+          subtitle={t('totalPurchasesSubtitle', 'Settled & fulfilled escrow orders')}
+          icon={<MdStorefront />}
+          color="purple"
+        />
+      </Box>
 
       {/* Market Pulse: Farmers & Produce Available (Section 6.1) */}
       {marketStats && (
@@ -292,24 +262,27 @@ const BuyerDashboard = () => {
                   alignItems: 'center',
                   p: 2,
                   borderRadius: 2.5,
-                  bgcolor: '#F8FAF9',
-                  border: '1px solid #F1F5F9',
+                  bgcolor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
                 }}
               >
                 <Box>
-                  <Typography variant="subtitle2" fontWeight={700}>
-                    {t('orderNum')} #{o.order_number}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+                    <Typography variant="subtitle2" fontWeight={700} color="#0F172A">
+                      {t('orderNum', 'Order')} #{o.order_number}
+                    </Typography>
+                    <StatusBadge status={o.status} />
+                  </Box>
                   <Typography variant="caption" color="text.secondary">
-                    {t('farmerLabel')}: {o.seller?.seller_profile?.full_name || 'Farmer'} • {t('status')}: {o.status.toUpperCase()}
+                    {t('farmerLabel', 'Farmer')}: {o.seller?.seller_profile?.full_name || 'Farmer'}
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="subtitle2" fontWeight={800} color="#2E7D32">
+                  <Typography variant="subtitle2" fontWeight={800} color="#2563EB">
                     ₹{(o.total_paise / 100).toLocaleString('en-IN')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {t('escrowProtectedTag')}
+                  <Typography variant="caption" color="#16A34A" fontWeight={600}>
+                    {t('escrowProtectedTag', '🛡️ Escrow Protected')}
                   </Typography>
                 </Box>
               </Box>

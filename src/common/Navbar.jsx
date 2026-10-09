@@ -1,101 +1,102 @@
-import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
   Typography,
   Box,
   Button,
-  Chip,
   IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
   Badge,
 } from '@mui/material';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   MdMenu,
-  MdAccountCircle,
   MdLogout,
   MdAgriculture,
   MdShoppingCart,
+  MdAdminPanelSettings,
+  MdStorefront,
 } from 'react-icons/md';
 import { clearSessionAndRedirect } from '../Api/ApiClient';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
+import { useGetProfileQuery } from '../Api/Api';
 import LanguageSelector from './custom/LanguageSelector';
 
 const Navbar = ({ onToggleSidebar }) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const { totalItemsCount } = useCart();
 
-  const role = localStorage.getItem('role') || 'guest';
-  const phone = localStorage.getItem('phone') || '';
-  const rawFullName = localStorage.getItem('fullName') || '';
-  const profilePhoto = localStorage.getItem('profilePhoto') || '';
+  const token = localStorage.getItem('accessToken');
+  const isAuthenticated = Boolean(token);
 
-  const [anchorEl, setAnchorEl] = useState(null);
+  const { data: userProfile } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
 
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
+  const role = localStorage.getItem('role') || userProfile?.role || 'guest';
 
-  // Formats phone into readable "+91 XXXXX XXXXX"
-  const formatPhoneNumber = (p) => {
-    if (!p) return '';
-    const digits = String(p).replace(/\D/g, '');
-    if (digits.length === 10) return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
-    if (digits.length === 12 && digits.startsWith('91')) {
-      return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  // 1. Role Written Component (Pill badge with role-specific icon and text)
+  const renderRoleBadge = () => {
+    if (!isAuthenticated || !role || role === 'guest') return null;
+
+    let label = '';
+    let icon = null;
+    let bg = '#EFF6FF';
+    let color = '#1D4ED8';
+    let border = '#BFDBFE';
+
+    if (role === 'super_admin') {
+      label = t('superAdmin', 'Super Admin');
+      icon = <MdAdminPanelSettings size={15} style={{ marginRight: 5 }} />;
+      bg = '#EFF6FF';
+      color = '#1E40AF';
+      border = '#BFDBFE';
+    } else if (role === 'staff') {
+      label = t('adminStaff', 'Admin Staff');
+      icon = <MdAdminPanelSettings size={15} style={{ marginRight: 5 }} />;
+      bg = '#F1F5F9';
+      color = '#334155';
+      border = '#CBD5E1';
+    } else if (role === 'seller') {
+      label = t('farmerSeller', 'Farmer');
+      icon = <MdAgriculture size={16} style={{ marginRight: 5 }} />;
+      bg = '#F0FDF4';
+      color = '#15803D';
+      border = '#BBF7D0';
+    } else if (role === 'buyer') {
+      label = t('traderBuyer', 'Buyer');
+      icon = <MdStorefront size={15} style={{ marginRight: 5 }} />;
+      bg = '#F0F9FF';
+      color = '#0369A1';
+      border = '#BAE6FD';
+    } else {
+      label = role;
+      bg = '#F8FAFC';
+      color = '#475569';
+      border = '#E2E8F0';
     }
-    return p;
-  };
 
-  // Resolves a human display name instead of showing raw phone numbers
-  const getDisplayName = () => {
-    if (rawFullName && !rawFullName.startsWith('+') && !/^\d+$/.test(rawFullName.replace(/\s+/g, ''))) {
-      return rawFullName;
-    }
-    switch (role) {
-      case 'super_admin':
-        return 'Super Admin';
-      case 'staff':
-        return 'Admin Staff';
-      case 'seller':
-        return 'Farmer (Seller)';
-      case 'buyer':
-        return 'Trader (Buyer)';
-      default:
-        return 'User';
-    }
-  };
-
-  // Fallback avatar content when profile photo is not yet uploaded
-  const getAvatarContent = () => {
-    if (profilePhoto) return null;
-    const name = getDisplayName();
-    if (name && name !== 'User') {
-      const parts = name.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
-      }
-      return name.charAt(0).toUpperCase();
-    }
-    return <MdAccountCircle size={22} />;
-  };
-
-  const getRoleBadge = () => {
-    switch (role) {
-      case 'seller':
-        return <Chip label={t('farmerSeller', '🌾 Farmer')} size="small" sx={{ bgcolor: '#E8F5E9', color: '#1B5E20', fontWeight: 700 }} />;
-      case 'buyer':
-        return <Chip label={t('traderBuyer', '💼 Buyer')} size="small" sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 700 }} />;
-      case 'super_admin':
-      case 'staff':
-        return <Chip label={t('superAdmin', '🛡️ Super Admin')} size="small" sx={{ bgcolor: '#F1F5F9', color: '#0F172A', fontWeight: 700 }} />;
-      default:
-        return null;
-    }
+    return (
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          px: { xs: 1.2, sm: 1.5 },
+          py: 0.5,
+          borderRadius: '9999px',
+          bgcolor: bg,
+          color: color,
+          border: `1px solid ${border}`,
+          fontSize: { xs: '0.74rem', sm: '0.8rem' },
+          fontWeight: 700,
+          whiteSpace: 'nowrap',
+          letterSpacing: '0.01em',
+        }}
+      >
+        {icon}
+        <span>{label}</span>
+      </Box>
+    );
   };
 
   return (
@@ -104,15 +105,24 @@ const Navbar = ({ onToggleSidebar }) => {
       elevation={0}
       sx={{
         bgcolor: '#FFFFFF',
-        color: '#1E293B',
+        color: '#0F172A',
         borderBottom: '1px solid #E2E8F0',
-        zIndex: (theme) => theme.zIndex.drawer + 1,
+        zIndex: (theme) => theme.zIndex.drawer - 1,
+        width: '100%',
+        boxShadow: 'none',
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 3 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Toolbar
+        sx={{
+          justifyContent: 'space-between',
+          px: { xs: 1.5, sm: 2, md: 3 },
+          minHeight: { xs: '56px !important', sm: '62px !important' },
+        }}
+      >
+        {/* Left Side: Mobile Hamburger + Brand Logo + Optional Public Links */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
           {onToggleSidebar && (
-            <IconButton onClick={onToggleSidebar} edge="start" sx={{ color: '#1E293B' }}>
+            <IconButton onClick={onToggleSidebar} edge="start" sx={{ color: '#0F172A', p: 0.8 }}>
               <MdMenu size={24} />
             </IconButton>
           )}
@@ -120,59 +130,40 @@ const Navbar = ({ onToggleSidebar }) => {
           <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Box
               sx={{
-                width: 38,
-                height: 38,
+                width: 34,
+                height: 34,
                 borderRadius: 2,
-                bgcolor: '#2E7D32',
+                bgcolor: '#2563EB',
                 color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 22,
+                fontSize: 18,
               }}
             >
               <MdAgriculture />
             </Box>
-            <Typography variant="h6" fontWeight={800} sx={{ color: '#1E293B', letterSpacing: '-0.02em' }}>
-              Khet<span style={{ color: '#2E7D32' }}>Setu</span>
+            <Typography variant="h6" fontWeight={800} sx={{ color: '#0F172A', letterSpacing: '-0.02em', fontSize: '1.15rem' }}>
+              Khet<span style={{ color: '#2563EB' }}>Setu</span>
             </Typography>
           </Link>
 
-          <Box sx={{ ml: 2, display: { xs: 'none', sm: 'block' } }}>
-            {getRoleBadge()}
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          {/* Public browse shortcut - Hidden in Admin mode (Issue #9) */}
-          {role !== 'super_admin' && role !== 'staff' ? (
+          {/* Contextual Market browse shortcut for non-admin portals */}
+          {!['super_admin', 'staff'].includes(role) && (
             <Button
               component={Link}
               to="/market"
               size="small"
               variant="text"
-              sx={{ display: { xs: 'none', md: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
+              sx={{ display: { xs: 'none', lg: 'inline-flex' }, color: '#475569', fontWeight: 600, ml: 1 }}
             >
               {t('mandiRatesMarket', 'Mandi Rates & Market')}
             </Button>
-          ) : (
-            <Chip
-              label="PROD • ESCROW SECURE"
-              size="small"
-              sx={{
-                display: { xs: 'none', sm: 'inline-flex' },
-                bgcolor: '#DCFCE7',
-                color: '#166534',
-                fontWeight: 800,
-                fontSize: '0.72rem',
-                border: '1px solid #86EFAC',
-              }}
-            />
           )}
+        </Box>
 
-          {/* Reusable Universal Language Selector */}
-          <LanguageSelector variant="menu" size="small" />
-
+        {/* Right End Corner: [Role] -> [Language] -> [Logout] */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1.2, md: 1.5 } }}>
           {/* Cart Shortcut for Buyers */}
           {role === 'buyer' && (
             <IconButton
@@ -180,92 +171,77 @@ const Navbar = ({ onToggleSidebar }) => {
               to="/buyer/cart"
               size="small"
               sx={{
-                color: '#1E293B',
+                color: '#0F172A',
                 bgcolor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                p: 0.9,
+                p: 0.7,
                 '&:hover': { bgcolor: '#F1F5F9' },
               }}
               title={t('cart', 'Cart')}
             >
-              <Badge badgeContent={totalItemsCount} color="success" max={99}>
-                <MdShoppingCart size={20} />
+              <Badge badgeContent={totalItemsCount} color="primary" max={99}>
+                <MdShoppingCart size={18} />
               </Badge>
             </IconButton>
           )}
 
-          {/* User Account Menu with Photo Support */}
-          {localStorage.getItem('accessToken') ? (
-            <>
-              <IconButton onClick={handleMenuOpen} sx={{ p: 0.5 }}>
-                <Avatar
-                  src={profilePhoto || undefined}
-                  sx={{
-                    bgcolor: '#2E7D32',
-                    width: 38,
-                    height: 38,
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    border: '2px solid #E2E8F0',
-                  }}
-                >
-                  {getAvatarContent()}
-                </Avatar>
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                slotProps={{ paper: { sx: { width: 240, borderRadius: 2.5, mt: 1, p: 0.5, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' } } }}
-              >
-                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Avatar
-                    src={profilePhoto || undefined}
-                    sx={{
-                      bgcolor: '#2E7D32',
-                      width: 42,
-                      height: 42,
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {getAvatarContent()}
-                  </Avatar>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography variant="subtitle2" fontWeight={700} noWrap>
-                      {getDisplayName()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', mt: 0.2 }}>
-                      {formatPhoneNumber(phone)}
-                    </Typography>
-                  </Box>
-                </Box>
+          {/* 1. ROLE WRITTEN */}
+          {renderRoleBadge()}
 
-                <Box sx={{ px: 2, py: 1 }}>
-                  {getRoleBadge()}
-                </Box>
+          {/* 2. LANGUAGE BUTTON */}
+          <LanguageSelector variant="menu" size="small" />
 
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    navigate(role === 'seller' ? '/seller/profile' : '/buyer/profile');
-                  }}
-                  sx={{ borderRadius: 1.5, mx: 0.5 }}
-                >
-                  <MdAccountCircle size={18} style={{ marginRight: 10, color: '#64748B' }} />
-                  {t('businessProfile', 'Profile & Settings')}
-                </MenuItem>
-                <MenuItem
-                  onClick={clearSessionAndRedirect}
-                  sx={{ color: '#DC2626', borderRadius: 1.5, mx: 0.5 }}
-                >
-                  <MdLogout size={18} style={{ marginRight: 10 }} />
-                  {t('logout', 'Sign Out')}
-                </MenuItem>
-              </Menu>
-            </>
+          {/* 3. LOGOUT BUTTON */}
+          {isAuthenticated ? (
+            <Button
+              onClick={clearSessionAndRedirect}
+              startIcon={<MdLogout size={16} />}
+              size="small"
+              variant="outlined"
+              sx={{
+                color: '#DC2626',
+                bgcolor: '#FEF2F2',
+                borderColor: '#FECACA',
+                borderRadius: 2,
+                px: { xs: 1, sm: 1.5 },
+                py: 0.55,
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                minWidth: 'auto',
+                boxShadow: 'none',
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  bgcolor: '#FEE2E2',
+                  borderColor: '#F87171',
+                  boxShadow: 'none',
+                },
+                '& .MuiButton-startIcon': {
+                  mr: { xs: 0, sm: 0.7 },
+                  ml: 0,
+                },
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                {t('logout', 'Sign Out')}
+              </Box>
+            </Button>
           ) : (
-            <Button component={Link} to="/login" variant="contained" color="primary" size="small" sx={{ fontWeight: 700 }}>
+            /* Sign In Button if not authenticated */
+            <Button
+              component={Link}
+              to="/login"
+              variant="contained"
+              color="primary"
+              size="small"
+              sx={{
+                fontWeight: 700,
+                borderRadius: 2,
+                textTransform: 'none',
+                px: 2,
+              }}
+            >
               {t('signIn', 'Sign In')}
             </Button>
           )}

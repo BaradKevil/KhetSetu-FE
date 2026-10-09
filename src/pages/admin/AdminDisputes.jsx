@@ -39,6 +39,9 @@ import {
 import { useGetAdminDisputesQuery, useResolveDisputeMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const formatINR = (val) => {
   const num = Number(val) || 0;
@@ -186,17 +189,59 @@ const AdminDisputes = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Page Header */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant="h5" fontWeight={800} color="#0F172A">
-          Disputes & Arbitration Tribunal
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Adjudicate contested escrow transactions, damaged consignments, weight discrepancies, and contract non-fulfillment.
-        </Typography>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title="Disputes & Arbitration Tribunal"
+        subtitle="Adjudicate contested escrow transactions, damaged consignments, weight discrepancies, and contract non-fulfillment."
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportDisputesCSV}
+            sx={{
+              fontWeight: 700,
+              borderRadius: 2,
+              px: 2.5,
+              py: 1,
+            }}
+          >
+            Export Disputes CSV
+          </Button>
+        }
+      />
+
+      {/* 3 KPI Stat Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdGavel size={24} />}
+          label="Total Disputes"
+          value={pagination.totalCount || disputes.length}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdReportProblem size={24} />}
+          label="Open Claims (Action Required)"
+          value={counts.open ?? disputes.filter(d => d.status === 'open' || d.status === 'pending').length}
+          color="red"
+        />
+        <KPICard
+          icon={<MdCheckCircle size={24} />}
+          label="Resolved / Settled"
+          value={counts.resolved ?? disputes.filter(d => d.status === 'resolved' || d.status === 'dismissed').length}
+          color="green"
+        />
       </Box>
 
-      {/* Top Controls: Search Bar on Left + Export Button on Far Right (Refresh removed) */}
+      {/* Top Controls: Search Bar on Left */}
       <Paper
         elevation={0}
         sx={{
@@ -232,23 +277,6 @@ const AdminDisputes = () => {
             sx={{ maxWidth: 460 }}
           />
         </Box>
-
-        <Button
-          variant="contained"
-          startIcon={<MdFileDownload size={18} />}
-          onClick={exportDisputesCSV}
-          sx={{
-            fontWeight: 700,
-            bgcolor: '#166534',
-            '&:hover': { bgcolor: '#14532D' },
-            borderRadius: 2,
-            px: 2.5,
-            py: 0.9,
-            textTransform: 'none',
-          }}
-        >
-          Export Disputes CSV
-        </Button>
       </Paper>
 
       {/* Distinct Tabs Row Below Controls with Count Badges */}

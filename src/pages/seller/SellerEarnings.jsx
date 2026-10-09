@@ -1,6 +1,10 @@
-import { Box, Typography, Paper, Grid, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
+import { Box, Typography, Paper, Grid, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { MdAccountBalanceWallet, MdLock, MdReceiptLong } from 'react-icons/md';
 import { useGetSellerOrdersQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const SellerEarnings = () => {
   const { t, formatCurrency } = useLanguage();
@@ -21,76 +25,61 @@ const SellerEarnings = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 3.5 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('farmer.earningsTitle', '💰 Earnings & Payout Statements')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('farmer.earningsSubtitle', 'Transparent breakdown of completed sales, platform fees, and escrow bank releases.')}
-        </Typography>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('farmer.earningsTitle', '💰 Earnings & Payout Statements')}
+        subtitle={t('farmer.earningsSubtitle', 'Transparent breakdown of completed sales, platform fees, and escrow bank releases.')}
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label={t('farmer.totalEarnings', 'TOTAL PAID TO BANK')}
+          value={formatCurrency(totalPaidOutPaise, true)}
+          subtitle={t('farmer.paidToBank', 'Settled directly via NEFT/RTGS/UPI')}
+          icon={<MdAccountBalanceWallet />}
+          color="green"
+        />
+        <KPICard
+          label={t('farmer.escrowLocked', 'LOCKED IN ESCROW')}
+          value={formatCurrency(totalEscrowHeldPaise, true)}
+          subtitle={t('farmer.securedInVault', 'Will release as soon as buyers receive delivery')}
+          icon={<MdLock />}
+          color="blue"
+        />
+        <KPICard
+          label={t('farmer.platformCommission', 'PLATFORM COMMISSIONS (2.5%)')}
+          value={formatCurrency(totalCommissionPaidPaise, true)}
+          subtitle={t('market.zeroHiddenDeductions', 'No hidden brokerages or mandi deductions')}
+          icon={<MdReceiptLong />}
+          color="cyan"
+        />
       </Box>
 
-      {/* Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Typography variant="caption" color="text.secondary" fontWeight={700}>
-              {t('farmer.totalEarnings', 'TOTAL PAID TO BANK')}
-            </Typography>
-            <Typography variant="h3" fontWeight={800} color="#2E7D32" sx={{ my: 1 }}>
-              {formatCurrency(totalPaidOutPaise, true)}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('farmer.paidToBank', 'Settled directly via NEFT/RTGS/UPI')}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Typography variant="caption" color="text.secondary" fontWeight={700}>
-              {t('farmer.escrowLocked', 'LOCKED IN ESCROW')}
-            </Typography>
-            <Typography variant="h3" fontWeight={800} color="#0288D1" sx={{ my: 1 }}>
-              {formatCurrency(totalEscrowHeldPaise, true)}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('farmer.securedInVault', 'Will release as soon as buyers receive delivery')}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4} size={{ xs: 12, md: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-            <Typography variant="caption" color="text.secondary" fontWeight={700}>
-              {t('farmer.platformCommission', 'PLATFORM COMMISSIONS (2.5%)')}
-            </Typography>
-            <Typography variant="h3" fontWeight={800} color="#475569" sx={{ my: 1 }}>
-              {formatCurrency(totalCommissionPaidPaise, true)}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('market.zeroHiddenDeductions', 'No hidden brokerages or mandi deductions')}
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Transaction History */}
-      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+      {/* Transaction History Table */}
+      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <Box sx={{ p: 2.5, bgcolor: '#FFFFFF', borderBottom: '1px solid #F1F5F9' }}>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" fontWeight={700} color="#0F172A">
             {t('farmer.payoutHistory', 'Order Payout History')}
           </Typography>
         </Box>
         <Table>
-          <TableHead sx={{ bgcolor: '#F8FAF9' }}>
+          <TableHead sx={{ bgcolor: '#F8FAFC' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.orderNum', 'Order #')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.grossProduceValue', 'Gross Produce Value')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.commission', 'Commission (2.5%)')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.netPayout', 'Net Payout (You Receive)')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Status')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.orderNum', 'Order #')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.grossProduceValue', 'Gross Produce Value')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.commission', 'Commission (2.5%)')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.netPayout', 'Net Payout (You Receive)')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('common.status', 'Status')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -108,20 +97,15 @@ const SellerEarnings = () => {
               </TableRow>
             ) : (
               orders.map((o) => (
-                <TableRow key={o.id} hover>
-                  <TableCell sx={{ fontWeight: 700 }}>#{o.order_number}</TableCell>
-                  <TableCell>{formatCurrency(o.subtotal_paise, true)}</TableCell>
-                  <TableCell sx={{ color: '#DC2626' }}>- {formatCurrency(o.commission_paise, true)}</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#2E7D32' }}>
+                <TableRow key={o.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#2563EB' }}>#{o.order_number}</TableCell>
+                  <TableCell sx={{ color: '#334155', fontWeight: 600 }}>{formatCurrency(o.subtotal_paise, true)}</TableCell>
+                  <TableCell sx={{ color: '#EF4444', fontWeight: 600 }}>- {formatCurrency(o.commission_paise, true)}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#16A34A' }}>
                     {formatCurrency(o.payout_paise, true)}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={o.status === 'completed' ? t('common.completed', 'RELEASED') : t('farmer.escrowLocked', 'ESCROW HOLD')}
-                      size="small"
-                      color={o.status === 'completed' ? 'success' : 'warning'}
-                      sx={{ fontWeight: 700, fontSize: '0.72rem' }}
-                    />
+                    <StatusBadge status={o.status === 'completed' ? 'completed' : 'pending'} />
                   </TableCell>
                 </TableRow>
               ))

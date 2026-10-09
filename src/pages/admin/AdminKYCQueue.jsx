@@ -22,6 +22,7 @@ import {
   Badge,
   Alert,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import {
   MdCheck,
@@ -30,6 +31,7 @@ import {
   MdLockOpen,
   MdWarning,
   MdEditNote,
+  MdVerifiedUser,
 } from 'react-icons/md';
 import {
   useGetKYCQueueQuery,
@@ -39,6 +41,9 @@ import {
 } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const AdminKYCQueue = () => {
   const { t } = useLanguage();
@@ -138,17 +143,46 @@ const AdminKYCQueue = () => {
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('admin.farmerKycQueue', '🛡️ Farmer KYC & Verification Control')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t(
-            'admin.farmerKycSubtitle',
-            'Review land records, Aadhaar references, bank details, and farmer change/unlock requests.'
-          )}
-        </Typography>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title={t('admin.farmerKycQueue', 'Farmer KYC & Verification Control')}
+        subtitle={t(
+          'admin.farmerKycSubtitle',
+          'Review land records, Aadhaar references, bank details, and farmer change/unlock requests.'
+        )}
+      />
+
+      {/* 3 KPI Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdWarning size={24} />}
+          label="Pending Review"
+          value={counts.pending ?? 0}
+          color="amber"
+          onClick={() => setSearchParams({ tab: 'pending' })}
+        />
+        <KPICard
+          icon={<MdCheck size={24} />}
+          label="Verified Farmers"
+          value={counts.verified ?? 0}
+          color="green"
+          onClick={() => setSearchParams({ tab: 'verified' })}
+        />
+        <KPICard
+          icon={<MdEditNote size={24} />}
+          label="Change / Unlock Requests"
+          value={changeRequestsCount}
+          color="purple"
+          onClick={() => setSearchParams({ tab: 'change_requests' })}
+        />
       </Box>
 
       {/* Change Requests Alert Banner */}

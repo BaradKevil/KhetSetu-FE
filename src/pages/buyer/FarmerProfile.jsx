@@ -24,6 +24,7 @@ import {
 import { useGetFarmerProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { getFirstImage } from '../../common/imageUtils';
+import PageHeader from '../../common/custom/PageHeader';
 
 const FarmerProfile = () => {
   const { id } = useParams();
@@ -59,20 +60,20 @@ const FarmerProfile = () => {
   const isVerified = farmer.kyc_status === 'verified';
 
   return (
-    <Box>
-      {/* Back button */}
-      <Box sx={{ mb: 2 }}>
-        <Button component={Link} to="/buyer/farmers" startIcon={<MdArrowBack />} color="inherit" sx={{ fontWeight: 600 }}>
-          {t('buyer.backToFarmers', 'Back to Farmers Directory')}
-        </Button>
-      </Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={farmer.full_name}
+        subtitle={`${farmer.farm_name || 'Family Krishi Farm'} • ${farmer.district}, ${farmer.state}`}
+        showBack={true}
+      />
 
       {/* Farmer Profile Hero Card */}
       <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={8} size={{ xs: 12, md: 8 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-              <Avatar sx={{ bgcolor: '#E8F5E9', color: '#2E7D32', width: 72, height: 72, fontSize: 32, fontWeight: 700 }}>
+              <Avatar sx={{ bgcolor: '#EFF6FF', color: '#2563EB', width: 72, height: 72, fontSize: 32, fontWeight: 700 }}>
                 {farmer.full_name ? farmer.full_name[0].toUpperCase() : <MdAgriculture />}
               </Avatar>
               <Box>

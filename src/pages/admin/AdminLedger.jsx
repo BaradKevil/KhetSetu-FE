@@ -16,9 +16,12 @@ import {
   Grid,
   Tooltip,
 } from '@mui/material';
-import { MdLock, MdFileDownload, MdAccountBalance, MdCheckCircle } from 'react-icons/md';
+import { MdLock, MdFileDownload, MdAccountBalance, MdCheckCircle, MdReceiptLong, MdVerifiedUser } from 'react-icons/md';
 import { useGetLedgerQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const AdminLedger = () => {
   const { t, formatCurrency, formatDate } = useLanguage();
@@ -58,29 +61,54 @@ const AdminLedger = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-            <Typography variant="h4" fontWeight={800} color="#0F172A">
-              {t('admin.doubleEntryLedger', '📜 Double-Entry Escrow Ledger')}
-            </Typography>
-            <Chip icon={<MdLock />} label={t('admin.immutableAppendOnly', 'Immutable Append-Only')} color="default" size="small" sx={{ fontWeight: 700 }} />
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {t('admin.ledgerSubtitleFull', 'Audit-grade ledger recording every movement of platform funds between Gateway, Escrow Hold, Farmer Payable, and Platform Revenue.')}
-          </Typography>
-        </Box>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title={t('admin.doubleEntryLedger', 'Double-Entry Escrow Ledger')}
+        subtitle={t('admin.ledgerSubtitleFull', 'Audit-grade ledger recording every movement of platform funds between Gateway, Escrow Hold, Farmer Payable, and Platform Revenue.')}
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportCSV}
+            disabled={!entries.length}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            Export Ledger (CSV)
+          </Button>
+        }
+      />
 
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<MdFileDownload />}
-          onClick={exportCSV}
-          disabled={!entries.length}
-          sx={{ borderRadius: 2.5, fontWeight: 700, textTransform: 'none' }}
-        >
-          Export Ledger (CSV)
-        </Button>
+      {/* 3 KPI Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdReceiptLong size={24} />}
+          label="Total Sequenced Entries"
+          value={entries.length}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdCheckCircle size={24} />}
+          label="ACID Verification"
+          value="Balanced"
+          subtitle="Debits = Credits verified"
+          color="green"
+        />
+        <KPICard
+          icon={<MdLock size={24} />}
+          label="Integrity State"
+          value="Immutable"
+          subtitle="Cryptographically chained"
+          color="purple"
+        />
       </Box>
 
       {/* Trial Balance & Integrity Strip */}

@@ -4,7 +4,6 @@ import {
   Typography,
   Paper,
   Button,
-  Chip,
   Table,
   TableHead,
   TableBody,
@@ -18,6 +17,7 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -25,6 +25,8 @@ import {
   MdAdd,
   MdSecurity,
   MdReportProblem,
+  MdHourglassEmpty,
+  MdCheckCircle,
 } from 'react-icons/md';
 import {
   useGetBuyerDisputesQuery,
@@ -33,6 +35,9 @@ import {
 } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BuyerDisputes = () => {
   const [searchParams] = useSearchParams();
@@ -85,44 +90,78 @@ const BuyerDisputes = () => {
     }
   };
 
+  const totalDisputes = disputes.length;
+  const openClaims = disputes.filter((d) => ['open', 'under_review'].includes(d.status)).length;
+  const resolvedCases = disputes.filter((d) => d.status.startsWith('resolved')).length;
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            ⚖️ Disputes & Escrow Arbitration
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Protect your capital when harvest deliveries deviate from contracted grade, moisture, or weight specs.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<MdReportProblem />}
-          onClick={() => setModalOpen(true)}
-          sx={{ borderRadius: 2.5, fontWeight: 700 }}
-        >
-          File Quality Dispute
-        </Button>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title="⚖️ Disputes & Escrow Arbitration"
+        subtitle="Protect your capital when harvest deliveries deviate from contracted grade, moisture, or weight specs."
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<MdReportProblem />}
+            onClick={() => setModalOpen(true)}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            File Quality Dispute
+          </Button>
+        }
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label="Total Disputes"
+          value={totalDisputes}
+          subtitle="All-time dispute cases"
+          icon={<MdGavel />}
+          color="blue"
+        />
+        <KPICard
+          label="Open Claims"
+          value={openClaims}
+          subtitle="Under active arbitration"
+          icon={<MdHourglassEmpty />}
+          color="amber"
+        />
+        <KPICard
+          label="Resolved Cases"
+          value={resolvedCases}
+          subtitle="Completed arbitrations"
+          icon={<MdCheckCircle />}
+          color="green"
+        />
       </Box>
 
       {/* Escrow Arbitration Policy Banner */}
-      <Alert severity="info" icon={<MdSecurity size={22} />} sx={{ mb: 3.5, borderRadius: 2.5 }}>
+      <Alert severity="info" icon={<MdSecurity size={22} />} sx={{ mb: 3.5, borderRadius: 2.5, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE' }}>
         <strong>Escrow Safety Lock:</strong> When a dispute is filed, platform funds are frozen in the escrow vault. The farmer is not paid until independent arbitration verifies weighing slips, moisture lab reports, and photo evidence.
       </Alert>
 
       {/* Disputes Table */}
-      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#F8FAF9' }}>
+          <TableHead sx={{ bgcolor: '#F8FAFC' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Dispute Case #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Order #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Reason / Claim</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Filing Date</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>Escrow Amount</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Dispute Case #</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Order #</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Reason / Claim</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Filing Date</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: '#475569' }}>Escrow Amount</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -137,7 +176,7 @@ const BuyerDisputes = () => {
                 <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                   <Box sx={{ maxWidth: 400, mx: 'auto', textAlign: 'center' }}>
                     <MdGavel size={42} color="#94A3B8" />
-                    <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 1 }}>
+                    <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 1, color: '#0F172A' }}>
                       No Active or Past Disputes
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -148,19 +187,19 @@ const BuyerDisputes = () => {
               </TableRow>
             ) : (
               disputes.map((d) => (
-                <TableRow key={d.id} hover>
+                <TableRow key={d.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell>
-                    <Typography variant="subtitle2" fontWeight={800} color="#0F172A">
+                    <Typography variant="subtitle2" fontWeight={800} color="#2563EB">
                       {d.dispute_number}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={700}>
+                    <Typography variant="body2" fontWeight={700} color="#0F172A">
                       #{d.order?.order_number || d.order_id}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={700}>
+                    <Typography variant="body2" fontWeight={700} color="#334155">
                       {d.reason}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', maxWidth: 300 }} noWrap>
@@ -168,23 +207,10 @@ const BuyerDisputes = () => {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={d.status?.toUpperCase()?.replace('_', ' ')}
-                      size="small"
-                      color={
-                        d.status === 'open'
-                          ? 'warning'
-                          : d.status === 'under_review'
-                          ? 'info'
-                          : d.status === 'resolved_buyer_refund'
-                          ? 'success'
-                          : 'default'
-                      }
-                      sx={{ fontWeight: 800, fontSize: '0.72rem' }}
-                    />
+                    <StatusBadge status={d.status} />
                   </TableCell>
-                  <TableCell>{formatDate(d.created_at)}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 800, color: '#2E7D32' }}>
+                  <TableCell sx={{ color: '#475569' }}>{formatDate(d.created_at)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 800, color: '#16A34A' }}>
                     {d.order ? formatCurrency(d.order.total_paise, true) : 'Escrow Hold'}
                   </TableCell>
                 </TableRow>

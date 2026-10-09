@@ -26,9 +26,12 @@ import {
   MdArrowForward,
   MdStorefront,
   MdSwapHoriz,
+  MdHandshake,
 } from 'react-icons/md';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
 
 const INITIAL_OFFERS = [
   {
@@ -182,15 +185,51 @@ const BuyerOffers = () => {
     navigate('/buyer/checkout');
   };
 
+  const totalNegotiations = offers.length + quotes.length;
+  const acceptedDeals =
+    offers.filter((o) => o.status === 'accepted').length +
+    quotes.filter((q) => q.status === 'accepted').length;
+  const activeCounters = offers.filter((o) => o.status === 'countered' || o.status === 'pending').length;
+
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('buyer.quotesOffersTitle', '💼 Quotes & Negotiations')}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {t('buyer.quotesOffersSubtitle', 'Track direct price counter-offers on live harvest lots and bulk quotes from verified farmers.')}
-        </Typography>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.quotesOffersTitle', '💼 Quotes & Negotiations')}
+        subtitle={t('buyer.quotesOffersSubtitle', 'Track direct price counter-offers on live harvest lots and bulk quotes from verified farmers.')}
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label="Total Negotiations"
+          value={totalNegotiations}
+          subtitle="Offers and RFQ bids"
+          icon={<MdHandshake />}
+          color="blue"
+        />
+        <KPICard
+          label="Accepted Deals"
+          value={acceptedDeals}
+          subtitle="Agreed terms"
+          icon={<MdCheckCircle />}
+          color="green"
+        />
+        <KPICard
+          label="Active Negotiations"
+          value={activeCounters}
+          subtitle="Awaiting response"
+          icon={<MdSwapHoriz />}
+          color="amber"
+        />
       </Box>
 
       {/* Tabs */}

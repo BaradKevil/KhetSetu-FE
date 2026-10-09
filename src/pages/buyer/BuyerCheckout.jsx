@@ -38,6 +38,7 @@ import { useCart } from '../../context/CartContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import PhoneInput from '../../common/custom/PhoneInput';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
 
 const BuyerCheckout = () => {
   const [searchParams] = useSearchParams();
@@ -214,18 +215,13 @@ const BuyerCheckout = () => {
   }
 
   return (
-    <Box maxWidth="lg" sx={{ mx: 'auto' }}>
-      <Box sx={{ mb: 3 }}>
-        <Button component={Link} to="/buyer/cart" startIcon={<MdArrowBack />} color="inherit" sx={{ fontWeight: 600, mb: 1 }}>
-          Back to Cart
-        </Button>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          🛡️ Escrow Checkout & Order Confirmation
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Your payment is held in an institutional platform vault. Funds are only transferred to the farmer after you inspect delivery.
-        </Typography>
-      </Box>
+    <Box maxWidth="lg" sx={{ mx: 'auto', pb: 6 }}>
+      {/* Page Header */}
+      <PageHeader
+        title="🛡️ Escrow Checkout & Order Confirmation"
+        subtitle="Your payment is held in an institutional platform vault. Funds are only transferred to the farmer after you inspect delivery."
+        showBack={true}
+      />
 
       <Grid container spacing={3.5}>
         {/* Left Column: Address Selection & Order Items */}
@@ -247,7 +243,7 @@ const BuyerCheckout = () => {
             </Box>
 
             {addresses.length === 0 ? (
-              <Box sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAF9', borderRadius: 2 }}>
+              <Box sx={{ p: 3, textAlign: 'center', bgcolor: '#F8FAFC', borderRadius: 2 }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   No saved delivery addresses found. Add a destination warehouse or mill.
                 </Typography>
@@ -267,8 +263,8 @@ const BuyerCheckout = () => {
                       mb: 1.5,
                       borderRadius: 2.5,
                       cursor: 'pointer',
-                      border: selectedAddressId === addr.id ? '2px solid #2E7D32' : '1px solid #E2E8F0',
-                      bgcolor: selectedAddressId === addr.id ? '#F0FDF4' : '#FFFFFF',
+                      border: selectedAddressId === addr.id ? '2px solid #2563EB' : '1px solid #E2E8F0',
+                      bgcolor: selectedAddressId === addr.id ? '#EFF6FF' : '#FFFFFF',
                       display: 'flex',
                       alignItems: 'flex-start',
                     }}

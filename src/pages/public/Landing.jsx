@@ -55,7 +55,7 @@ const Landing = () => {
   const rates = Array.isArray(mandiPrices) ? mandiPrices : [];
 
   return (
-    <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
       {/* Live Products Auto-Scrolling Ticker */}
@@ -66,7 +66,7 @@ const Landing = () => {
         ref={heroRef}
         sx={{
           py: { xs: 8, md: 12 },
-          background: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 40%), radial-gradient(circle at 90% 70%, rgba(230, 81, 0, 0.06) 0%, transparent 40%), #F8FAF9',
+          background: 'radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.07) 0%, transparent 40%), radial-gradient(circle at 90% 70%, rgba(8, 145, 178, 0.05) 0%, transparent 40%), #F8FAFC',
         }}
       >
         <Container maxWidth="lg">
@@ -74,9 +74,9 @@ const Landing = () => {
             <Grid item xs={12} md={7} size={{ xs: 12, md: 7 }}>
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
                 <Chip
-                  icon={<MdSecurity style={{ color: '#2E7D32' }} />}
+                  icon={<MdSecurity style={{ color: '#2563EB' }} />}
                   label={t('market.protectedEscrowMarketplace', '100% Protected Escrow Marketplace')}
-                  sx={{ bgcolor: '#E8F5E9', color: '#1B5E20', fontWeight: 700, mb: 3, px: 1, py: 0.5 }}
+                  sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 700, mb: 3, px: 1, py: 0.5, border: '1px solid #BFDBFE' }}
                 />
               </motion.div>
 
@@ -93,9 +93,9 @@ const Landing = () => {
                 }}
               >
                 {t('market.heroTitlePre', 'The Trusted Bridge From the')}{' '}
-                <span style={{ color: '#2E7D32' }}>{t('market.heroField', 'Field')}</span>{' '}
+                <span style={{ color: '#2563EB' }}>{t('market.heroField', 'Field')}</span>{' '}
                 {t('market.heroMid', 'to the')}{' '}
-                <span style={{ color: '#E65100' }}>{t('market.heroBuyer', 'Buyer')}</span>.
+                <span style={{ color: '#0F172A' }}>{t('market.heroBuyer', 'Buyer')}</span>.
               </Typography>
 
               <Typography
@@ -149,19 +149,19 @@ const Landing = () => {
               {/* Trust Badges */}
               <Box sx={{ display: 'flex', gap: 4, mt: 5, pt: 4, borderTop: '1px solid #E2E8F0', flexWrap: 'wrap' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <MdCheckCircle color="#2E7D32" size={20} />
+                  <MdCheckCircle color="#2563EB" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
                     {t('market.directBankPayouts', 'Direct Bank Payouts')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <MdCheckCircle color="#2E7D32" size={20} />
+                  <MdCheckCircle color="#2563EB" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
                     {t('market.verifiedApmcRates', 'Verified APMC Mandi Rates')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <MdCheckCircle color="#2E7D32" size={20} />
+                  <MdCheckCircle color="#2563EB" size={20} />
                   <Typography variant="body2" fontWeight={600} color="#334155">
                     {t('market.zeroHiddenDeductions', 'Zero Hidden Deductions')}
                   </Typography>

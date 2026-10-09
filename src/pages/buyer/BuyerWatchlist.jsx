@@ -32,6 +32,8 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
 
 const INITIAL_SAVED_PRODUCTS = [
   {
@@ -146,25 +148,55 @@ const BuyerWatchlist = () => {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('buyer.watchlistTitle', '⭐ Watchlist & Saved Harvests')}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {t('buyer.watchlistSubtitle', 'Monitor favorite produce lots, follow high-performing farmers, and set target price alerts.')}
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<MdAddAlert />}
-          onClick={() => setOpenAlertModal(true)}
-          sx={{ borderRadius: 2.5, fontWeight: 700 }}
-        >
-          Set Price Alert
-        </Button>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.watchlistTitle', '⭐ Watchlist & Saved Harvests')}
+        subtitle={t('buyer.watchlistSubtitle', 'Monitor favorite produce lots, follow high-performing farmers, and set target price alerts.')}
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdAddAlert />}
+            onClick={() => setOpenAlertModal(true)}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            Set Price Alert
+          </Button>
+        }
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label="Saved Produce Lots"
+          value={savedProducts.length}
+          subtitle="Bookmarked crops"
+          icon={<MdBookmark />}
+          color="blue"
+        />
+        <KPICard
+          label="Followed Farmers"
+          value={followedFarmers.length}
+          subtitle="Preferred producers"
+          icon={<MdPeople />}
+          color="green"
+        />
+        <KPICard
+          label="Active Price Alerts"
+          value={alerts.length}
+          subtitle="Real-time triggers"
+          icon={<MdNotificationsActive />}
+          color="amber"
+        />
       </Box>
 
       {/* Tabs */}

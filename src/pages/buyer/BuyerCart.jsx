@@ -24,6 +24,7 @@ import {
 } from 'react-icons/md';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
 
 const BuyerCart = () => {
   const { t, formatCurrency } = useLanguage();
@@ -38,7 +39,7 @@ const BuyerCart = () => {
             width: 64,
             height: 64,
             borderRadius: '50%',
-            bgcolor: '#F8FAF9',
+            bgcolor: '#F8FAFC',
             border: '2px dashed #CBD5E1',
             display: 'flex',
             alignItems: 'center',
@@ -56,7 +57,7 @@ const BuyerCart = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 460, mx: 'auto', lineHeight: 1.6 }}>
           {t('buyer.emptyCartDesc', 'Browse verified crop harvests with direct farmer pricing and escrow buyer protection.')}
         </Typography>
-        <Button component={Link} to="/buyer/market" variant="contained" color="primary" startIcon={<MdStorefront />}>
+        <Button component={Link} to="/buyer/market" variant="contained" color="primary" startIcon={<MdStorefront />} sx={{ borderRadius: 2.5, fontWeight: 700 }}>
           {t('exploreMandiListings', 'Explore Mandi Listings')}
         </Button>
       </Paper>
@@ -64,23 +65,20 @@ const BuyerCart = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('buyer.cartTitle', '🛒 My Procurement Cart')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('buyer.cartSubtitle', 'Review selected harvests before placing institutional escrow orders.')}
-          </Typography>
-        </Box>
-        <Button variant="outlined" color="inherit" size="small" onClick={clearCart} sx={{ color: '#64748B' }}>
-          {t('buyer.clearAllCart', 'Clear Entire Cart')}
-        </Button>
-      </Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.cartTitle', '🛒 My Procurement Cart')}
+        subtitle={t('buyer.cartSubtitle', 'Review selected harvests before placing institutional escrow orders.')}
+        action={
+          <Button variant="outlined" color="inherit" size="small" onClick={clearCart} sx={{ color: '#64748B', borderColor: '#CBD5E1', borderRadius: 2.5 }}>
+            {t('buyer.clearAllCart', 'Clear Entire Cart')}
+          </Button>
+        }
+      />
 
       {/* Agricultural Escrow Logistics Notice */}
-      <Alert severity="info" icon={<MdSecurity size={22} />} sx={{ mb: 3.5, borderRadius: 2.5 }}>
+      <Alert severity="info" icon={<MdSecurity size={22} />} sx={{ mb: 3.5, borderRadius: 2.5, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE' }}>
         <strong>Agricultural Escrow Rule:</strong> Harvests from different farmers ship from distinct godowns/mandis. Each farmer group generates a separate Escrow Order with independent logistics tracking and payout release.
       </Alert>
 

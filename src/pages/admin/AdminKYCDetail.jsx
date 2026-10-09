@@ -43,6 +43,8 @@ import {
 } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BACKEND_URL =
   (import.meta.env.VITE_BASEURL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
@@ -160,64 +162,60 @@ const AdminKYCDetail = () => {
 
   return (
     <Box maxWidth="lg" sx={{ mx: 'auto', pb: 6 }}>
-      {/* Top Navigation */}
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-        <Button
-          startIcon={<MdArrowBack />}
-          onClick={() => navigate('/admin/kyc')}
-          variant="outlined"
-          sx={{ fontWeight: 600, borderColor: '#CBD5E1', color: '#334155' }}
-        >
-          {t('admin.backToQueue', 'Back to KYC Queue')}
-        </Button>
-
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          {!isVerified && (
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<MdCheckCircle />}
-              onClick={handleApprove}
-              sx={{ fontWeight: 700, px: 2.5 }}
-            >
-              {t('admin.approveKycBtn', 'Approve & Issue Verified Badge')}
-            </Button>
-          )}
-          {isVerified && (
-            <>
+      <PageHeader
+        title={`Farmer KYC: ${profile.full_name}`}
+        subtitle={`${profile.farm_name ? `${profile.farm_name} • ` : ''}${profile.village}, ${profile.district}, ${profile.state} (User ID #${profile.user_id})`}
+        onBack={() => navigate('/admin/kyc')}
+        backLabel={t('admin.backToQueue', 'Back to KYC Queue')}
+        actions={
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            {!isVerified && (
               <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<MdLockOpen />}
-                onClick={() => setUnlockModalOpen(true)}
+                variant="contained"
+                color="success"
+                startIcon={<MdCheckCircle />}
+                onClick={handleApprove}
                 sx={{ fontWeight: 700, px: 2.5 }}
               >
-                {t('admin.unlockFarmerBtn', 'Unlock Profile for Updates')}
+                {t('admin.approveKycBtn', 'Approve & Issue Verified Badge')}
               </Button>
+            )}
+            {isVerified && (
+              <>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<MdLockOpen />}
+                  onClick={() => setUnlockModalOpen(true)}
+                  sx={{ fontWeight: 700, px: 2.5 }}
+                >
+                  {t('admin.unlockFarmerBtn', 'Unlock Profile for Updates')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<MdCancel />}
+                  onClick={() => setRejectModalOpen(true)}
+                  sx={{ fontWeight: 700, px: 2.5 }}
+                >
+                  Revoke KYC (Reason Required)
+                </Button>
+              </>
+            )}
+            {!isVerified && !isRejected && (
               <Button
                 variant="outlined"
-                color="warning"
+                color="error"
                 startIcon={<MdCancel />}
                 onClick={() => setRejectModalOpen(true)}
                 sx={{ fontWeight: 700, px: 2.5 }}
               >
-                Revoke KYC (Reason Required)
+                {t('admin.rejectKycBtn', 'Reject with Reason')}
               </Button>
-            </>
-          )}
-          {!isVerified && !isRejected && (
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<MdCancel />}
-              onClick={() => setRejectModalOpen(true)}
-              sx={{ fontWeight: 700, px: 2.5 }}
-            >
-              {t('admin.rejectKycBtn', 'Reject with Reason')}
-            </Button>
-          )}
-        </Box>
-      </Box>
+            )}
+          </Box>
+        }
+      />
 
       {/* Profile Header Banner */}
       <Paper
@@ -240,20 +238,7 @@ const AdminKYCDetail = () => {
             <Typography variant="h5" fontWeight={800} color="#0F172A">
               {profile.full_name}
             </Typography>
-            <Chip
-              label={
-                isVerified
-                  ? t('admin.verifiedBadge', 'VERIFIED')
-                  : isRejected
-                  ? t('admin.rejectedBadge', 'REJECTED')
-                  : isPending
-                  ? t('admin.pendingBadge', 'PENDING REVIEW')
-                  : t('admin.unverifiedBadge', 'UNVERIFIED')
-              }
-              color={isVerified ? 'success' : isRejected ? 'error' : isPending ? 'warning' : 'default'}
-              size="small"
-              sx={{ fontWeight: 800, fontSize: '0.75rem', px: 1 }}
-            />
+            <StatusBadge status={profile.kyc_status} />
           </Box>
           <Typography variant="body2" color="text.secondary">
             {profile.farm_name ? `🌾 ${profile.farm_name} • ` : ''}
