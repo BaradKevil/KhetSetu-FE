@@ -23,8 +23,18 @@ import MyProducts from './pages/seller/MyProducts';
 import AddProduct from './pages/seller/AddProduct';
 import SellerProductDetail from './pages/seller/SellerProductDetail';
 import SellerOrders from './pages/seller/SellerOrders';
+import SellerOrderDetail from './pages/seller/SellerOrderDetail';
+import SellerAnalytics from './pages/seller/SellerAnalytics';
 import SellerEarnings from './pages/seller/SellerEarnings';
+import SellerStatements from './pages/seller/SellerStatements';
+import SellerOffers from './pages/seller/SellerOffers';
+import SellerDisputes from './pages/seller/SellerDisputes';
+import SellerReputation from './pages/seller/SellerReputation';
+import SellerHarvestPlanner from './pages/seller/SellerHarvestPlanner';
+import SellerMandiPrices from './pages/seller/SellerMandiPrices';
 import SellerKYC from './pages/seller/SellerKYC';
+import SellerNotifications from './pages/seller/SellerNotifications';
+import SellerSupport from './pages/seller/SellerSupport';
 
 // Buyer Pages
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
@@ -113,8 +123,18 @@ function App() {
         { path: 'products/new', element: <AddProduct /> },
         { path: 'products/:id', element: <SellerProductDetail /> },
         { path: 'orders', element: <SellerOrders /> },
+        { path: 'orders/:id', element: <SellerOrderDetail /> },
+        { path: 'analytics', element: <SellerAnalytics /> },
         { path: 'earnings', element: <SellerEarnings /> },
+        { path: 'statements', element: <SellerStatements /> },
+        { path: 'offers', element: <SellerOffers /> },
+        { path: 'disputes', element: <SellerDisputes /> },
+        { path: 'reputation', element: <SellerReputation /> },
+        { path: 'planner', element: <SellerHarvestPlanner /> },
+        { path: 'mandi-rates', element: <SellerMandiPrices /> },
         { path: 'profile', element: <SellerKYC /> },
+        { path: 'notifications', element: <SellerNotifications /> },
+        { path: 'support', element: <SellerSupport /> },
       ],
     },
 

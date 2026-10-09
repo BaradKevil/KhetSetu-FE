@@ -128,6 +128,19 @@ export const useCreateProductMutation = () => {
   });
 };
 
+export const useUpdateProductMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => productApi.updateProduct(id, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['seller-products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['market-products'] });
+    },
+  });
+};
+
+
 // -------------------------------------------------
 //  Order & Escrow APIs
 // -------------------------------------------------
@@ -194,11 +207,34 @@ export const sellerApi = {
   getProfile: () => apiClient.get('/seller/profile'),
   submitKYC: (data) => apiClient.put('/seller/kyc', data),
   requestUnlock: (data) => apiClient.post('/seller/kyc/request-unlock', data),
+  getDisputes: () => apiClient.get('/seller/disputes'),
+  respondToDispute: (id, data) => apiClient.post(`/seller/disputes/${id}/respond`, data),
   uploadDocument: (formData) =>
     apiClient.post('/seller/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };
+
+export const useGetSellerDisputesQuery = () => {
+  return useQuery({
+    queryKey: ['seller-disputes'],
+    queryFn: async () => unwrapList(await sellerApi.getDisputes()),
+    enabled: !!localStorage.getItem('accessToken'),
+  });
+};
+
+export const useRespondToDisputeMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => sellerApi.respondToDispute(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-disputes'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order-detail'] });
+    },
+  });
+};
+
 
 export const useGetSellerProfileQuery = () => {
   return useQuery({

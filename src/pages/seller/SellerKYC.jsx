@@ -742,6 +742,33 @@ const SellerKYC = () => {
                 {errors.location}
               </FormHelperText>
             )}
+
+            {/* Finding 8: Pincode ↔ District Consistency Guardrail */}
+            {form.pincode && farmLocation.district && (
+              (() => {
+                const pin = String(form.pincode).trim();
+                const dist = farmLocation.district.toLowerCase();
+                const isSaurashtra =
+                  dist.includes('gir somnath') ||
+                  dist.includes('junagadh') ||
+                  dist.includes('amreli') ||
+                  dist.includes('porbandar') ||
+                  dist.includes('rajkot');
+                const isNorthGujarat = pin.startsWith('382') || pin.startsWith('384') || pin.startsWith('380');
+                if (isSaurashtra && isNorthGujarat) {
+                  return (
+                    <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
+                      <strong>{t('farmer.pincodeMismatchTitle', 'Location Notice')}: </strong>
+                      {t(
+                        'farmer.pincodeMismatchDesc',
+                        `Postal pincode ${pin} belongs to North Gujarat (Mehsana / Gandhinagar / Ahmedabad), whereas district ${farmLocation.district} uses 362xxx / 360xxx (e.g., 362589 Dhokadva). Please verify your physical harvest pickup address.`
+                      )}
+                    </Alert>
+                  );
+                }
+                return null;
+              })()
+            )}
           </Box>
         </Paper>
 
@@ -1256,6 +1283,145 @@ const SellerKYC = () => {
           )}
         </Box>
       </form>
+
+      {/* Section 4: Farm Helpers & Operational Delegation (Section 7.12) */}
+      <Paper elevation={0} sx={{ p: 3.5, mt: 4, mb: 3.5, borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MdLandscape size={22} color="#2563EB" />
+            <Typography variant="h6" fontWeight={700}>
+              {t('farmer.farmHelpersTitle', '👥 Farm Helpers & Operational Delegation')}
+            </Typography>
+          </Box>
+          <Chip
+            label={t('farmer.roleBasedAccess', 'Role-Based Access')}
+            size="small"
+            sx={{ bgcolor: '#EFF6FF', color: '#1E40AF', fontWeight: 700 }}
+          />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+          {t(
+            'farmer.farmHelpersSubtitle',
+            'Authorize your farm manager (Munimji) or tractor driver to confirm packing and weighment without sharing bank access.'
+          )}
+        </Typography>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+          <Box sx={{ p: 2.5, borderRadius: 2.5, border: '1px solid #BBF7D0', bgcolor: '#F0FDF4' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight={800} color="#166534">
+                {t('farmer.roleOwner', 'Farm Owner (Khedut)')}
+              </Typography>
+              <Chip label="PRIMARY" size="small" color="success" sx={{ fontSize: '0.65rem', fontWeight: 800 }} />
+            </Box>
+            <Typography variant="body2" color="#14532D" fontWeight={600}>
+              {form.full_name || 'Farmer Account Holder'}
+            </Typography>
+            <Typography variant="caption" color="#15803D" sx={{ display: 'block', mt: 1 }}>
+              • Full access to escrow payouts, KYC records, and pricing decisions.
+            </Typography>
+          </Box>
+
+          <Box sx={{ p: 2.5, borderRadius: 2.5, border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight={800} color="#1E293B">
+                {t('farmer.roleManager', 'Farm Manager / Munim')}
+              </Typography>
+              <Chip label="DELEGATE" size="small" sx={{ fontSize: '0.65rem', fontWeight: 700 }} />
+            </Box>
+            <Typography variant="body2" color="#475569" fontWeight={600}>
+              Pravinbhai Patel (+91 98251 09812)
+            </Typography>
+            <Typography variant="caption" color="#64748B" sx={{ display: 'block', mt: 1 }}>
+              • Can view incoming orders, add harvest lots, and manage inventory.
+            </Typography>
+          </Box>
+
+          <Box sx={{ p: 2.5, borderRadius: 2.5, border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight={800} color="#1E293B">
+                {t('farmer.roleDispatcher', 'Tractor / Dispatch Operator')}
+              </Typography>
+              <Chip label="DISPATCH ONLY" size="small" sx={{ fontSize: '0.65rem', fontWeight: 700 }} />
+            </Box>
+            <Typography variant="body2" color="#475569" fontWeight={600}>
+              Kishan Koli (+91 97120 44512)
+            </Typography>
+            <Typography variant="caption" color="#64748B" sx={{ display: 'block', mt: 1 }}>
+              • Can update vehicle #, upload weighment slips, and confirm loading.
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Section 5: Change Request History Tracker Table */}
+      {unlockRequest && (
+        <Paper elevation={0} sx={{ p: 3.5, mb: 3.5, borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+          <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+            {t('farmer.changeRequestHistoryTitle', '📋 KYC Modification Request Tracker')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('farmer.changeRequestHistorySubtitle', 'Audit trail of administrative requests to update locked identity or bank details.')}
+          </Typography>
+
+          <Box sx={{ overflowX: 'auto' }}>
+            <Box
+              component="table"
+              sx={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                textAlign: 'left',
+                fontSize: '0.875rem',
+                '& th': { p: 1.5, bgcolor: '#F8FAFC', color: '#475569', fontWeight: 700, borderBottom: '1px solid #E2E8F0' },
+                '& td': { p: 1.5, borderBottom: '1px solid #F1F5F9' },
+              }}
+            >
+              <thead>
+                <tr>
+                  <th>{t('common.date', 'Date')}</th>
+                  <th>{t('farmer.requestedScope', 'Requested Scope')}</th>
+                  <th>{t('farmer.reason', 'Justification Reason')}</th>
+                  <th>{t('common.status', 'Review Status')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 600 }}>
+                    {unlockRequest.requested_at ? new Date(unlockRequest.requested_at).toLocaleDateString() : 'Recent'}
+                  </td>
+                  <td>
+                    {Array.isArray(unlockRequest.requested_fields)
+                      ? unlockRequest.requested_fields.join(', ')
+                      : 'Bank & Land Records'}
+                  </td>
+                  <td style={{ color: '#334155' }}>"{unlockRequest.reason}"</td>
+                  <td>
+                    <Chip
+                      label={
+                        unlockRequest.status === 'pending'
+                          ? '⏳ UNDER OFFICER REVIEW'
+                          : unlockRequest.status === 'approved'
+                          ? '✅ UNLOCKED'
+                          : '❌ DECLINED'
+                      }
+                      size="small"
+                      color={
+                        unlockRequest.status === 'pending'
+                          ? 'warning'
+                          : unlockRequest.status === 'approved'
+                          ? 'success'
+                          : 'error'
+                      }
+                      sx={{ fontWeight: 800, fontSize: '0.7rem' }}
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </Box>
+          </Box>
+        </Paper>
+      )}
+
 
       {/* Image Preview Modal */}
       <Dialog

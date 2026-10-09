@@ -10,10 +10,12 @@ import {
   IconButton,
   Avatar,
   Button,
+  Chip,
 } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { menulist } from './MenuList';
 import {
+  MdAgriculture,
   MdDashboard,
   MdStorefront,
   MdAddCircleOutline,
@@ -34,21 +36,35 @@ import {
   MdLocalOffer,
   MdReceipt,
   MdBookmark,
+  MdBarChart,
+  MdStar,
+  MdCalendarMonth,
+  MdNotifications,
+  MdSupportAgent,
 } from 'react-icons/md';
 
 import { useLanguage } from '../context/LanguageContext';
-import { useGetProfileQuery } from '../Api/Api';
+import { useGetProfileQuery, useGetSellerOrdersQuery } from '../Api/Api';
 import { toast } from 'react-toastify';
 
-const DRAWER_WIDTH = 280;
+const DRAWER_WIDTH = 320;
 
 const menuTranslationKeys = {
   'seller-dashboard': 'dashboard',
   'seller-products': 'myProducts',
   'seller-new-product': 'addNewCrop',
   'seller-orders': 'incomingOrders',
+  'seller-analytics': 'salesAnalytics',
   'seller-earnings': 'earningsPayouts',
+  'seller-statements': 'statementsTax',
+  'seller-offers': 'quotesOffers',
+  'seller-disputes': 'disputesClaims',
+  'seller-reputation': 'farmerScore',
+  'seller-planner': 'harvestPlanner',
+  'seller-mandi': 'apmcMandiRates',
   'seller-kyc': 'farmProfileKyc',
+  'seller-notifications': 'notifications',
+  'seller-support': 'kisanSupport',
   'buyer-dashboard': 'buyerOverview',
   'buyer-market': 'exploreMandi',
   'buyer-farmers': 'verifiedFarmers',
@@ -78,8 +94,17 @@ const iconMap = {
   'seller-products': <MdStorefront size={20} />,
   'seller-new-product': <MdAddCircleOutline size={20} />,
   'seller-orders': <MdShoppingBag size={20} />,
+  'seller-analytics': <MdBarChart size={20} />,
   'seller-earnings': <MdAccountBalanceWallet size={20} />,
+  'seller-statements': <MdReceipt size={20} />,
+  'seller-offers': <MdLocalOffer size={20} />,
+  'seller-disputes': <MdGavel size={20} />,
+  'seller-reputation': <MdStar size={20} />,
+  'seller-planner': <MdCalendarMonth size={20} />,
+  'seller-mandi': <MdStorefront size={20} />,
   'seller-kyc': <MdVerifiedUser size={20} />,
+  'seller-notifications': <MdNotifications size={20} />,
+  'seller-support': <MdSupportAgent size={20} />,
   'buyer-dashboard': <MdDashboard size={20} />,
   'buyer-market': <MdStorefront size={20} />,
   'buyer-farmers': <MdPeople size={20} />,
@@ -111,6 +136,24 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const userRole = localStorage.getItem('role') || 'buyer';
   const { data: userProfile } = useGetProfileQuery();
   const kycStatus = userProfile?.seller_profile?.kyc_status || 'unverified';
+
+  const { data: sellerOrdersData } = useGetSellerOrdersQuery(
+    {},
+    { enabled: userRole === 'seller' && !!localStorage.getItem('accessToken') }
+  );
+  const ordersList = Array.isArray(sellerOrdersData?.items)
+    ? sellerOrdersData.items
+    : Array.isArray(sellerOrdersData?.data)
+    ? sellerOrdersData.data
+    : Array.isArray(sellerOrdersData?.orders)
+    ? sellerOrdersData.orders
+    : Array.isArray(sellerOrdersData)
+    ? sellerOrdersData
+    : [];
+
+  const pendingOrdersCount = ordersList.filter(
+    (o) => o && (o.status === 'escrow_held' || o.status === 'pending')
+  ).length;
 
   const rawFullName = localStorage.getItem('fullName') || userProfile?.full_name || '';
   const phone = localStorage.getItem('phone') || userProfile?.phone || '';
@@ -171,54 +214,71 @@ const Sidebar = ({ open, onClose, isMobile }) => {
         bgcolor: '#FFFFFF',
       }}
     >
-      {/* 1. Fixed Header Section (Exact match with Reference Screenshot 1-5) */}
-      <Box sx={{ p: 2, pb: 1.5, flexShrink: 0 }}>
-        {/* User Profile Card (Exact match with Reference Screenshots 1-5) */}
-        <Box
-          sx={{
-            p: 1.6,
-            borderRadius: 2.5,
-            bgcolor: '#EFF6FF',
+      {/* 1. Top Logo & Brand Section */}
+      <Box
+        sx={{
+          p: 2.5,
+          py: 2,
+          flexShrink: 0,
+          borderBottom: '1px solid #F1F5F9',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Link
+          to="/"
+          style={{
+            textDecoration: 'none',
             display: 'flex',
             alignItems: 'center',
-            gap: 1.5,
+            gap: 12,
           }}
         >
-          <Avatar
-            src={profilePhoto || undefined}
+          <Box
             sx={{
               width: 38,
               height: 38,
+              borderRadius: 2.5,
               bgcolor: '#2563EB',
               color: '#FFFFFF',
-              fontWeight: 700,
-              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              boxShadow: '0 2px 8px rgba(37,99,235,0.22)',
             }}
           >
-            {avatarLetter}
-          </Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="body2" fontWeight={700} color="#0F172A" noWrap sx={{ lineHeight: 1.25 }}>
-              {displayName}
+            <MdAgriculture />
+          </Box>
+          <Box>
+            <Typography
+              variant="h6"
+              fontWeight={900}
+              sx={{
+                color: '#0F172A',
+                letterSpacing: '-0.02em',
+                fontSize: '1.25rem',
+                lineHeight: 1.1,
+              }}
+            >
+              Khet<span style={{ color: '#2563EB' }}>Setu</span>
             </Typography>
             <Typography
               variant="caption"
-              color="#64748B"
-              noWrap
-              sx={{ display: 'block', fontSize: '0.72rem', mt: 0.2, lineHeight: 1.25 }}
+              sx={{
+                color: '#64748B',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                display: 'block',
+                mt: 0.2,
+                textTransform: 'uppercase',
+              }}
             >
-              {getDisplayEmailOrPhone()}
-            </Typography>
-            <Typography
-              variant="caption"
-              fontWeight={700}
-              color="#2563EB"
-              sx={{ fontSize: '0.72rem', display: 'block', mt: 0.2, lineHeight: 1.25 }}
-            >
-              {getRoleDisplayName()}
+              Kisan Escrow Platform
             </Typography>
           </Box>
-        </Box>
+        </Link>
       </Box>
 
       {/* 2. Scrollable Navigation Section (Fixes Sidebar Scrolling Issue) */}
@@ -317,12 +377,90 @@ const Sidebar = ({ open, onClose, isMobile }) => {
                         color: 'inherit',
                       }}
                     />
+                    {item.id === 'seller-orders' && pendingOrdersCount > 0 && (
+                      <Chip
+                        label={pendingOrdersCount}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          minWidth: 20,
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          bgcolor: '#DC2626',
+                          color: '#fff',
+                          ml: 1,
+                        }}
+                      />
+                    )}
                   </ListItemButton>
                 </ListItem>
               </Box>
             );
           })}
         </List>
+      </Box>
+
+      {/* 3. Bottom User Profile Card (Fixed at the end of the sidebar) */}
+      <Box
+        sx={{
+          p: 1.5,
+          flexShrink: 0,
+          borderTop: '1px solid #F1F5F9',
+          bgcolor: '#FFFFFF',
+        }}
+      >
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 2.5,
+            bgcolor: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              bgcolor: '#EFF6FF',
+              borderColor: '#BFDBFE',
+            },
+          }}
+        >
+          <Avatar
+            src={profilePhoto || undefined}
+            sx={{
+              width: 38,
+              height: 38,
+              bgcolor: '#2563EB',
+              color: '#FFFFFF',
+              fontWeight: 750,
+              fontSize: '0.95rem',
+              boxShadow: '0 2px 6px rgba(37,99,235,0.2)',
+            }}
+          >
+            {avatarLetter}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="body2" fontWeight={750} color="#0F172A" noWrap sx={{ lineHeight: 1.25 }}>
+              {displayName}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="#64748B"
+              noWrap
+              sx={{ display: 'block', fontSize: '0.72rem', mt: 0.2, lineHeight: 1.25 }}
+            >
+              {getDisplayEmailOrPhone()}
+            </Typography>
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              color="#2563EB"
+              sx={{ fontSize: '0.7rem', display: 'block', mt: 0.2, lineHeight: 1.25 }}
+            >
+              {getRoleDisplayName()}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

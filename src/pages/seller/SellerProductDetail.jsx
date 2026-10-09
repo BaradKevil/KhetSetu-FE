@@ -18,6 +18,8 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
+  TextField,
+  MenuItem,
 } from '@mui/material';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
@@ -34,11 +36,15 @@ import {
   MdOutlineCalendarToday,
   MdCategory,
   MdShare,
+  MdRefresh,
+  MdPauseCircleOutline,
+  MdPlayCircleOutline,
 } from 'react-icons/md';
-import { useGetProductDetailsQuery } from '../../Api/Api';
+import { useGetProductDetailsQuery, useUpdateProductMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import { formatINR, formatQty, STOCK_ADJUSTMENT_REASONS } from '../../common/status';
 
 const SellerProductDetail = () => {
   const { id } = useParams();
@@ -48,6 +54,50 @@ const SellerProductDetail = () => {
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [certModalOpen, setCertModalOpen] = useState(false);
+  const [restockModalOpen, setRestockModalOpen] = useState(false);
+  const [restockQuantity, setRestockQuantity] = useState('100');
+  const [restockPrice, setRestockPrice] = useState('');
+  const [restockReason, setRestockReason] = useState('RESTOCK');
+  const updateProductMutation = useUpdateProductMutation();
+
+  const handleTogglePause = async () => {
+    if (!product) return;
+    const newStatus = product.status === 'live' ? 'paused' : 'live';
+    try {
+      await updateProductMutation.mutateAsync({
+        id: product.id,
+        status: newStatus,
+      });
+      toast.success(newStatus === 'live' ? 'Listing is now live on Mandi!' : 'Listing paused.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error updating listing status');
+    }
+  };
+
+  const handleConfirmRestock = async () => {
+    if (!product) return;
+    const addQty = Number(restockQuantity);
+    if (!addQty || addQty <= 0) {
+      toast.warning('Please enter a valid quantity');
+      return;
+    }
+    try {
+      const newAvailable = Number(product.available_quantity || 0) + addQty;
+      const payload = {
+        id: product.id,
+        available_quantity: newAvailable,
+        status: 'live',
+      };
+      if (restockPrice && Number(restockPrice) > 0) {
+        payload.price_per_unit = Number(restockPrice);
+      }
+      await updateProductMutation.mutateAsync(payload);
+      toast.success(`Successfully restocked! Listing is now live on Mandi.`);
+      setRestockModalOpen(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error restocking crop');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -211,11 +261,53 @@ const SellerProductDetail = () => {
           </Button>
 
           <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-            / {language === 'gu' ? 'પાક આઈડી' : language === 'hi' ? 'फसल आईडी' : 'Produce ID'} #{product.id}
+            / Produce Code: <strong>{`${(product.crop?.name || 'CRP').slice(0, 3).toUpperCase()}-${String(product.id).padStart(4, '0')}`}</strong>
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          {/* Restock Button */}
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={<MdRefresh />}
+            onClick={() => {
+              setRestockQuantity('100');
+              setRestockPrice(product.price_per_unit_paise ? String(product.price_per_unit_paise / 100) : '');
+              setRestockModalOpen(true);
+            }}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          >
+            Restock Batch
+          </Button>
+
+          {/* Pause / Resume Button */}
+          {product.status === 'live' && (
+            <Button
+              variant="outlined"
+              color="warning"
+              size="small"
+              startIcon={<MdPauseCircleOutline />}
+              onClick={handleTogglePause}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, bgcolor: '#FFFFFF' }}
+            >
+              Pause Listing
+            </Button>
+          )}
+          {product.status === 'paused' && (
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<MdPlayCircleOutline />}
+              onClick={handleTogglePause}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+            >
+              Resume Live
+            </Button>
+          )}
+
           <Tooltip title={language === 'gu' ? 'ખરીદદારો માટેની લિંક કોપી કરો' : 'Copy Public Share Link'}>
             <Button
               variant="outlined"
@@ -515,21 +607,29 @@ const SellerProductDetail = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 0.2 }}>
                   <Typography variant="h3" fontWeight={900} color="#15803D">
-                    ₹{priceINR.toLocaleString('en-IN')}
+                    {formatINR(product.price_per_unit_paise, true, language)}
                   </Typography>
                   <Typography variant="h6" fontWeight={700} color="#166534">
-                    / {product.unit}
+                    / {product.unit || 'Quintal'}
                   </Typography>
                 </Box>
               </Box>
 
               <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
                   {language === 'gu' ? 'કુલ લોટનું અંદાજિત મૂલ્ય:' : language === 'hi' ? 'कुल लॉट का अनुमानित मूल्य:' : 'Estimated Total Lot Value:'}
                 </Typography>
                 <Typography variant="h5" fontWeight={800} color="#0F172A">
-                  ₹{totalValue.toLocaleString('en-IN')}
+                  {formatINR(totalValue * 100, true, language)}
                 </Typography>
+                <Box sx={{ display: 'flex', gap: 1.5, mt: 0.5, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Sold: {formatINR(soldQty * priceINR * 100, true, language)}
+                  </Typography>
+                  <Typography variant="caption" color="#16A34A" fontWeight={700}>
+                    Available: {formatINR((product.available_quantity || 0) * priceINR * 100, true, language)}
+                  </Typography>
+                </Box>
               </Box>
             </Paper>
           </Paper>
@@ -798,6 +898,59 @@ const SellerProductDetail = () => {
           </DialogActions>
         </Dialog>
       )}
+
+      {/* Restock Modal */}
+      <Dialog open={restockModalOpen} onClose={() => setRestockModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>Restock Harvest Lot</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="#475569" sx={{ mb: 2 }}>
+            Add new harvested quantity to <strong>{product?.crop?.name} ({product?.variety})</strong>. This will set available stock and activate <strong>Live on Mandi</strong>.
+          </Typography>
+
+          <TextField
+            label="Additional Quantity to Add (Quintal) *"
+            type="number"
+            fullWidth
+            size="small"
+            value={restockQuantity}
+            onChange={(e) => setRestockQuantity(e.target.value)}
+            sx={{ mb: 2, mt: 1 }}
+            required
+          />
+
+          <TextField
+            label="Updated Selling Price / Quintal (INR) (Optional)"
+            type="number"
+            fullWidth
+            size="small"
+            value={restockPrice}
+            onChange={(e) => setRestockPrice(e.target.value)}
+            helperText="Leave empty to maintain current unit price."
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            select
+            label="Restock Reason"
+            fullWidth
+            size="small"
+            value={restockReason}
+            onChange={(e) => setRestockReason(e.target.value)}
+          >
+            {STOCK_ADJUSTMENT_REASONS.map((r) => (
+              <MenuItem key={r.code} value={r.code}>
+                {r.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setRestockModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="success" onClick={handleConfirmRestock} sx={{ fontWeight: 700 }}>
+            Confirm Restock & Go Live
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
