@@ -1,5 +1,5 @@
 export const menulist = [
-  // Farmer (Seller) Menu Items
+  // Farmer (Seller) Menu Items (Target Information Architecture)
   {
     id: 'seller-dashboard',
     name: 'Dashboard',
@@ -25,9 +25,51 @@ export const menulist = [
     roles: ['seller'],
   },
   {
+    id: 'seller-analytics',
+    name: 'Sales Analytics',
+    path: '/seller/analytics',
+    roles: ['seller'],
+  },
+  {
     id: 'seller-earnings',
     name: 'Earnings & Payouts',
     path: '/seller/earnings',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-statements',
+    name: 'Statements & Tax',
+    path: '/seller/statements',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-offers',
+    name: 'Quotes & Offers',
+    path: '/seller/offers',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-disputes',
+    name: 'Disputes & Claims',
+    path: '/seller/disputes',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-reputation',
+    name: 'Reputation & Score',
+    path: '/seller/reputation',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-planner',
+    name: 'Harvest Planner',
+    path: '/seller/planner',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-mandi',
+    name: 'APMC Mandi Rates',
+    path: '/seller/mandi-rates',
     roles: ['seller'],
   },
   {
@@ -36,6 +78,19 @@ export const menulist = [
     path: '/seller/profile',
     roles: ['seller'],
   },
+  {
+    id: 'seller-notifications',
+    name: 'Notification Center',
+    path: '/seller/notifications',
+    roles: ['seller'],
+  },
+  {
+    id: 'seller-support',
+    name: 'Kisan Help & Support',
+    path: '/seller/support',
+    roles: ['seller'],
+  },
+
 
   // Buyer Menu Items
   {

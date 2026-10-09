@@ -1,4 +1,6 @@
 import { Chip } from '@mui/material';
+import { useLanguage } from '../../context/LanguageContext';
+import { getStatusLabel, getStatusVariant } from '../status';
 
 const statusVariants = {
   success: {
@@ -10,6 +12,11 @@ const statusVariants = {
     bg: '#FEF3C7',
     color: '#92400E',
     border: '1px solid #FDE68A',
+  },
+  amber: {
+    bg: '#FEF3C7',
+    color: '#B45309',
+    border: '1px solid #FCD34D',
   },
   error: {
     bg: '#FEE2E2',
@@ -33,37 +40,23 @@ const statusVariants = {
   },
 };
 
-const resolveVariant = (status) => {
-  if (!status) return 'neutral';
-  const s = String(status).toLowerCase();
-
-  if (['active', 'approved', 'completed', 'verified', 'live', 'paid', 'success'].includes(s)) {
-    return 'success';
-  }
-  if (['pending', 'in_progress', 'draft', 'escrow_held', 'change_requested', 'warning'].includes(s)) {
-    return 'warning';
-  }
-  if (['rejected', 'suspended', 'cancelled', 'delete', 'not assigned', 'not_assigned', 'error', 'failed'].includes(s)) {
-    return 'error';
-  }
-  if (['in_transit', 'shipped', 'dispatched', 'assigned', 'info'].includes(s)) {
-    return 'info';
-  }
-  return 'neutral';
-};
-
 /**
- * Reusable StatusBadge pill component matching reference screenshots
- * E.g. "Not Assigned" (red pill), "Completed" (green pill), "SYSTEM" (green pill)
+ * Reusable StatusBadge pill component with canonical status dictionary mapping.
+ * Automatically translates raw statuses (escrow_held, sold_out, etc.) to role-aware labels.
  */
-const StatusBadge = ({ label, status, variant, icon, size = 'small', sx = {} }) => {
-  const effectiveVariant = variant || resolveVariant(status || label);
+const StatusBadge = ({ label, status, role, variant, icon, size = 'small', sx = {} }) => {
+  const { language } = useLanguage() || { language: 'en' };
+  const userRole = role || localStorage.getItem('role') || 'farmer';
+
+  const statusCode = status || label;
+  const canonicalLabel = label || getStatusLabel(statusCode, userRole, language);
+  const effectiveVariant = variant || getStatusVariant(statusCode);
   const config = statusVariants[effectiveVariant] || statusVariants.neutral;
 
   return (
     <Chip
       icon={icon}
-      label={label || status}
+      label={canonicalLabel || statusCode}
       size={size}
       sx={{
         bgcolor: config.bg,

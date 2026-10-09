@@ -127,7 +127,16 @@ const Navbar = ({ onToggleSidebar }) => {
             </IconButton>
           )}
 
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Box
+            component={Link}
+            to="/"
+            sx={{
+              textDecoration: 'none',
+              display: { xs: 'flex', md: 'none' },
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <Box
               sx={{
                 width: 34,
@@ -146,7 +155,7 @@ const Navbar = ({ onToggleSidebar }) => {
             <Typography variant="h6" fontWeight={800} sx={{ color: '#0F172A', letterSpacing: '-0.02em', fontSize: '1.15rem' }}>
               Khet<span style={{ color: '#2563EB' }}>Setu</span>
             </Typography>
-          </Link>
+          </Box>
 
           {/* Contextual Market browse shortcut for non-admin portals */}
           {!['super_admin', 'staff'].includes(role) && (
@@ -155,7 +164,7 @@ const Navbar = ({ onToggleSidebar }) => {
               to="/market"
               size="small"
               variant="text"
-              sx={{ display: { xs: 'none', lg: 'inline-flex' }, color: '#475569', fontWeight: 600, ml: 1 }}
+              sx={{ display: { xs: 'none', sm: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
             >
               {t('mandiRatesMarket', 'Mandi Rates & Market')}
             </Button>

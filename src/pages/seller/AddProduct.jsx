@@ -17,6 +17,7 @@ import {
   IconButton,
   Chip,
   Tooltip,
+  Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -126,27 +127,40 @@ const AddProduct = () => {
     t('farmer.pickupAddress', 'Farm Pickup Location'),
   ];
 
-  const [formData, setFormData] = useState({
-    crop_id: '',
-    variety: '',
-    grade: 'Grade A',
-    total_quantity: '',
-    unit: 'Kg', // Default unit as requested
-    price_per_unit: '',
-    min_order_quantity: 1, // Default MOQ 1 as requested
-    harvest_date: new Date().toISOString().split('T')[0],
-    is_organic: false,
-    organic_certificate_url: '',
-    packaging_type: '50kg Jute / Gunny Bags',
-    pickup_state: '',
-    pickup_district: '',
-    pickup_city: '',
-    pickup_village: '',
-    pickup_pincode: '',
-    pickup_address_type: 'Farm Gate / Field',
-    pickup_exact_address: '',
-    images: [], // Farmer must upload 1 to 5 real harvest photos
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('khetsetu_crop_draft');
+      if (saved) return JSON.parse(saved);
+    } catch (_e) {}
+    return {
+      crop_id: '',
+      variety: '',
+      grade: '', // Require explicit grade selection
+      total_quantity: '',
+      unit: 'Quintal', // Standard Mandi trade unit
+      price_per_unit: '',
+      min_order_quantity: 1,
+      harvest_date: new Date().toISOString().split('T')[0],
+      is_organic: false,
+      organic_certificate_url: '',
+      packaging_type: '50kg Jute / Gunny Bags',
+      pickup_state: '',
+      pickup_district: '',
+      pickup_city: '',
+      pickup_village: '',
+      pickup_pincode: '',
+      pickup_address_type: 'Farm Gate / Field',
+      pickup_exact_address: '',
+      images: [],
+    };
   });
+
+  // Autosave draft locally
+  useEffect(() => {
+    try {
+      localStorage.setItem('khetsetu_crop_draft', JSON.stringify(formData));
+    } catch (_e) {}
+  }, [formData]);
 
   const [errors, setErrors] = useState({});
 
@@ -534,6 +548,9 @@ const AddProduct = () => {
       });
 
       toast.success(t('farmer.cropListedSuccess', 'Crop listed successfully! Live on KhetSetu Mandi.'));
+      try {
+        localStorage.removeItem('khetsetu_crop_draft');
+      } catch (_e) {}
       navigate('/seller/products');
     } catch (err) {
       toast.error(err.response?.data?.message || t('errors.SOMETHING_WENT_WRONG', 'Error listing crop.'));
@@ -725,13 +742,13 @@ const AddProduct = () => {
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 >
                   <MenuItem value="Grade A">
-                    {language === 'gu' ? 'Grade A (ઉત્તમ / પ્રીમિયમ ગુણવત્તા)' : language === 'hi' ? 'Grade A (प्रीमियम / उत्तम गुणवत्ता)' : 'Grade A (Premium Quality)'}
+                    Grade A (Premium Quality) — Uniform size, optimal moisture, zero defects
                   </MenuItem>
-                  <MenuItem value="Standard">
-                    {language === 'gu' ? 'Standard (સામાન્ય ગુણવત્તા)' : language === 'hi' ? 'Standard (सामान्य गुणवत्ता)' : 'Standard'}
+                  <MenuItem value="Grade B">
+                    Grade B (Standard Market) — Minor size variation, fair commercial quality
                   </MenuItem>
-                  <MenuItem value="FAQ">
-                    {language === 'gu' ? 'FAQ (ફેર એવરેજ ગુણવત્તા)' : language === 'hi' ? 'FAQ (उचित औसत गुणवत्ता / एफएक्यू)' : 'FAQ (Fair Average Quality)'}
+                  <MenuItem value="Grade C">
+                    Grade C (Processing / FAQ) — Fair Average Quality, bulk processing grade
                   </MenuItem>
                 </TextField>
               </Grid>
@@ -1279,6 +1296,18 @@ const AddProduct = () => {
                   inputProps={{ min: 1, step: 'any' }}
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 />
+
+                {/* Price Guardrail (Finding 5) */}
+                {Number(formData.price_per_unit) > 20000 && formData.unit === 'Quintal' && (
+                  <Alert severity="warning" sx={{ mt: 1, borderRadius: 2, fontSize: '0.78rem' }}>
+                    ⚠️ High Price Warning: ₹{Number(formData.price_per_unit).toLocaleString('en-IN')}/Quintal is significantly higher than regional APMC Mandi rates. Very high prices may require admin review.
+                  </Alert>
+                )}
+                {Number(formData.price_per_unit) > 300 && formData.unit === 'Kg' && (
+                  <Alert severity="warning" sx={{ mt: 1, borderRadius: 2, fontSize: '0.78rem' }}>
+                    ⚠️ High Price Warning: ₹{Number(formData.price_per_unit).toLocaleString('en-IN')}/Kg is significantly above average wholesale rates. Please verify this is not a typo.
+                  </Alert>
+                )}
               </Grid>
 
               {/* Field 4: Minimum Order Quantity (MOQ Default: 1) */}
@@ -1362,6 +1391,47 @@ const AddProduct = () => {
                       : '💡 Packaging Type defines how the produce is bagged or crated for vehicle loading & transport so freight carriers can arrange appropriate transport.'}
                   </Typography>
                 </Box>
+
+                {/* Transparent Earnings Breakdown (Section 7.5) */}
+                {Number(formData.total_quantity) > 0 && Number(formData.price_per_unit) > 0 && (
+                  <Box sx={{ mt: 2.5, p: 2.5, bgcolor: '#F0FDF4', borderRadius: 2.5, border: '1.5px solid #BBF7D0' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle2" fontWeight={800} color="#166534">
+                        💰 Estimated Sales Settlement Preview
+                      </Typography>
+                      <Chip
+                        label="Zero Hidden Deductions"
+                        size="small"
+                        sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '0.7rem' }}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="body2" color="#475569">
+                        Estimated Gross Value ({formData.total_quantity} {formData.unit} × ₹{formData.price_per_unit}):
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} color="#0F172A">
+                        ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit)).toLocaleString('en-IN')}
+                      </Typography>
+                    </Box>    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="body2" color="#475569">
+                        Platform Technology Fee (2.5%):
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} color="#DC2626">
+                        - ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit) * 0.025).toLocaleString('en-IN')}
+                      </Typography>
+                    </Box>
+                    <Divider sx={{ my: 1, borderColor: '#DCFCE7' }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" fontWeight={800} color="#166534">
+                        Estimated Net Payout to Bank:
+                      </Typography>
+                      <Typography variant="h6" fontWeight={800} color="#16A34A">
+                        ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit) * 0.975).toLocaleString('en-IN')}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
               </Grid>
             </Grid>
           </Box>
