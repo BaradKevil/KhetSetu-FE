@@ -222,7 +222,11 @@ const BuyerDashboard = () => {
                   {t('market.totalVolume', 'Available Volume')}
                 </Typography>
                 <Typography variant="h6" fontWeight={800} color="#7C3AED">
-                  {marketStats.totalQtyTonnes ? `${marketStats.totalQtyTonnes} MT` : 'Available'}
+                  {marketStats.totalQtyTonnes > 0
+                    ? `${marketStats.totalQtyTonnes} MT`
+                    : marketStats.liveListings > 0
+                    ? `${marketStats.liveListings} Lots Available`
+                    : '0 MT'}
                 </Typography>
               </Box>
             </Grid>

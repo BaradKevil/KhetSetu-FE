@@ -130,7 +130,11 @@ const MarketBrowse = () => {
                 {t('market.totalVolume', 'Available Volume')}
               </Typography>
               <Typography variant="h6" fontWeight={800} color="#7C3AED">
-                {marketStats.totalQtyTonnes ? `${marketStats.totalQtyTonnes} MT` : 'Available'}
+                {marketStats.totalQtyTonnes > 0
+                  ? `${marketStats.totalQtyTonnes} MT`
+                  : marketStats.liveListings > 0
+                  ? `${marketStats.liveListings} Lots Available`
+                  : '0 MT'}
               </Typography>
             </Paper>
           </Grid>
@@ -362,7 +366,7 @@ const MarketBrowse = () => {
       ) : (
         <Grid container spacing={3}>
           {products.map((item) => {
-            const isFarmerVerified = item.seller?.seller_profile?.kyc_status === 'approved';
+            const isFarmerVerified = ['verified', 'approved'].includes(item.seller?.seller_profile?.kyc_status);
             const farmerName = item.seller?.seller_profile?.full_name || item.seller?.seller_profile?.farm_name;
 
             return (

@@ -86,7 +86,7 @@ export const LanguageProvider = ({ children }) => {
    * 5. Final fallback to user-provided string or key name (never undefined)
    */
   const t = useCallback(
-    (key, paramsOrFallback = '') => {
+    (key, paramsOrFallback = '', extraParams = null) => {
       if (!key || typeof key !== 'string') return '';
 
       const dict = translations[language] || translations.en;
@@ -153,16 +153,24 @@ export const LanguageProvider = ({ children }) => {
       // 3. Fallback to provided param or humanized key
       if (val === undefined || typeof val !== 'string') {
         if (typeof paramsOrFallback === 'string' && paramsOrFallback.trim() !== '') {
-          return paramsOrFallback;
+          val = paramsOrFallback;
+        } else {
+          const parts = key.split('.');
+          val = parts[parts.length - 1];
         }
-        const parts = key.split('.');
-        return parts[parts.length - 1];
       }
 
-      // 4. Interpolation if paramsOrFallback is an object
-      if (paramsOrFallback && typeof paramsOrFallback === 'object') {
+      // 4. Interpolation if paramsOrFallback is an object OR extraParams is an object
+      const interpolationParams =
+        paramsOrFallback && typeof paramsOrFallback === 'object'
+          ? paramsOrFallback
+          : extraParams && typeof extraParams === 'object'
+          ? extraParams
+          : null;
+
+      if (interpolationParams && typeof val === 'string') {
         let interpolated = val;
-        for (const [k, v] of Object.entries(paramsOrFallback)) {
+        for (const [k, v] of Object.entries(interpolationParams)) {
           interpolated = interpolated.replace(new RegExp(`{{${k}}}|{${k}}`, 'g'), String(v));
         }
         return interpolated;
