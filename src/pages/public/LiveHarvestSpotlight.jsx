@@ -171,7 +171,7 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
               fontWeight: 700,
               borderRadius: 2.5,
               fontSize: '0.95rem',
-              boxShadow: '0 4px 12px rgba(46, 125, 50, 0.25)',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
               mb: 1.5,
             }}
           >
@@ -268,7 +268,7 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
         overflow: 'hidden',
         transition: 'box-shadow 0.3s ease',
         '&:hover': {
-          boxShadow: '0 30px 60px -15px rgba(46, 125, 50, 0.12)',
+          boxShadow: '0 30px 60px -15px rgba(37, 99, 235, 0.12)',
         },
       }}
     >
@@ -454,7 +454,7 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
                 overflow: 'hidden',
                 cursor: 'pointer',
                 transition: 'color 0.2s',
-                '&:hover': { color: '#2E7D32' },
+                '&:hover': { color: '#2563EB' },
               }}
               onClick={() => navigate(`/market/${current.id}`)}
             >
@@ -492,7 +492,7 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
                 <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
                   {t('market.pricePerQuintal', 'Price Per Quintal')}
                 </Typography>
-                <Typography variant="h5" fontWeight={800} color="#2E7D32">
+                <Typography variant="h5" fontWeight={800} color="#2563EB">
                   {priceFormatted}
                 </Typography>
               </Box>
@@ -519,7 +519,7 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
                 fontWeight: 700,
                 borderRadius: 2.5,
                 fontSize: '0.95rem',
-                boxShadow: '0 4px 12px rgba(46, 125, 50, 0.2)',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
               }}
               endIcon={<MdArrowForward size={18} />}
             >
@@ -554,10 +554,10 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
                   width: idx === currentIndex ? 22 : 7,
                   height: 7,
                   borderRadius: 4,
-                  bgcolor: idx === currentIndex ? '#2E7D32' : '#CBD5E1',
+                  bgcolor: idx === currentIndex ? '#2563EB' : '#CBD5E1',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  '&:hover': { bgcolor: idx === currentIndex ? '#1B5E20' : '#94A3B8' },
+                  '&:hover': { bgcolor: idx === currentIndex ? '#1D4ED8' : '#94A3B8' },
                 }}
               />
             ))}

@@ -45,6 +45,7 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
 
 const BACKEND_URL =
   (import.meta.env.VITE_BASEURL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
@@ -457,19 +458,16 @@ const SellerKYC = () => {
   }
 
   return (
-    <Box maxWidth="md" sx={{ mx: 'auto', pb: 6 }}>
-      {/* Header */}
-      <Box sx={{ mb: 3.5 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('farmer.kycVerificationHeading', '🌾 Farm Profile & KYC Verification')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t(
-            'farmer.kycVerificationSubheading',
-            'Government ID, Land Records (7/12 & 8A), and Bank Details for Verified Seller Status.'
-          )}
-        </Typography>
-      </Box>
+    <Box maxWidth="lg" sx={{ mx: 'auto', pb: 6 }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('farmer.kycVerificationHeading', '🌾 Farm Profile & KYC Verification')}
+        subtitle={t(
+          'farmer.kycVerificationSubheading',
+          'Government ID, Land Records (7/12 & 8A), and Bank Details for Verified Seller Status.'
+        )}
+        showBack={true}
+      />
 
       {/* KYC Status Dynamic Banner */}
       <Paper

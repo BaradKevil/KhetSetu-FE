@@ -8,7 +8,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
   Button,
   Dialog,
   DialogTitle,
@@ -19,12 +18,16 @@ import {
   StepLabel,
   Tabs,
   Tab,
+  Grid,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { MdCheckCircle, MdTimeline, MdStorefront } from 'react-icons/md';
+import { MdCheckCircle, MdTimeline, MdStorefront, MdInventory2, MdHourglassEmpty, MdLocalShipping } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useUpdateOrderStatusMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BuyerOrders = () => {
   const { t, formatCurrency, formatDate } = useLanguage();
@@ -78,15 +81,49 @@ const BuyerOrders = () => {
     }
   };
 
+  const totalOrders = orders.length;
+  const inEscrowOrders = orders.filter((o) => ['escrow_held', 'accepted'].includes(o.status)).length;
+  const dispatchedOrders = orders.filter((o) => o.status === 'dispatched').length;
+
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('buyer.buyerOrdersTitle', '📦 My Escrow Orders')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('buyer.buyerOrdersSubtitle', 'Track real-time dispatch progress. Confirm delivery once goods arrive to release farmer payout.')}
-        </Typography>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.buyerOrdersTitle', '📦 My Escrow Orders')}
+        subtitle={t('buyer.buyerOrdersSubtitle', 'Track real-time dispatch progress. Confirm delivery once goods arrive to release farmer payout.')}
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label={t('common.all', 'Total Orders')}
+          value={totalOrders}
+          subtitle={t('buyer.totalOrdersSub', 'All-time procurement')}
+          icon={<MdInventory2 />}
+          color="blue"
+        />
+        <KPICard
+          label={t('buyer.inEscrow', 'In Escrow')}
+          value={inEscrowOrders}
+          subtitle={t('buyer.inEscrowSub', 'Awaiting dispatch')}
+          icon={<MdHourglassEmpty />}
+          color="amber"
+        />
+        <KPICard
+          label={t('buyer.dispatched', 'Dispatched')}
+          value={dispatchedOrders}
+          subtitle={t('buyer.dispatchedSub', 'In transit to destination')}
+          icon={<MdLocalShipping />}
+          color="cyan"
+        />
       </Box>
 
       {/* Filter Tabs */}
@@ -101,12 +138,12 @@ const BuyerOrders = () => {
           <Tab value="all" label={`${t('common.all', 'All Orders')} (${orders.length})`} sx={{ fontWeight: 700 }} />
           <Tab
             value="escrow"
-            label={`${t('buyer.inEscrow', 'In Escrow')} (${orders.filter((o) => ['escrow_held', 'accepted'].includes(o.status)).length})`}
+            label={`${t('buyer.inEscrow', 'In Escrow')} (${inEscrowOrders})`}
             sx={{ fontWeight: 700 }}
           />
           <Tab
             value="dispatched"
-            label={`${t('buyer.dispatched', 'Dispatched')} (${orders.filter((o) => o.status === 'dispatched').length})`}
+            label={`${t('buyer.dispatched', 'Dispatched')} (${dispatchedOrders})`}
             sx={{ fontWeight: 700 }}
           />
           <Tab
@@ -117,16 +154,16 @@ const BuyerOrders = () => {
         </Tabs>
       </Paper>
 
-      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#F8FAF9' }}>
+          <TableHead sx={{ bgcolor: '#F8FAFC' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>{t('buyer.orderNumber', 'Order #')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.farmerSeller', 'Farmer (Seller)')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.cropAndVariety', 'Produce Items')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('buyer.totalEscrow', 'Total Escrow')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Current Status')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>{t('common.actions', 'Actions')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('buyer.orderNumber', 'Order #')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.farmerSeller', 'Farmer (Seller)')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.cropAndVariety', 'Produce Items')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('buyer.totalEscrow', 'Total Escrow')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('common.status', 'Current Status')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: '#475569' }}>{t('common.actions', 'Actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -145,7 +182,7 @@ const BuyerOrders = () => {
                         width: 56,
                         height: 56,
                         borderRadius: '50%',
-                        bgcolor: '#F8FAF9',
+                        bgcolor: '#F8FAFC',
                         border: '2px dashed #CBD5E1',
                         display: 'flex',
                         alignItems: 'center',
@@ -178,10 +215,10 @@ const BuyerOrders = () => {
               </TableRow>
             ) : (
               filteredOrders.map((o) => (
-                <TableRow key={o.id} hover>
-                  <TableCell sx={{ fontWeight: 700 }}>#{o.order_number}</TableCell>
+                <TableRow key={o.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#2563EB' }}>#{o.order_number}</TableCell>
                   <TableCell>
-                    <Typography variant="subtitle2" fontWeight={600}>
+                    <Typography variant="subtitle2" fontWeight={700} color="#0F172A">
                       {o.seller?.seller_profile?.full_name || t('buyer.farmerLabel', 'Farmer Seller')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -190,27 +227,16 @@ const BuyerOrders = () => {
                   </TableCell>
                   <TableCell>
                     {o.items?.map((item) => (
-                      <Typography key={item.id} variant="body2">
+                      <Typography key={item.id} variant="body2" sx={{ color: '#334155' }}>
                         {item.crop_name} ({item.variety}) • {item.quantity} {item.unit}
                       </Typography>
                     ))}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#0F172A' }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#0F172A' }}>
                     {formatCurrency(o.total_paise, true)}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={o.status.toUpperCase()}
-                      size="small"
-                      color={
-                        o.status === 'completed' || o.status === 'delivered'
-                          ? 'success'
-                          : o.status === 'dispatched'
-                          ? 'primary'
-                          : 'warning'
-                      }
-                      sx={{ fontWeight: 700, fontSize: '0.72rem' }}
-                    />
+                    <StatusBadge status={o.status} />
                   </TableCell>
                   <TableCell align="right">
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>

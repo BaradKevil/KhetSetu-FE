@@ -27,6 +27,9 @@ import {
 } from 'react-icons/md';
 import { useGetPlatformSettingsQuery, useUpdatePlatformSettingsMutation } from '../../Api/Api';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const AdminSettings = () => {
   const { data: settingsData, isLoading } = useGetPlatformSettingsQuery();
@@ -105,25 +108,52 @@ const AdminSettings = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 1200 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} color="#0F172A">
-            Platform Configuration & Financial Parameters
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Global escrow fees, tax deductions, automated SLA timers, and emergency risk controls.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<MdSave />}
-          onClick={handleSaveSettings}
-          disabled={updateSettingsMutation.isPending}
-          sx={{ fontWeight: 700, px: 3, bgcolor: '#2E7D32', '&:hover': { bgcolor: '#1B5E20' } }}
-        >
-          {updateSettingsMutation.isPending ? 'Saving...' : 'Save Parameters'}
-        </Button>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title="Platform Configuration & Financial Parameters"
+        subtitle="Global escrow fees, tax deductions, automated SLA timers, and emergency risk controls."
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdSave size={18} />}
+            onClick={handleSaveSettings}
+            disabled={updateSettingsMutation.isPending}
+            sx={{ fontWeight: 700, px: 3, borderRadius: 2 }}
+          >
+            {updateSettingsMutation.isPending ? 'Saving...' : 'Save Parameters'}
+          </Button>
+        }
+      />
+
+      {/* 3 KPI Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdPercent size={24} />}
+          label="Platform Commission"
+          value={`${form.commission_rate}%`}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdTimer size={24} />}
+          label="Auto-Release SLA Window"
+          value={`${form.auto_release_hours}h`}
+          color="purple"
+        />
+        <KPICard
+          icon={<MdSecurity size={24} />}
+          label="Payout Kill-Switch"
+          value={form.payout_kill_switch ? 'ACTIVE' : 'NORMAL'}
+          color={form.payout_kill_switch ? 'red' : 'green'}
+        />
       </Box>
 
       {/* Emergency Kill Switch Banner */}

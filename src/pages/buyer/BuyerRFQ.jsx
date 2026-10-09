@@ -12,8 +12,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  Card,
-  CardContent,
 } from '@mui/material';
 import {
   MdAdd,
@@ -22,10 +20,15 @@ import {
   MdSchedule,
   MdCheckCircle,
   MdLocalOffer,
+  MdFormatListBulleted,
+  MdHourglassEmpty,
 } from 'react-icons/md';
 import { useGetCropsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const INITIAL_RFQS = [
   {
@@ -136,26 +139,60 @@ const BuyerRFQ = () => {
     });
   };
 
+  const totalRfqs = rfqs.length;
+  const quotesCount = rfqs.reduce((sum, r) => sum + (r.quotes_count || 0), 0);
+  const openBids = rfqs.filter((r) => r.status === 'open').length;
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            📋 Bulk Requirements & RFQs
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Post required crop volumes and target rates. Receive competitive bids directly from certified farmers and FPOs.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<MdAdd />}
-          onClick={() => setModalOpen(true)}
-          sx={{ borderRadius: 2.5, fontWeight: 700 }}
-        >
-          Post New Requirement (RFQ)
-        </Button>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title="📋 Bulk Requirements & RFQs"
+        subtitle="Post required crop volumes and target rates. Receive competitive bids directly from certified farmers and FPOs."
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdAdd />}
+            onClick={() => setModalOpen(true)}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            Post New Requirement (RFQ)
+          </Button>
+        }
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label="Total RFQs"
+          value={totalRfqs}
+          subtitle="Procurement tenders"
+          icon={<MdFormatListBulleted />}
+          color="blue"
+        />
+        <KPICard
+          label="Quotes Received"
+          value={quotesCount}
+          subtitle="Offers from farmers & FPOs"
+          icon={<MdLocalOffer />}
+          color="green"
+        />
+        <KPICard
+          label="Open for Bidding"
+          value={openBids}
+          subtitle="Accepting bids"
+          icon={<MdHourglassEmpty />}
+          color="amber"
+        />
       </Box>
 
       {/* RFQs Grid */}

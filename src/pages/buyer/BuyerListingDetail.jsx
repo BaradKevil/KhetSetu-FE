@@ -37,6 +37,8 @@ import { useCart } from '../../context/CartContext';
 import { toast } from 'react-toastify';
 import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 
+import PageHeader from '../../common/custom/PageHeader';
+
 const BuyerListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -130,12 +132,12 @@ const BuyerListingDetail = () => {
 
   return (
     <Box>
-      {/* Breadcrumb / Back Navigation */}
-      <Box sx={{ mb: 2 }}>
-        <Button component={Link} to="/buyer/market" startIcon={<MdArrowBack />} color="inherit" sx={{ fontWeight: 600 }}>
-          {t('market.backToMarket', 'Back to Marketplace')}
-        </Button>
-      </Box>
+      <PageHeader
+        title={product.variety}
+        subtitle={`${product.crop?.name || 'Crop'} • Lot #${product.id} • ${product.pickup_district}, ${product.pickup_state}`}
+        onBack={() => navigate('/buyer/market')}
+        backLabel={t('market.backToMarket', 'Back to Marketplace')}
+      />
 
       <Grid container spacing={4}>
         {/* Left Column: Photos & Farmer Trust Card */}

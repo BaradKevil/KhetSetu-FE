@@ -27,6 +27,7 @@ import {
   FormControl,
   InputLabel,
   InputAdornment,
+  Grid,
 } from '@mui/material';
 import {
   MdSearch,
@@ -40,11 +41,15 @@ import {
   MdFilterList,
   MdDeleteOutline,
   MdWarning,
+  MdPeople,
 } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useGetAdminUsersQuery, useUpdateUserStatusMutation, usePermanentlyDeleteUserMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const getRoleCode = (role) => {
   if (!role) return 'user';
@@ -245,34 +250,73 @@ const AdminUsers = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Page Title */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant="h5" fontWeight={800} color="#0F172A">
-          Users Directory & Access Governance
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Manage authenticated farmers, wholesale buyers, and administrative staff across the KhetSetu network.
-        </Typography>
-      </Box>
+      {/* Page Header (Reference Screenshot 2 style) */}
+      <PageHeader
+        title="Users Directory & Access Governance"
+        subtitle="Add, edit, and manage authenticated farmers, wholesale buyers, and administrative staff."
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportUsersCSV}
+            sx={{
+              fontWeight: 700,
+              borderRadius: 2,
+              px: 2.5,
+              py: 1,
+            }}
+          >
+            Export Directory
+          </Button>
+        }
+      />
 
-      {/* Top Controls: Search Bar + Filter Dropdown + Export Button */}
-      <Paper
-        elevation={0}
+      {/* 3 KPI Stat Cards (Uniform full-width grid) */}
+      <Box
         sx={{
-          p: 2,
-          mb: 2.5,
-          borderRadius: 3,
-          border: '1px solid #E2E8F0',
-          bgcolor: '#FFFFFF',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
         }}
       >
-        {/* Left: Search Bar & Status Filter */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: { xs: '100%', sm: 320 } }}>
+        <KPICard
+          icon={<MdPeople size={24} />}
+          label="Total Users"
+          value={pagination.totalCount || users.length}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdCheckCircle size={24} />}
+          label="Active Accounts"
+          value={counts.active ?? users.filter(u => u.status === 'active').length}
+          color="purple"
+        />
+        <KPICard
+          icon={<MdWarning size={24} />}
+          label="Suspended / Inactive"
+          value={counts.suspended ?? users.filter(u => u.status === 'suspended').length}
+          color="amber"
+        />
+      </Box>
+
+      {/* Top Controls: Search Bar + Filter Dropdown (Reference Screenshot 2) */}
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          gap: 2.5,
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: { xs: '100%', sm: 320 } }}>
+          <Typography variant="body2" fontWeight={700} color="#334155" sx={{ mb: 0.8 }}>
+            Search Users
+          </Typography>
           <TextField
             fullWidth
             size="small"
@@ -289,24 +333,30 @@ const AdminUsers = () => {
                 </InputAdornment>
               ),
             }}
-            sx={{ maxWidth: 420 }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                bgcolor: '#FFFFFF',
+                borderRadius: 2,
+              },
+            }}
           />
+        </Box>
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="status-filter-label">Account Status</InputLabel>
+        <Box sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+          <Typography variant="body2" fontWeight={700} color="#334155" sx={{ mb: 0.8 }}>
+            Filter Status
+          </Typography>
+          <FormControl fullWidth size="small">
             <Select
-              labelId="status-filter-label"
               value={statusFilter}
-              label="Account Status"
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              startAdornment={
-                <InputAdornment position="start">
-                  <MdFilterList size={18} color="#64748B" />
-                </InputAdornment>
-              }
+              sx={{
+                bgcolor: '#FFFFFF',
+                borderRadius: 2,
+              }}
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="active">Active Only</MenuItem>
@@ -315,116 +365,93 @@ const AdminUsers = () => {
             </Select>
           </FormControl>
         </Box>
-
-        {/* Right: Export Button */}
-        <Button
-          variant="contained"
-          startIcon={<MdFileDownload size={18} />}
-          onClick={exportUsersCSV}
-          sx={{
-            fontWeight: 700,
-            bgcolor: '#166534',
-            '&:hover': { bgcolor: '#14532D' },
-            borderRadius: 2,
-            px: 2.5,
-            py: 0.9,
-            textTransform: 'none',
-          }}
-        >
-          Export Directory
-        </Button>
-      </Paper>
-
-      {/* 3 Tabs: Farmers | Buyers | Super Admin */}
-      <Box sx={{ borderBottom: 1, borderColor: '#E2E8F0', mb: 2 }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          textColor="primary"
-          indicatorColor="primary"
-          sx={{
-            '& .MuiTab-root': {
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              textTransform: 'none',
-              minHeight: 48,
-              px: 3,
-            },
-          }}
-        >
-          <Tab
-            value="seller"
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <MdAgriculture size={19} />
-                <span>Farmers</span>
-                {counts.farmers !== undefined && (
-                  <Chip
-                    label={counts.farmers}
-                    size="small"
-                    sx={{
-                      height: 20,
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      bgcolor: activeTab === 'seller' ? '#DCFCE7' : '#F1F5F9',
-                      color: activeTab === 'seller' ? '#15803D' : '#64748B',
-                    }}
-                  />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            value="buyer"
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <MdBusinessCenter size={19} />
-                <span>Buyers</span>
-                {counts.buyers !== undefined && (
-                  <Chip
-                    label={counts.buyers}
-                    size="small"
-                    sx={{
-                      height: 20,
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      bgcolor: activeTab === 'buyer' ? '#E0F2FE' : '#F1F5F9',
-                      color: activeTab === 'buyer' ? '#0369A1' : '#64748B',
-                    }}
-                  />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            value="super_admin"
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <MdAdminPanelSettings size={19} />
-                <span>Super Admin</span>
-                {counts.admins !== undefined && (
-                  <Chip
-                    label={counts.admins}
-                    size="small"
-                    sx={{
-                      height: 20,
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      bgcolor: activeTab === 'super_admin' ? '#F1F5F9' : '#F8FAFC',
-                      color: '#0F172A',
-                    }}
-                  />
-                )}
-              </Box>
-            }
-          />
-        </Tabs>
       </Box>
 
-      {/* Users Table */}
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', overflow: 'hidden' }}>
-        <TableContainer>
-          <Table sx={{ minWidth: 750 }}>
+      {/* Main Table Card (Reference Screenshot 2: White card with Students List header) */}
+      <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', overflow: 'hidden' }}>
+        {/* Card Header with Title and Role Tabs */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: '1px solid #F1F5F9',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          <Typography variant="h6" fontWeight={800} color="#0F172A">
+            Users List
+          </Typography>
+
+          {/* Segmented Pill Tabs */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Button
+              size="small"
+              onClick={() => { setActiveTab('seller'); setPage(1); }}
+              startIcon={<MdAgriculture size={17} />}
+              sx={{
+                borderRadius: 2,
+                px: 1.8,
+                py: 0.6,
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+                bgcolor: activeTab === 'seller' ? '#EEF4FF' : '#F8FAFC',
+                color: activeTab === 'seller' ? '#2563EB' : '#64748B',
+                border: activeTab === 'seller' ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
+                '&:hover': { bgcolor: activeTab === 'seller' ? '#E0EDFF' : '#F1F5F9' },
+              }}
+            >
+              Farmers {counts.farmers !== undefined && `(${counts.farmers})`}
+            </Button>
+
+            <Button
+              size="small"
+              onClick={() => { setActiveTab('buyer'); setPage(1); }}
+              startIcon={<MdBusinessCenter size={17} />}
+              sx={{
+                borderRadius: 2,
+                px: 1.8,
+                py: 0.6,
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+                bgcolor: activeTab === 'buyer' ? '#EEF4FF' : '#F8FAFC',
+                color: activeTab === 'buyer' ? '#2563EB' : '#64748B',
+                border: activeTab === 'buyer' ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
+                '&:hover': { bgcolor: activeTab === 'buyer' ? '#E0EDFF' : '#F1F5F9' },
+              }}
+            >
+              Buyers {counts.buyers !== undefined && `(${counts.buyers})`}
+            </Button>
+
+            <Button
+              size="small"
+              onClick={() => { setActiveTab('super_admin'); setPage(1); }}
+              startIcon={<MdAdminPanelSettings size={17} />}
+              sx={{
+                borderRadius: 2,
+                px: 1.8,
+                py: 0.6,
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+                bgcolor: activeTab === 'super_admin' ? '#EEF4FF' : '#F8FAFC',
+                color: activeTab === 'super_admin' ? '#2563EB' : '#64748B',
+                border: activeTab === 'super_admin' ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
+                '&:hover': { bgcolor: activeTab === 'super_admin' ? '#E0EDFF' : '#F1F5F9' },
+              }}
+            >
+              Super Admin {counts.admins !== undefined && `(${counts.admins})`}
+            </Button>
+          </Box>
+        </Box>
+
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 850 }}>
             <TableHead sx={{ bgcolor: '#F8FAFC' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.75rem', py: 1.8 }}>
@@ -433,7 +460,7 @@ const AdminUsers = () => {
                     direction={sortBy === 'id' ? sortOrder.toLowerCase() : 'asc'}
                     onClick={() => handleSort('id')}
                   >
-                    USER / ID
+                    USER INFO
                   </TableSortLabel>
                 </TableCell>
 
@@ -485,7 +512,7 @@ const AdminUsers = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
-                    <CircularProgress size={32} sx={{ color: '#166534' }} />
+                    <CircularProgress size={32} sx={{ color: '#2563EB' }} />
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, fontWeight: 600 }}>
                       Loading authenticated network directory from cloud database...
                     </Typography>
@@ -509,7 +536,7 @@ const AdminUsers = () => {
                   const locationText =
                     [user.district, user.state].filter(Boolean).join(', ') ||
                     [user.seller_profile?.district, user.seller_profile?.state].filter(Boolean).join(', ') ||
-                    'Location not set';
+                    '';
 
                   return (
                     <TableRow key={user.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
@@ -520,7 +547,7 @@ const AdminUsers = () => {
                             sx={{
                               bgcolor:
                                 user.role === 'seller'
-                                  ? '#166534'
+                                  ? '#2563EB'
                                   : user.role === 'buyer'
                                   ? '#0284C7'
                                   : '#0F172A',
@@ -546,36 +573,27 @@ const AdminUsers = () => {
                       {/* Role Badge */}
                       <TableCell>{getRoleChip(user.role)}</TableCell>
 
-                      {/* Contact & Location */}
+                      {/* Contact & Location (Clean vertical rhythm without overlapping text) */}
                       <TableCell>
                         <Typography variant="body2" fontWeight={600} color="#0F172A">
-                          {user.phone || 'No phone'}
+                          {user.phone ? (String(user.phone).startsWith('+') ? user.phone : `+${user.phone}`) : 'No phone'}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          {user.email || 'No email registered'}
-                        </Typography>
-                        <Typography variant="caption" color="#64748B" sx={{ fontSize: '0.68rem' }}>
-                          📍 {locationText}
-                        </Typography>
+                        {user.email ? (
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {user.email}
+                          </Typography>
+                        ) : null}
+                        {locationText ? (
+                          <Typography variant="caption" color="#64748B" display="block" sx={{ fontSize: '0.72rem', mt: 0.2 }}>
+                            📍 {locationText}
+                          </Typography>
+                        ) : null}
                       </TableCell>
 
                       {/* KYC Status */}
                       <TableCell>
                         {user.role === 'seller' ? (
-                          <Chip
-                            label={kycStatus?.toUpperCase() || 'UNVERIFIED'}
-                            size="small"
-                            color={
-                              kycStatus === 'verified'
-                                ? 'success'
-                                : kycStatus === 'rejected'
-                                ? 'error'
-                                : kycStatus === 'pending'
-                                ? 'warning'
-                                : 'default'
-                            }
-                            sx={{ fontWeight: 800, fontSize: '0.7rem' }}
-                          />
+                          <StatusBadge status={kycStatus || 'unverified'} />
                         ) : (
                           <Typography variant="caption" color="text.secondary">
                             Not Applicable
@@ -584,7 +602,9 @@ const AdminUsers = () => {
                       </TableCell>
 
                       {/* Account State */}
-                      <TableCell>{getStatusChip(user.status || 'active')}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={user.status || 'active'} />
+                      </TableCell>
 
                       {/* Joined Date */}
                       <TableCell>
@@ -593,15 +613,20 @@ const AdminUsers = () => {
                         </Typography>
                       </TableCell>
 
-                      {/* Actions */}
+                      {/* Actions (Exact match with Reference Screenshot 2 text action links) */}
                       <TableCell align="right">
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
                           <Button
                             size="small"
-                            variant="outlined"
-                            startIcon={<MdVisibility />}
                             onClick={() => navigate(`/admin/users/${user.id}`)}
-                            sx={{ fontWeight: 700, borderRadius: 1.5, textTransform: 'none' }}
+                            sx={{
+                              fontWeight: 700,
+                              color: '#2563EB',
+                              textTransform: 'none',
+                              px: 1,
+                              minWidth: 'auto',
+                              '&:hover': { bgcolor: '#EFF6FF' },
+                            }}
                           >
                             Profile
                           </Button>
@@ -609,30 +634,38 @@ const AdminUsers = () => {
                           {isSuspended ? (
                             <Button
                               size="small"
-                              variant="outlined"
-                              color="success"
-                              startIcon={<MdCheckCircle />}
                               onClick={() => {
                                 setActionUser(user);
                                 setTargetStatus('active');
                                 setStatusReason('Re-activated by administrative review.');
                               }}
-                              sx={{ fontWeight: 700, borderRadius: 1.5, textTransform: 'none' }}
+                              sx={{
+                                fontWeight: 700,
+                                color: '#16A34A',
+                                textTransform: 'none',
+                                px: 1,
+                                minWidth: 'auto',
+                                '&:hover': { bgcolor: '#F0FDF4' },
+                              }}
                             >
                               Reactivate
                             </Button>
                           ) : (
                             <Button
                               size="small"
-                              variant="outlined"
-                              color="error"
-                              startIcon={<MdBlock />}
                               onClick={() => {
                                 setActionUser(user);
                                 setTargetStatus('suspended');
                                 setStatusReason('');
                               }}
-                              sx={{ fontWeight: 700, borderRadius: 1.5, textTransform: 'none' }}
+                              sx={{
+                                fontWeight: 700,
+                                color: '#DC2626',
+                                textTransform: 'none',
+                                px: 1,
+                                minWidth: 'auto',
+                                '&:hover': { bgcolor: '#FEF2F2' },
+                              }}
                             >
                               Suspend
                             </Button>
@@ -640,9 +673,6 @@ const AdminUsers = () => {
 
                           <Button
                             size="small"
-                            variant="outlined"
-                            color="error"
-                            startIcon={<MdDeleteOutline />}
                             onClick={() => {
                               setUserToDelete(user);
                               setDeleteConfirmationText('');
@@ -650,11 +680,11 @@ const AdminUsers = () => {
                             }}
                             sx={{
                               fontWeight: 700,
-                              borderRadius: 1.5,
+                              color: '#94A3B8',
                               textTransform: 'none',
-                              color: '#DC2626',
-                              borderColor: '#FECACA',
-                              '&:hover': { bgcolor: '#FEF2F2', borderColor: '#DC2626' },
+                              px: 0.8,
+                              minWidth: 'auto',
+                              '&:hover': { color: '#DC2626', bgcolor: '#FEF2F2' },
                             }}
                           >
                             Delete
@@ -668,7 +698,6 @@ const AdminUsers = () => {
             </TableBody>
           </Table>
         </TableContainer>
-
         {/* Server-Side Pagination */}
         <TablePagination
           component="div"

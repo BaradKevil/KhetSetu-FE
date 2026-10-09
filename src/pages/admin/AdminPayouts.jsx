@@ -19,11 +19,15 @@ import {
   TextField,
   Alert,
   Tooltip,
+  Grid,
 } from '@mui/material';
-import { MdCheckCircle, MdPauseCircle, MdWarning, MdSecurity } from 'react-icons/md';
+import { MdCheckCircle, MdPauseCircle, MdWarning, MdSecurity, MdLocalAtm, MdPayments } from 'react-icons/md';
 import { useGetPayoutsQuery, useApprovePayoutMutation, useHoldPayoutMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const AdminPayouts = () => {
   const { t, formatCurrency, formatDate } = useLanguage();
@@ -76,17 +80,39 @@ const AdminPayouts = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('admin.payoutApprovalsTitle', '💳 Payout Approvals (Maker-Checker)')}
-          </Typography>
-          <Chip label="Two-Officer Protocol" color="primary" size="small" sx={{ fontWeight: 700 }} />
-        </Box>
-        <Typography variant="body2" color="text.secondary">
-          {t('admin.payoutApprovalsSubtitle', 'Pre-settlement verification, automated name-match audit, and disbursement clearance for escrow proceeds.')}
-        </Typography>
-      </Box>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title={t('admin.payoutApprovalsTitle', 'Payout Approvals & Disbursements')}
+        subtitle={t('admin.payoutApprovalsSubtitle', 'Pre-settlement verification, automated name-match audit, and disbursement clearance for escrow proceeds.')}
+      />
+
+      {/* 3 KPI Cards */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdLocalAtm size={24} />}
+            label="Total Payouts"
+            value={payouts.length}
+            color="blue"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdWarning size={24} />}
+            label="Awaiting Clearance"
+            value={payouts.filter(p => p.status === 'pending_approval' || p.status === 'pending').length}
+            color="amber"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdCheckCircle size={24} />}
+            label="Disbursed & Settled"
+            value={payouts.filter(p => p.status === 'completed' || p.status === 'approved').length}
+            color="green"
+          />
+        </Grid>
+      </Grid>
 
       {/* Tabs Row */}
       <Paper elevation={0} sx={{ mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>

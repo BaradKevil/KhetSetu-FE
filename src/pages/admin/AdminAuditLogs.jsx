@@ -19,9 +19,12 @@ import {
   DialogActions,
   Tooltip,
 } from '@mui/material';
-import { MdInfo, MdFileDownload } from 'react-icons/md';
+import { MdInfo, MdFileDownload, MdHistory, MdSecurity, MdFormatListBulleted } from 'react-icons/md';
 import { useGetAuditLogsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const AdminAuditLogs = () => {
   const { t, formatDate } = useLanguage();
@@ -60,27 +63,52 @@ const AdminAuditLogs = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('admin.auditTrailMainTitle', '🔍 Administrative Audit Trail')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('admin.auditTrailMainSubtitle', 'Immutable logs documenting administrative decisions, KYC changes, and financial approvals.')}
-          </Typography>
-        </Box>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title={t('admin.auditTrailMainTitle', 'Administrative Audit Trail')}
+        subtitle={t('admin.auditTrailMainSubtitle', 'Immutable logs documenting administrative decisions, KYC changes, and financial approvals.')}
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportCSV}
+            disabled={!logs.length}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            Export Audit Trail (CSV)
+          </Button>
+        }
+      />
 
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<MdFileDownload />}
-          onClick={exportCSV}
-          disabled={!logs.length}
-          sx={{ borderRadius: 2.5, fontWeight: 700, textTransform: 'none' }}
-        >
-          Export Audit Trail (CSV)
-        </Button>
-      </Box>
+      {/* 3 KPI Cards */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdHistory size={24} />}
+            label="Total Audit Events"
+            value={logs.length}
+            color="blue"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdSecurity size={24} />}
+            label="Immutable Log Integrity"
+            value="Append-Only"
+            subtitle="Tamper-evident sequence"
+            color="green"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4} size={{ xs: 12, sm: 4 }}>
+          <KPICard
+            icon={<MdFormatListBulleted size={24} />}
+            label="Active Filter Type"
+            value={filterAction === 'all' ? 'All Actions' : filterAction}
+            color="purple"
+          />
+        </Grid>
+      </Grid>
 
       {/* Filter Bar */}
       <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>

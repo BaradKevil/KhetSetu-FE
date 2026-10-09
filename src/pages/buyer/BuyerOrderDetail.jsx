@@ -4,7 +4,6 @@ import {
   Typography,
   Grid,
   Paper,
-  Chip,
   Button,
   Divider,
   Table,
@@ -33,6 +32,8 @@ import {
 import { useGetOrderDetailsQuery, useUpdateOrderStatusMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const BuyerOrderDetail = () => {
   const { id } = useParams();
@@ -49,11 +50,14 @@ const BuyerOrderDetail = () => {
     );
   }
 
-  if (!order) {
+  if (!order || !id || id === 'undefined') {
     return (
       <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3.5 }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
-          Order #{id} Not Found
+          {id && id !== 'undefined' ? `Order #${id} Not Found` : 'Order Details Unavailable'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Please select an order from your Escrow Orders list to view full tracking and inspection details.
         </Typography>
         <Button component={Link} to="/buyer/orders" startIcon={<MdArrowBack />} variant="contained">
           Back to Orders
@@ -107,52 +111,39 @@ const BuyerOrderDetail = () => {
 
   return (
     <Box maxWidth="lg" sx={{ mx: 'auto' }}>
-      {/* Top Bar */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Button component={Link} to="/buyer/orders" startIcon={<MdArrowBack />} color="inherit" sx={{ fontWeight: 600 }}>
-          Back to My Orders
-        </Button>
-        <Button
-          variant="outlined"
-          color="inherit"
-          startIcon={<MdPrint />}
-          onClick={() => window.print()}
-          sx={{ borderRadius: 2 }}
-        >
-          Print Escrow Invoice
-        </Button>
-      </Box>
+      {/* Page Header */}
+      <PageHeader
+        title={`Order #${order.order_number}`}
+        subtitle={`Placed on ${formatDate(order.created_at)} • Payment via ${order.payment_method || 'Escrow Vault'}`}
+        showBack={true}
+        action={
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<MdPrint />}
+            onClick={() => window.print()}
+            sx={{ borderRadius: 2.5, bgcolor: '#FFFFFF', borderColor: '#CBD5E1', fontWeight: 600 }}
+          >
+            Print Escrow Invoice
+          </Button>
+        }
+      />
 
       {/* Order Header Card */}
       <Paper elevation={0} sx={{ p: 3.5, mb: 3.5, borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Typography variant="h4" fontWeight={800} color="#0F172A">
-                Order #{order.order_number}
-              </Typography>
-              <Chip
-                label={order.status?.toUpperCase()?.replace('_', ' ')}
-                color={
-                  ['delivered', 'completed'].includes(order.status)
-                    ? 'success'
-                    : order.status === 'disputed'
-                    ? 'error'
-                    : 'primary'
-                }
-                sx={{ fontWeight: 800 }}
-              />
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Placed on {formatDate(order.created_at)} • Payment via {order.payment_method || 'Escrow Vault'}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Typography variant="h6" fontWeight={800} color="#0F172A">
+              Status:
             </Typography>
+            <StatusBadge status={order.status} />
           </Box>
 
           <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
             <Typography variant="caption" color="text.secondary">
               Total Escrow Protected Hold
             </Typography>
-            <Typography variant="h4" fontWeight={800} color="#2E7D32">
+            <Typography variant="h4" fontWeight={800} color="#16A34A">
               {formatCurrency(order.total_paise, true)}
             </Typography>
           </Box>

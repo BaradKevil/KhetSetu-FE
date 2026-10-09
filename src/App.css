@@ -4,14 +4,20 @@
   flex-direction: column;
 }
 
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .gradient-text {
-  background: linear-gradient(135deg, #2E7D32 0%, #15803D 50%, #E65100 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #0F172A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-hero-bg {
-  background: radial-gradient(circle at 15% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 85% 60%, rgba(230, 81, 0, 0.06) 0%, transparent 50%),
-              #F8FAF9;
+  background: radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 85% 60%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+              #F8FAFC;
 }

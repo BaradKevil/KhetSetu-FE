@@ -60,11 +60,11 @@ export const LanguageSelector = ({
                 fontSize: size === 'small' ? '0.78rem' : '0.88rem',
                 fontWeight: 700,
                 borderRadius: 2,
-                bgcolor: isSelected ? '#2E7D32' : 'transparent',
+                bgcolor: isSelected ? '#2563EB' : 'transparent',
                 color: isSelected ? '#FFFFFF' : '#475569',
-                borderColor: isSelected ? '#2E7D32' : '#CBD5E1',
+                borderColor: isSelected ? '#2563EB' : '#CBD5E1',
                 '&:hover': {
-                  bgcolor: isSelected ? '#1B5E20' : '#F1F5F9',
+                  bgcolor: isSelected ? '#1D4ED8' : '#F1F5F9',
                 },
                 transition: 'all 0.15s ease',
               }}
@@ -85,7 +85,7 @@ export const LanguageSelector = ({
           displayEmpty
           startAdornment={
             showIcon ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, color: '#2E7D32' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, color: '#2563EB' }}>
                 <MdLanguage size={18} />
               </Box>
             ) : null
@@ -107,7 +107,7 @@ export const LanguageSelector = ({
     <Box sx={sx}>
       <Button
         size={size}
-        startIcon={showIcon ? <MdLanguage size={18} color="#2E7D32" /> : null}
+        startIcon={showIcon ? <MdLanguage size={18} color="#2563EB" /> : null}
         onClick={handleMenuOpen}
         aria-label="Select Language"
         sx={{
@@ -154,7 +154,7 @@ export const LanguageSelector = ({
               sx={{
                 borderRadius: 1.5,
                 fontWeight: isSelected ? 800 : 500,
-                color: isSelected ? '#2E7D32' : 'inherit',
+                color: isSelected ? '#2563EB' : 'inherit',
                 display: 'flex',
                 justifyContent: 'space-between',
                 py: 1,
@@ -169,7 +169,7 @@ export const LanguageSelector = ({
                   {langItem.label}
                 </Typography>
               </Box>
-              {isSelected && <MdCheck color="#2E7D32" size={18} />}
+              {isSelected && <MdCheck color="#2563EB" size={18} />}
             </MenuItem>
           );
         })}

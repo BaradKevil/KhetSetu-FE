@@ -32,6 +32,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import PhoneInput from '../../common/custom/PhoneInput';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
 
 const BuyerAddresses = () => {
   const { t } = useLanguage();
@@ -129,26 +130,23 @@ const BuyerAddresses = () => {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            📍 Delivery Destinations & Warehouses
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your delivery godowns, processing mills, and retail unloading locations.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<MdAdd />}
-          onClick={handleOpenAdd}
-          sx={{ borderRadius: 2.5, fontWeight: 700 }}
-        >
-          Add Delivery Address
-        </Button>
-      </Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title="📍 Delivery Destinations & Warehouses"
+        subtitle="Manage your delivery godowns, processing mills, and retail unloading locations."
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdAdd />}
+            onClick={handleOpenAdd}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            Add Delivery Address
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
@@ -161,7 +159,7 @@ const BuyerAddresses = () => {
               width: 56,
               height: 56,
               borderRadius: '50%',
-              bgcolor: '#F8FAF9',
+              bgcolor: '#F8FAFC',
               border: '2px dashed #CBD5E1',
               display: 'flex',
               alignItems: 'center',
@@ -179,7 +177,7 @@ const BuyerAddresses = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 420, mx: 'auto' }}>
             Add your primary warehouse or mill so farm trucks can calculate delivery distances accurately.
           </Typography>
-          <Button variant="contained" color="primary" onClick={handleOpenAdd}>
+          <Button variant="contained" color="primary" onClick={handleOpenAdd} sx={{ borderRadius: 2.5, fontWeight: 700 }}>
             Add First Warehouse
           </Button>
         </Paper>
@@ -195,7 +193,7 @@ const BuyerAddresses = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   borderRadius: 3.5,
-                  border: addr.is_default ? '2px solid #2E7D32' : '1px solid #E2E8F0',
+                  border: addr.is_default ? '2px solid #2563EB' : '1px solid #E2E8F0',
                   bgcolor: '#FFFFFF',
                   position: 'relative',
                 }}

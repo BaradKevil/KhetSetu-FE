@@ -27,6 +27,8 @@ import {
 } from 'react-icons/md';
 import { useGetVerifiedFarmersQuery, useGetMarketStatsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
 
 const BuyerFarmers = () => {
   const { t, formatCurrency } = useLanguage();
@@ -55,59 +57,51 @@ const BuyerFarmers = () => {
   };
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('buyer.verifiedFarmersTitle', '🌾 Verified Farmers & Producers Directory')}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {t('buyer.verifiedFarmersSubtitle', 'Directly connect with KYC-verified farmers and inspect active farm harvests with 100% escrow protection.')}
-        </Typography>
-      </Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.verifiedFarmersTitle', '🌾 Verified Farmers & Producers Directory')}
+        subtitle={t('buyer.verifiedFarmersSubtitle', 'Directly connect with KYC-verified farmers and inspect active farm harvests with 100% escrow protection.')}
+      />
 
       {/* Market Pulse Summary */}
       {marketStats && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.verifiedFarmers', 'Verified Farmers')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#2E7D32">
-                {marketStats.verifiedFarmers ?? 0}
-              </Typography>
-            </Paper>
+        <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              label={t('market.verifiedFarmers', 'Verified Farmers')}
+              value={marketStats.verifiedFarmers ?? 0}
+              subtitle={t('market.verifiedFarmersSub', 'KYC validated')}
+              icon={<MdVerified />}
+              color="green"
+            />
           </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.liveListings', 'Active Listings')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#0F172A">
-                {marketStats.liveListings ?? 0}
-              </Typography>
-            </Paper>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              label={t('market.liveListings', 'Active Listings')}
+              value={marketStats.liveListings ?? 0}
+              subtitle={t('market.liveListingsSub', 'Live harvest lots')}
+              icon={<MdAgriculture />}
+              color="blue"
+            />
           </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.cropsAvailable', 'Crops Available')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#0288D1">
-                {marketStats.cropsAvailable ?? 0}
-              </Typography>
-            </Paper>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              label={t('market.cropsAvailable', 'Crops Available')}
+              value={marketStats.cropsAvailable ?? 0}
+              subtitle={t('market.cropsAvailableSub', 'Catalog varieties')}
+              icon={<MdStorefront />}
+              color="cyan"
+            />
           </Grid>
-          <Grid item xs={6} sm={3} size={{ xs: 6, sm: 3 }}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#FFFFFF', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={700}>
-                {t('market.totalVolume', 'Available Volume')}
-              </Typography>
-              <Typography variant="h6" fontWeight={800} color="#7C3AED">
-                {marketStats.totalQtyTonnes ? `${marketStats.totalQtyTonnes} MT` : 'Available'}
-              </Typography>
-            </Paper>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              label={t('market.totalVolume', 'Available Volume')}
+              value={marketStats.totalQtyTonnes ? `${marketStats.totalQtyTonnes} MT` : 'Available'}
+              subtitle={t('market.totalVolumeSub', 'Total tonnage')}
+              icon={<MdAgriculture />}
+              color="purple"
+            />
           </Grid>
         </Grid>
       )}

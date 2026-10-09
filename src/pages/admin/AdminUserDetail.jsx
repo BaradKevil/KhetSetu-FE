@@ -39,6 +39,9 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
 
+import PageHeader from '../../common/custom/PageHeader';
+import StatusBadge from '../../common/custom/StatusBadge';
+
 const AdminUserDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,7 +62,7 @@ const AdminUserDetail = () => {
   if (isLoading) {
     return (
       <Box sx={{ p: 6, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress sx={{ color: '#2E7D32' }} />
+        <CircularProgress sx={{ color: '#2563EB' }} />
       </Box>
     );
   }
@@ -127,69 +130,66 @@ const AdminUserDetail = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Back button & Action Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Button
-          startIcon={<MdArrowBack />}
-          onClick={() => navigate('/admin/users')}
-          sx={{ fontWeight: 700, color: '#475569' }}
-        >
-          Back to Users Directory
-        </Button>
+      <PageHeader
+        title={`User Profile: ${user.full_name || user.name || `#${user.id}`}`}
+        subtitle={`User ID #${user.id} • Registered ${user.role?.name || roleLabel} Account`}
+        onBack={() => navigate('/admin/users')}
+        backLabel="Back to Users Directory"
+        actions={
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            {isSuspended ? (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<MdCheckCircle />}
+                onClick={() => {
+                  setTargetStatus('active');
+                  setStatusModalOpen(true);
+                }}
+                sx={{ fontWeight: 700 }}
+              >
+                Reactivate Account
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<MdBlock />}
+                onClick={() => {
+                  setTargetStatus('suspended');
+                  setStatusModalOpen(true);
+                }}
+                sx={{ fontWeight: 700 }}
+              >
+                Suspend Account
+              </Button>
+            )}
 
-        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-          {isSuspended ? (
             <Button
               variant="contained"
-              color="success"
-              startIcon={<MdCheckCircle />}
-              onClick={() => {
-                setTargetStatus('active');
-                setStatusModalOpen(true);
-              }}
-              sx={{ fontWeight: 700 }}
-            >
-              Reactivate Account
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
               color="error"
-              startIcon={<MdBlock />}
+              startIcon={<MdDeleteOutline />}
               onClick={() => {
-                setTargetStatus('suspended');
-                setStatusModalOpen(true);
+                setDeleteConfirmationText('');
+                setDeleteReason('');
+                setDeleteModalOpen(true);
               }}
-              sx={{ fontWeight: 700 }}
+              sx={{
+                fontWeight: 700,
+                bgcolor: '#DC2626',
+                '&:hover': { bgcolor: '#B91C1C' },
+              }}
             >
-              Suspend Account
+              Permanently Delete User
             </Button>
-          )}
-
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<MdDeleteOutline />}
-            onClick={() => {
-              setDeleteConfirmationText('');
-              setDeleteReason('');
-              setDeleteModalOpen(true);
-            }}
-            sx={{
-              fontWeight: 700,
-              bgcolor: '#DC2626',
-              '&:hover': { bgcolor: '#B91C1C' },
-            }}
-          >
-            Permanently Delete User
-          </Button>
-        </Box>
-      </Box>
+          </Box>
+        }
+      />
 
       {/* 360 Profile Banner */}
       <Paper elevation={0} sx={{ p: 3.5, mb: 3.5, borderRadius: 3.5, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
-          <Avatar sx={{ bgcolor: '#2E7D32', width: 64, height: 64, fontSize: '1.75rem', fontWeight: 800 }}>
+          <Avatar sx={{ bgcolor: '#2563EB', width: 64, height: 64, fontSize: '1.75rem', fontWeight: 800 }}>
             {(user.full_name || user.name || 'U').charAt(0).toUpperCase()}
           </Avatar>
           <Box sx={{ flex: 1 }}>
@@ -201,18 +201,13 @@ const AdminUserDetail = () => {
                 label={roleLabel}
                 size="small"
                 sx={{
-                  bgcolor: roleCode === 'seller' ? '#E8F5E9' : roleCode === 'buyer' ? '#E0F2FE' : '#F1F5F9',
-                  color: roleCode === 'seller' ? '#166534' : roleCode === 'buyer' ? '#0369A1' : '#0F172A',
+                  bgcolor: roleCode === 'seller' ? '#EEF4FF' : roleCode === 'buyer' ? '#F0F9FF' : '#F1F5F9',
+                  color: roleCode === 'seller' ? '#2563EB' : roleCode === 'buyer' ? '#0369A1' : '#0F172A',
                   fontWeight: 800,
                   fontSize: '0.72rem',
                 }}
               />
-              <Chip
-                label={user.status?.toUpperCase() || 'ACTIVE'}
-                size="small"
-                color={user.status === 'suspended' ? 'error' : 'success'}
-                sx={{ fontWeight: 800, fontSize: '0.72rem' }}
-              />
+              <StatusBadge status={user.status || 'active'} />
             </Box>
             <Typography variant="body2" color="text.secondary">
               User ID: #{user.id} • Registered Phone: {user.phone || 'N/A'} • Email: {user.email || 'N/A'}

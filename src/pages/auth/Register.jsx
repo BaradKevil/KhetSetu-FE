@@ -280,10 +280,10 @@ const Register = () => {
         alignItems: { xs: 'stretch', sm: 'center' },
         justifyContent: 'center',
         p: { xs: 0, sm: 2.5, md: 4 },
-        bgcolor: { xs: '#FFFFFF', sm: '#F8FAF9' },
+        bgcolor: { xs: '#FFFFFF', sm: '#F8FAFC' },
         background: {
           xs: '#FFFFFF',
-          sm: 'radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.08) 0%, transparent 45%), #F8FAF9',
+          sm: 'radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 45%), #F8FAFC',
         },
       }}
     >
@@ -296,7 +296,7 @@ const Register = () => {
           minHeight: { xs: '100vh', sm: 'auto' },
           borderRadius: { xs: 0, sm: 4 },
           border: { xs: 'none', sm: '1px solid #E2E8F0' },
-          boxShadow: { xs: 'none', sm: '0 20px 40px rgba(0, 0, 0, 0.05)' },
+          boxShadow: { xs: 'none', sm: '0 20px 40px rgba(15, 23, 42, 0.05)' },
           bgcolor: '#FFFFFF',
           display: 'flex',
           flexDirection: 'column',
@@ -321,7 +321,7 @@ const Register = () => {
               width: 52,
               height: 52,
               borderRadius: 3,
-              bgcolor: role === 'seller' ? '#2E7D32' : '#0288D1',
+              bgcolor: '#2563EB',
               color: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
@@ -330,10 +330,7 @@ const Register = () => {
               mx: 'auto',
               mb: 1.5,
               transition: 'background-color 0.3s ease',
-              boxShadow:
-                role === 'seller'
-                  ? '0 8px 18px rgba(46, 125, 50, 0.22)'
-                  : '0 8px 18px rgba(2, 136, 209, 0.22)',
+              boxShadow: '0 8px 18px rgba(37, 99, 235, 0.22)',
             }}
           >
             {role === 'seller' ? <MdAgriculture /> : <MdShoppingCart />}

@@ -45,6 +45,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 import { getImageUrl } from '../../common/imageUtils';
+import PageHeader from '../../common/custom/PageHeader';
 
 const PINCODE_REGEX = /^[1-9][0-9]{5}$/;
 
@@ -555,19 +556,16 @@ const AddProduct = () => {
   };
 
   return (
-    <Box maxWidth="md" sx={{ mx: 'auto', pb: 6 }}>
+    <Box maxWidth="lg" sx={{ mx: 'auto', pb: 6 }}>
       {/* Page Header */}
-      <Box sx={{ mb: 3.5 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('farmer.addNewCropTitle', '🌾 List Your Crop for Sale')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('farmer.addNewCropSubtitle', 'Direct farmer-to-buyer crop listing wizard. All marked fields are mandatory for accurate market trade.')}
-        </Typography>
-      </Box>
+      <PageHeader
+        title={t('farmer.addNewCropTitle', '🌾 List Your Crop for Sale')}
+        subtitle={t('farmer.addNewCropSubtitle', 'Direct farmer-to-buyer crop listing wizard. All marked fields are mandatory for accurate market trade.')}
+        showBack={true}
+      />
 
       {/* Mandatory Notification Alert */}
-      <Alert severity="info" sx={{ mb: 3.5, borderRadius: 3, fontWeight: 500 }}>
+      <Alert severity="info" sx={{ mb: 3.5, borderRadius: 3, fontWeight: 500, bgcolor: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE' }}>
         {t('farmer.allFieldsMandatoryAlert', 'All fields and documents marked with * are strictly mandatory. Please fill all details accurately.')}
       </Alert>
 
@@ -595,7 +593,7 @@ const AddProduct = () => {
         {activeStep === 0 && (
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <MdAgriculture size={24} color="#16A34A" />
+              <MdAgriculture size={24} color="#2563EB" />
               <Typography variant="h6" fontWeight={700} color="#0F172A">
                 {t('farmer.cropType', 'Step 1: Choose Crop & Specifications')}
               </Typography>

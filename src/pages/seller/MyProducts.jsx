@@ -12,13 +12,17 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Grid,
 } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
-import { MdAddCircleOutline, MdVisibility } from 'react-icons/md';
+import { MdAddCircleOutline, MdVisibility, MdStorefront, MdCheckCircle, MdInventory2 } from 'react-icons/md';
 import { useGetSellerProductsQuery, useGetProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 /**
  * Resilient Crop Image Component:
@@ -119,40 +123,73 @@ const MyProducts = () => {
     navigate('/seller/products/new');
   };
 
+  const totalCrops = products.length;
+  const liveCrops = products.filter((p) => p.status === 'live').length;
+  const totalStock = products.reduce((acc, p) => acc + (Number(p.available_quantity) || 0), 0);
+
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Header Bar */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={800} color="#0F172A">
-            {t('farmer.cropListingsTitle', '🌾 My Crop Listings')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('farmer.cropListingsSubtitle', 'Manage your crops listed on KhetSetu Mandi.')}
-          </Typography>
-        </Box>
-        <Button
-          onClick={handleAddCropClick}
-          variant="contained"
-          color="primary"
-          startIcon={<MdAddCircleOutline />}
-          sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
-        >
-          {t('farmer.addCropBtn', 'Add Crop')}
-        </Button>
+      {/* Page Header */}
+      <PageHeader
+        title={t('farmer.cropListingsTitle', '🌾 My Crop Listings')}
+        subtitle={t('farmer.cropListingsSubtitle', 'Manage your crops listed on KhetSetu Mandi.')}
+        action={
+          <Button
+            onClick={handleAddCropClick}
+            variant="contained"
+            color="primary"
+            startIcon={<MdAddCircleOutline />}
+            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+          >
+            {t('farmer.addCropBtn', 'Add Crop')}
+          </Button>
+        }
+      />
+
+      {/* KPI Cards Row (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3.5,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          label={t('farmer.kpiTotalCrops', 'Total Crops Listed')}
+          value={totalCrops}
+          subtitle={t('farmer.kpiTotalCropsSub', 'Active listings')}
+          icon={<MdInventory2 />}
+          color="blue"
+        />
+        <KPICard
+          label={t('farmer.kpiLiveCrops', 'Live on Mandi')}
+          value={liveCrops}
+          subtitle={t('farmer.kpiLiveCropsSub', 'Available for buyers')}
+          icon={<MdStorefront />}
+          color="green"
+        />
+        <KPICard
+          label={t('farmer.kpiTotalStock', 'Total Stock Quantity')}
+          value={totalStock.toLocaleString()}
+          subtitle={t('farmer.kpiTotalStockSub', 'Cumulative farm units')}
+          icon={<MdCheckCircle />}
+          color="amber"
+        />
       </Box>
 
       {/* Product Listings Table */}
       <Paper elevation={0} sx={{ borderRadius: 3.5, border: '1px solid #E2E8F0', overflow: 'hidden', bgcolor: '#FFFFFF' }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#F8FAF9' }}>
+          <TableHead sx={{ bgcolor: '#F8FAFC' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.cropAndVariety', 'Crop & Variety')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.grade', 'Grade')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('farmer.availableStock', 'Available Stock')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('common.price', 'Price')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Status')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>{t('common.actions', 'Action')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.cropAndVariety', 'Crop & Variety')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.grade', 'Grade')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('farmer.availableStock', 'Available Stock')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('common.price', 'Price')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#475569' }}>{t('common.status', 'Status')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: '#475569' }}>{t('common.actions', 'Action')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -187,25 +224,19 @@ const MyProducts = () => {
                       </Box>
                     </Box>
                   </TableCell>
-                  <TableCell>{p.grade}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ color: '#334155', fontWeight: 600 }}>{p.grade}</TableCell>
+                  <TableCell sx={{ color: '#334155', fontWeight: 600 }}>
                     {p.available_quantity} {p.unit}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#2E7D32' }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#2563EB' }}>
                     ₹{(p.price_per_unit_paise / 100).toFixed(0)}/{p.unit}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={p.status.toUpperCase()}
-                      size="small"
-                      color={p.status === 'live' ? 'success' : 'default'}
-                      variant={p.status === 'live' ? 'filled' : 'outlined'}
-                      sx={{ fontWeight: 700, fontSize: '0.72rem' }}
-                    />
+                    <StatusBadge status={p.status} />
                   </TableCell>
                   <TableCell align="right">
                     <Tooltip title={t('farmer.viewDetailsTooltip', 'View Crop Details (પાકની વિગતો જુઓ)')}>
-                      <IconButton component={Link} to={`/seller/products/${p.id}`} size="small" color="primary">
+                      <IconButton component={Link} to={`/seller/products/${p.id}`} size="small" sx={{ color: '#2563EB', bgcolor: '#EFF6FF', borderRadius: 2 }}>
                         <MdVisibility />
                       </IconButton>
                     </Tooltip>

@@ -40,6 +40,9 @@ import {
 import { useGetAdminOrdersQuery, useOrderInterventionMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
+import PageHeader from '../../common/custom/PageHeader';
+import KPICard from '../../common/custom/KPICard';
+import StatusBadge from '../../common/custom/StatusBadge';
 
 const formatINR = (val) => {
   const num = Number(val) || 0;
@@ -210,17 +213,59 @@ const AdminOrders = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
-      {/* Page Header */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant="h5" fontWeight={800} color="#0F172A">
-          Orders Oversight & Escrow Vault
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Cross-marketplace view of all crop procurement contracts, logistics tracking, and dispute intervention.
-        </Typography>
+      {/* Page Header (Reference Design) */}
+      <PageHeader
+        title="Orders Oversight & Escrow Vault"
+        subtitle="Cross-marketplace view of all crop procurement contracts, logistics tracking, and dispute intervention."
+        actions={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<MdFileDownload size={18} />}
+            onClick={exportOrdersCSV}
+            sx={{
+              fontWeight: 700,
+              borderRadius: 2,
+              px: 2.5,
+              py: 1,
+            }}
+          >
+            Export Orders CSV
+          </Button>
+        }
+      />
+
+      {/* 3 KPI Stat Cards (Uniform full-width grid) */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2.5,
+          mb: 3,
+          width: '100%',
+        }}
+      >
+        <KPICard
+          icon={<MdReceiptLong size={24} />}
+          label="Total Orders"
+          value={counts.all ?? (pagination.totalCount || orders.length)}
+          color="blue"
+        />
+        <KPICard
+          icon={<MdLock size={24} />}
+          label="Escrow Secured"
+          value={counts.paid ?? orders.filter(o => o.status === 'paid' || o.status === 'escrow_held').length}
+          color="green"
+        />
+        <KPICard
+          icon={<MdDoneAll size={24} />}
+          label="Completed Orders"
+          value={counts.completed ?? orders.filter(o => o.status === 'completed').length}
+          color="purple"
+        />
       </Box>
 
-      {/* Top Controls: Search Bar on Left + Export Button on Far Right (Refresh removed) */}
+      {/* Search Toolbar */}
       <Paper
         elevation={0}
         sx={{
@@ -256,23 +301,6 @@ const AdminOrders = () => {
             sx={{ maxWidth: 460 }}
           />
         </Box>
-
-        <Button
-          variant="contained"
-          startIcon={<MdFileDownload size={18} />}
-          onClick={exportOrdersCSV}
-          sx={{
-            fontWeight: 700,
-            bgcolor: '#166534',
-            '&:hover': { bgcolor: '#14532D' },
-            borderRadius: 2,
-            px: 2.5,
-            py: 0.9,
-            textTransform: 'none',
-          }}
-        >
-          Export Orders CSV
-        </Button>
       </Paper>
 
       {/* Distinct Tabs Row Below Controls with Count Badges */}

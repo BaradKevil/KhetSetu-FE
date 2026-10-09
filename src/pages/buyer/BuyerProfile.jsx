@@ -41,6 +41,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import LanguageSelector from '../../common/custom/LanguageSelector';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import PageHeader from '../../common/custom/PageHeader';
 
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
@@ -199,15 +200,13 @@ const BuyerProfile = () => {
   }
 
   return (
-    <Box maxWidth="lg">
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={800} color="#0F172A">
-          {t('buyer.buyerProfileTitle', '💼 Business Profile & Settings')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('buyer.businessVerifyDesc', 'Manage your verified trading credentials, GSTIN, team members, and security.')}
-        </Typography>
-      </Box>
+    <Box maxWidth="lg" sx={{ pb: 6 }}>
+      {/* Page Header */}
+      <PageHeader
+        title={t('buyer.buyerProfileTitle', '💼 Business Profile & Settings')}
+        subtitle={t('buyer.businessVerifyDesc', 'Manage your verified trading credentials, GSTIN, team members, and security.')}
+        showBack={true}
+      />
 
       {/* Verification State Banner */}
       <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
