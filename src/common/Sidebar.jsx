@@ -29,6 +29,9 @@ import {
   MdShoppingCart,
   MdLocationOn,
   MdDescription,
+  MdLocalOffer,
+  MdReceipt,
+  MdBookmark,
 } from 'react-icons/md';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -52,6 +55,9 @@ const menuTranslationKeys = {
   'buyer-addresses': 'deliveryAddresses',
   'buyer-disputes': 'disputesClaims',
   'buyer-rfq': 'postRfq',
+  'buyer-offers': 'quotesOffers',
+  'buyer-invoices': 'invoicesStatements',
+  'buyer-watchlist': 'watchlistAlerts',
   'buyer-profile': 'businessProfile',
   'admin-dashboard': 'controlTower',
   'admin-users': 'usersDirectory',
@@ -80,6 +86,9 @@ const iconMap = {
   'buyer-addresses': <MdLocationOn size={20} />,
   'buyer-disputes': <MdGavel size={20} />,
   'buyer-rfq': <MdDescription size={20} />,
+  'buyer-offers': <MdLocalOffer size={20} />,
+  'buyer-invoices': <MdReceipt size={20} />,
+  'buyer-watchlist': <MdBookmark size={20} />,
   'buyer-profile': <MdVerifiedUser size={20} />,
   'admin-dashboard': <MdAdminPanelSettings size={20} />,
   'admin-users': <MdPeople size={20} />,

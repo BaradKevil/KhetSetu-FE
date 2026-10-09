@@ -87,6 +87,24 @@ export const menulist = [
     roles: ['buyer'],
   },
   {
+    id: 'buyer-offers',
+    name: 'Quotes & Offers',
+    path: '/buyer/offers',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-invoices',
+    name: 'Invoices & Statements',
+    path: '/buyer/invoices',
+    roles: ['buyer'],
+  },
+  {
+    id: 'buyer-watchlist',
+    name: 'Watchlist & Alerts',
+    path: '/buyer/watchlist',
+    roles: ['buyer'],
+  },
+  {
     id: 'buyer-profile',
     name: 'Business Profile',
     path: '/buyer/profile',

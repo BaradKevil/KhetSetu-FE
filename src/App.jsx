@@ -39,6 +39,9 @@ import BuyerCheckout from './pages/buyer/BuyerCheckout';
 import BuyerAddresses from './pages/buyer/BuyerAddresses';
 import BuyerDisputes from './pages/buyer/BuyerDisputes';
 import BuyerRFQ from './pages/buyer/BuyerRFQ';
+import BuyerOffers from './pages/buyer/BuyerOffers';
+import BuyerInvoices from './pages/buyer/BuyerInvoices';
+import BuyerWatchlist from './pages/buyer/BuyerWatchlist';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -138,6 +141,9 @@ function App() {
         { path: 'addresses', element: <BuyerAddresses /> },
         { path: 'disputes', element: <BuyerDisputes /> },
         { path: 'rfq', element: <BuyerRFQ /> },
+        { path: 'offers', element: <BuyerOffers /> },
+        { path: 'invoices', element: <BuyerInvoices /> },
+        { path: 'watchlist', element: <BuyerWatchlist /> },
         { path: 'profile', element: <BuyerProfile /> },
       ],
     },
