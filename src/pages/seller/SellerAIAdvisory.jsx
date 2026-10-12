@@ -87,47 +87,7 @@ export default function SellerAIAdvisory() {
       // ignore
     }
 
-    return [
-      {
-        id: 'msg-welcome',
-        sender: 'ai',
-        text:
-          language === 'gu'
-            ? `🙏 **નમસ્તે ખેડૂત મિત્ર!** હું છું તમારો **ખેતસેતુ કિસાન AI સલાહકાર** (Powered by Google Gemini 3.8 Flash).
-
-હું તમને નીચેની બાબતોમાં સીધી મદદ કરી શકું છું:
-• 🚜 **ટ્રેક્ટર અને રોટાવેટર**: તમારી જમીન મુજબ યોગ્ય HP અને બ્લેડ સાઇઝ
-• ☀️ **PM-KUSUM સોલાર પંપ**: ૬૦% સબસિડી અને બોરવેલ મુજબ યોગ્ય ક્ષમતા (3HP / 5HP / 7.5HP)
-• 💧 **ટપક સિંચાઈ (Drip Irrigation)**: GGRC ૭૦% સબસિડી અને ગોઠવણ
-• 🌿 **ઓર્ગેનિક રોગ-જીવાત નિયંત્રણ**: લીંબોળી તેલ, ટ્રાઈકોડર્મા અને ફેરોમોન ટ્રેપ
-• 🌾 **પાક લણણી અને બજાર ભાવ**: લસણ, જીરું, મગફળી અને કપાસના સારા ભાવ મેળવવાની પદ્ધતિ
-
-નીચે આપેલા સૂચવેલા પ્રશ્નોમાંથી પસંદ કરો અથવા તમારો પોતાનો પ્રશ્ન લખીને પૂછો!`
-            : language === 'hi'
-            ? `🙏 **नमस्ते किसान साथी!** मैं हूँ आपका **खेतसेतु किसान AI सलाहकार** (Powered by Google Gemini 3.8 Flash).
-
-मैं आपकी खेती और उपकरणों से जुड़े हर सवाल में सहायता कर सकता हूँ:
-• 🚜 **ट्रैक्टर व रोटावेटर**: आपकी जमीन अनुसार सही HP और ब्लेड का चुनाव
-• ☀️ **कुसुम सोलर पंप (PM-KUSUM)**: 60% सरकारी सब्सिडी और सही क्षमता
-• 💧 **ड्रिप सिंचाई**: ड्रिप सब्सिडी और फसल अनुरूप योजना
-• 🌿 **जैविक कीट व रोग नियंत्रण**: नीम तेल, ट्राइकोडर्मा और प्राकृतिक उपचार
-• 🌾 **फसल कटाई व मंडी बिक्री**: लहसुन, जीरा, मूंगफली और कपास के उत्तम भाव
-
-नीचे दिए गए सुझावों में से चुनें या अपना सवाल टाइप करें!`
-            : `🙏 **Welcome Farmer Friend!** I am your **KhetSetu Kisan AI Advisory** assistant, powered live by **Google Gemini 3.8 Flash**.
-
-Ask me anything about modern farming and machinery:
-• 🚜 **Tractor & Rotavator Sizing**: Best HP and blade specs for your acreage & soil
-• ☀️ **Solar Water Pumps (PM-KUSUM)**: 60% subsidy breakdown & HP selection
-• 💧 **Drip Irrigation Setup**: Subsidies (GGRC) & water management
-• 🌿 **Organic Pest Management**: Neem oil, Trichoderma & natural bio-controls
-• 🌾 **Optimal Harvest Timing**: Maximize Grade A mandi prices for Garlic, Cumin, Groundnut & Cotton
-
-Choose one of the starter questions below or type your query in any language!`,
-        model: GEMINI_MODEL,
-        time: new Date().toISOString(),
-      },
-    ];
+    return [];
   });
 
   const [inputQuery, setInputQuery] = useState('');
@@ -145,7 +105,7 @@ Choose one of the starter questions below or type your query in any language!`,
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Pure Live AI Call using Gemini with automatic fallback
+  // Live AI call through the protected backend advisory service.
   const callGeminiAI = async (userText, chatHistory) => {
     // 1. Prepare multi-turn conversation context
     const recentHistory = chatHistory.slice(-8);
@@ -156,6 +116,9 @@ Choose one of the starter questions below or type your query in any language!`,
         message: userText,
         language: activeLang,
         systemInstruction: SYSTEM_INSTRUCTION,
+        maxOutputTokens: 4096,
+        responseInstruction:
+          'Return a complete, self-contained answer. Do not stop mid-sentence or mid-section. If the topic is broad, prioritize the most useful actionable points and finish with a concise summary.',
         history: recentHistory.map((m) => ({
           role: m.sender === 'user' ? 'user' : 'model',
           parts: [{ text: m.text }],
@@ -169,7 +132,7 @@ Choose one of the starter questions below or type your query in any language!`,
         };
       }
     } catch (backendError) {
-      console.warn('Backend proxy unavailable, calling Gemini API directly:', backendError?.message);
+      console.warn('AI advisory service request failed:', backendError?.message);
     }
 
     throw new Error('Unable to connect to the AI advisory service. Please try again.');
@@ -203,20 +166,7 @@ Choose one of the starter questions below or type your query in any language!`,
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
       console.error('Kisan AI Generation Error:', err);
-      const errorMessage = {
-        id: `msg-${Date.now()}-ai-error`,
-        sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? `⚠️ **ક્ષમા કરશો, AI સાથે જોડાણ થઈ શક્યું નથી.**\n\nભૂલ: ${err?.message || 'ઇન્ટરનેટ જોડાણ તપાસો.'}\n\nકૃપા કરીને ફરીથી પ્રયાસ કરો.`
-            : activeLang === 'hi'
-            ? `⚠️ **क्षमा करें, AI सेवा से संपर्क नहीं हो पाया।**\n\nकारण: ${err?.message || 'कृपया इंटरनेट कनेक्शन जांचें।'}\n\nकृपया दोबारा प्रयास करें।`
-            : `⚠️ **Unable to connect to Google Gemini AI service.**\n\nError: ${err?.message || 'Please check your internet connection.'}\n\nPlease try again in a few moments.`,
-        model: 'connection-error',
-        time: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      toast.error('AI connection issue. Please retry.');
+      toast.error(err?.message || 'AI connection issue. Please retry.');
     } finally {
       setIsTyping(false);
     }
@@ -237,21 +187,7 @@ Choose one of the starter questions below or type your query in any language!`,
   };
 
   const handleClearChat = () => {
-    const welcome = [
-      {
-        id: `msg-${Date.now()}-ai`,
-        sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? 'ચેટ રીસેટ થઈ ગઈ છે. ખેતી સાધનો, સોલાર પંપ કે પાક રોગ-જીવાત અંગે નવો પ્રશ્ન પૂછો!'
-            : activeLang === 'hi'
-            ? 'चैट रीसेट हो गई है। उपकरण, सोलर पंप या फसल सलाह पर नया प्रश्न पूछें!'
-            : 'Conversation reset. Ask any question about tractors, solar pumps, drip irrigation, or subsidies!',
-        model: GEMINI_MODEL,
-        time: new Date().toISOString(),
-      },
-    ];
-    setMessages(welcome);
+    setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
     toast.info('Chat cleared.');
   };
