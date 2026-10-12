@@ -3,6 +3,7 @@ import { useUpdateLanguageMutation, useGetProfileQuery } from '../Api/Api';
 import { SUPPORTED_LANGUAGES, translations } from '../locales';
 
 export const LANGUAGES = SUPPORTED_LANGUAGES;
+const SUPPORTED_LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map(({ code }) => code));
 
 const LanguageContext = createContext(null);
 
@@ -12,7 +13,7 @@ export const LanguageProvider = ({ children }) => {
     const saved =
       localStorage.getItem('khetsetu_language') ||
       localStorage.getItem('preferredLanguage');
-    return saved === 'hi' || saved === 'gu' || saved === 'en' ? saved : 'en';
+    return SUPPORTED_LANGUAGE_CODES.has(saved) ? saved : 'en';
   });
 
   const [hasUserManuallyChosen, setHasUserManuallyChosen] = useState(false);
@@ -29,7 +30,7 @@ export const LanguageProvider = ({ children }) => {
 
     if (!hasUserManuallyChosen && !isAuthPage && userProfile?.preferred_language) {
       const dbLang = userProfile.preferred_language;
-      if (['en', 'hi', 'gu'].includes(dbLang) && dbLang !== language) {
+      if (SUPPORTED_LANGUAGE_CODES.has(dbLang) && dbLang !== language) {
         setLanguageState(dbLang);
         localStorage.setItem('khetsetu_language', dbLang);
         localStorage.setItem('preferredLanguage', dbLang);
@@ -41,6 +42,8 @@ export const LanguageProvider = ({ children }) => {
   // Keep HTML root lang tag updated
   useEffect(() => {
     document.documentElement.lang = language;
+    document.documentElement.dir =
+      SUPPORTED_LANGUAGES.find((item) => item.code === language)?.direction || 'ltr';
   }, [language]);
 
   /**
@@ -48,7 +51,7 @@ export const LanguageProvider = ({ children }) => {
    */
   const changeLanguage = useCallback(
     async (newLang) => {
-      if (!['en', 'hi', 'gu'].includes(newLang)) return;
+      if (!SUPPORTED_LANGUAGE_CODES.has(newLang)) return;
 
       setHasUserManuallyChosen(true);
 

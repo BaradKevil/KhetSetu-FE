@@ -48,25 +48,25 @@ const Navbar = ({ onToggleSidebar }) => {
     let border = '#BFDBFE';
 
     if (role === 'super_admin') {
-      label = t('superAdmin', 'Super Admin');
+      label = t('navigation.superAdmin');
       icon = <MdAdminPanelSettings size={15} style={{ marginRight: 5 }} />;
       bg = '#EFF6FF';
       color = '#1E40AF';
       border = '#BFDBFE';
     } else if (role === 'staff') {
-      label = t('adminStaff', 'Admin Staff');
+      label = t('navigation.adminStaff');
       icon = <MdAdminPanelSettings size={15} style={{ marginRight: 5 }} />;
       bg = '#F1F5F9';
       color = '#334155';
       border = '#CBD5E1';
     } else if (role === 'seller') {
-      label = t('farmerSeller', 'Farmer');
+      label = t('navigation.farmerSeller');
       icon = <MdAgriculture size={16} style={{ marginRight: 5 }} />;
       bg = '#F0FDF4';
       color = '#15803D';
       border = '#BBF7D0';
     } else if (role === 'buyer') {
-      label = t('traderBuyer', 'Buyer');
+      label = t('navigation.traderBuyer');
       icon = <MdStorefront size={15} style={{ marginRight: 5 }} />;
       bg = '#F0F9FF';
       color = '#0369A1';
@@ -168,7 +168,7 @@ const Navbar = ({ onToggleSidebar }) => {
               variant="text"
               sx={{ display: { xs: 'none', sm: 'inline-flex' }, color: '#475569', fontWeight: 600 }}
             >
-              {t('mandiRatesMarket', 'Mandi Rates & Market')}
+              {t('navigation.mandiRatesMarket')}
             </Button>
           )}
         </Box>
@@ -188,7 +188,7 @@ const Navbar = ({ onToggleSidebar }) => {
                 p: 0.7,
                 '&:hover': { bgcolor: '#F1F5F9' },
               }}
-              title={t('cart', 'Cart')}
+              title={t('common.cart')}
             >
               <Badge badgeContent={totalItemsCount} color="primary" max={99}>
                 <MdShoppingCart size={18} />
@@ -235,7 +235,7 @@ const Navbar = ({ onToggleSidebar }) => {
               }}
             >
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                {t('logout', 'Sign Out')}
+                {t('common.logout')}
               </Box>
             </Button>
           ) : (
@@ -253,7 +253,7 @@ const Navbar = ({ onToggleSidebar }) => {
                 px: 2,
               }}
             >
-              {t('signIn', 'Sign In')}
+              {t('common.signIn')}
             </Button>
           )}
         </Box>

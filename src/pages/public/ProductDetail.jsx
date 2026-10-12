@@ -327,14 +327,13 @@ const ProductDetail = () => {
             {isSeller ? (
               <Alert severity="warning" sx={{ borderRadius: 3 }}>
                 <Typography variant="subtitle2" fontWeight={700}>
-                  {language === 'gu' ? 'ખેડૂત એકાઉન્ટ ડિટેક્ટ થયું' : language === 'hi' ? 'किसान खाता पहचाना गया' : 'Farmer Account Detected'}
+                  {t('market.farmerAccountDetected', 'Farmer Account Detected')}
                 </Typography>
                 <Typography variant="body2">
-                  {language === 'gu'
-                    ? 'તમે હાલ ખેડૂત (Seller) તરીકે લૉગિન છો. પાક ખરીદવા અને એસ્ક્રો ઓર્ડર આપવા માટે ખરીદનાર (Buyer) ખાતાની જરૂર છે.'
-                    : language === 'hi'
-                    ? 'आप वर्तमान में किसान (विक्रेता) के रूप में लॉगिन हैं। फसल खरीदने और एस्क्रो ऑर्डर देने के लिए खरीदार (Buyer) खाते की आवश्यकता है।'
-                    : 'You are logged in with a Farmer (Seller) account. To purchase crops and place escrow orders, please use a registered Buyer account.'}
+                  {t(
+                    'market.farmerCannotBuyOwn',
+                    'You are logged in with a Farmer (Seller) account. To purchase crops and place escrow orders, please use a registered Buyer account.'
+                  )}
                 </Typography>
               </Alert>
             ) : (

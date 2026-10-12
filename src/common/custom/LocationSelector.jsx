@@ -92,8 +92,8 @@ export const LocationSelector = ({
     village: 'Village',
   },
 }) => {
-  // Read current active language from context (default 'en')
-  const { language: contextLang } = useLanguage?.() || { language: 'en' };
+  // Read current active language and translation helper from context (default 'en')
+  const { language: contextLang, t = (k, def) => def || k } = useLanguage?.() || { language: 'en' };
   const lang = labels?.lang || contextLang || 'en';
 
   const currentState = toCanonicalLocation(values?.state || '');
@@ -117,20 +117,20 @@ export const LocationSelector = ({
   );
 
   // Dynamic placeholders based on hierarchy progress
-  const statePlaceholder = labels.selectState || (lang === 'gu' ? 'રાજ્ય પસંદ કરો' : lang === 'hi' ? 'राज्य चुनें' : 'Select State');
+  const statePlaceholder = labels.selectState || t('common.selectState', 'Select State');
   const districtPlaceholder = currentState
-    ? (labels.selectDistrict || (lang === 'gu' ? 'જિલ્લો પસંદ કરો' : lang === 'hi' ? 'ज़िला चुनें' : 'Select District'))
-    : (labels.selectStateFirst || (lang === 'gu' ? 'પહેલા રાજ્ય પસંદ કરો' : lang === 'hi' ? 'पहले राज्य चुनें' : 'Select State first'));
+    ? (labels.selectDistrict || t('common.selectDistrict', 'Select District'))
+    : (labels.selectStateFirst || t('common.selectStateFirst', 'Select State first'));
   const cityPlaceholder = currentDistrict
-    ? (labels.selectCity || (lang === 'gu' ? 'શહેર / તાલુકો પસંદ કરો' : lang === 'hi' ? 'शहर / तालुका चुनें' : 'Select City / Taluka'))
+    ? (labels.selectCity || t('common.selectCity', 'Select City / Taluka'))
     : (currentState
-        ? (labels.selectDistrictFirst || (lang === 'gu' ? 'પહેલા જિલ્લો પસંદ કરો' : lang === 'hi' ? 'पहले ज़िला चुनें' : 'Select District first'))
-        : (labels.selectStateFirst || (lang === 'gu' ? 'પહેલા રાજ્ય પસંદ કરો' : lang === 'hi' ? 'पहले राज्य चुनें' : 'Select State first')));
+        ? (labels.selectDistrictFirst || t('common.selectDistrictFirst', 'Select District first'))
+        : (labels.selectStateFirst || t('common.selectStateFirst', 'Select State first')));
   const villagePlaceholder = currentCity
-    ? (labels.selectVillage || (lang === 'gu' ? 'ગામ પસંદ કરો' : lang === 'hi' ? 'गाँव चुनें' : 'Select Village'))
+    ? (labels.selectVillage || t('common.selectVillage', 'Select Village'))
     : (currentDistrict
-        ? (labels.selectCityFirst || (lang === 'gu' ? 'પહેલા શહેર / તાલુકો પસંદ કરો' : lang === 'hi' ? 'पहले शहर / तालुका चुनें' : 'Select City first'))
-        : (labels.selectDistrictFirst || (lang === 'gu' ? 'પહેલા જિલ્લો પસંદ કરો' : lang === 'hi' ? 'पहले ज़िला चुनें' : 'Select District first')));
+        ? (labels.selectCityFirst || t('common.selectCityFirst', 'Select City first'))
+        : (labels.selectDistrictFirst || t('common.selectDistrictFirst', 'Select District first')));
 
   // Disabled states
   const isDistrictDisabled = disabled || !currentState || !districtsList.length;
@@ -140,61 +140,25 @@ export const LocationSelector = ({
   // Intercept click on disabled/prerequisite fields to show helpful warning message
   const handleDistrictDisabledClick = () => {
     if (!currentState) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले राज्य चुनें'
-          : 'Please select State first';
-      toast.warn(msg, { toastId: 'loc-warn-state' });
+      toast.warn(t('common.pleaseSelectStateFirst', 'Please select State first'), { toastId: 'loc-warn-state' });
     }
   };
 
   const handleCityDisabledClick = () => {
     if (!currentState) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले राज्य चुनें'
-          : 'Please select State first';
-      toast.warn(msg, { toastId: 'loc-warn-state' });
+      toast.warn(t('common.pleaseSelectStateFirst', 'Please select State first'), { toastId: 'loc-warn-state' });
     } else if (!currentDistrict) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા જિલ્લો પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले ज़िला चुनें'
-          : 'Please select District first';
-      toast.warn(msg, { toastId: 'loc-warn-district' });
+      toast.warn(t('common.pleaseSelectDistrictFirst', 'Please select District first'), { toastId: 'loc-warn-district' });
     }
   };
 
   const handleVillageDisabledClick = () => {
     if (!currentState) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા રાજ્ય પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले राज्य चुनें'
-          : 'Please select State first';
-      toast.warn(msg, { toastId: 'loc-warn-state' });
+      toast.warn(t('common.pleaseSelectStateFirst', 'Please select State first'), { toastId: 'loc-warn-state' });
     } else if (!currentDistrict) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા જિલ્લો પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले ज़िला चुनें'
-          : 'Please select District first';
-      toast.warn(msg, { toastId: 'loc-warn-district' });
+      toast.warn(t('common.pleaseSelectDistrictFirst', 'Please select District first'), { toastId: 'loc-warn-district' });
     } else if (!currentCity) {
-      const msg =
-        lang === 'gu'
-          ? 'કૃપા કરીને પહેલા શહેર / તાલુકો પસંદ કરો'
-          : lang === 'hi'
-          ? 'कृपया पहले शहर / तालुका चुनें'
-          : 'Please select City / Taluka first';
-      toast.warn(msg, { toastId: 'loc-warn-city' });
+      toast.warn(t('common.pleaseSelectCityFirst', 'Please select City / Taluka first'), { toastId: 'loc-warn-city' });
     }
   };
 
@@ -299,7 +263,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.state || (lang === 'gu' ? 'રાજ્ય' : lang === 'hi' ? 'राज्य' : 'State')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
+            {labels.state || t('common.state', 'State')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -360,7 +324,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.district || (lang === 'gu' ? 'જિલ્લો' : lang === 'hi' ? 'ज़िला' : 'District')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
+            {labels.district || t('common.district', 'District')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -431,7 +395,7 @@ export const LocationSelector = ({
             color="#334155"
             sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
           >
-            {labels.city || (lang === 'gu' ? 'શહેર / તાલુકો' : lang === 'hi' ? 'शहर / तालुका' : 'City / Taluka')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
+            {labels.city || t('common.city', 'City / Taluka')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
           </Typography>
           <TextField
             select
@@ -493,7 +457,7 @@ export const LocationSelector = ({
               color="#334155"
               sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}
             >
-              {labels.village || (lang === 'gu' ? 'ગામ' : lang === 'hi' ? 'गाँव' : 'Village')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
+              {labels.village || t('common.village', 'Village')} {required && <Box component="span" sx={{ color: '#DC2626', ml: 0.5, fontWeight: 800 }}>*</Box>}
             </Typography>
             {!isCustomVillage ? (
               <TextField
@@ -528,7 +492,7 @@ export const LocationSelector = ({
                   </MenuItem>
                 ))}
                 <MenuItem value={CUSTOM_VILLAGE_KEY} sx={{ fontWeight: 600, color: '#2E7D32' }}>
-                  {lang === 'gu' ? '✍️ અન્ય / ગામનું નામ લખો...' : (lang === 'hi' ? '✍️ अन्य / गाँव का नाम लिखें...' : '✍️ Other / Type Village...')}
+                  {t('common.otherTypeVillage', '✍️ Other / Type Village...')}
                 </MenuItem>
               </TextField>
             ) : (
@@ -538,7 +502,7 @@ export const LocationSelector = ({
                   size={size}
                   value={currentVillage}
                   onChange={handleCustomVillageInput}
-                  placeholder={lang === 'gu' ? 'તમારા ગામનું નામ લખો' : (lang === 'hi' ? 'अपने गाँव का नाम लिखें' : 'Type your village name')}
+                  placeholder={t('common.typeVillageName', 'Type your village name')}
                   autoFocus
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 />
@@ -559,7 +523,7 @@ export const LocationSelector = ({
                   }}
                   title="Back to dropdown list"
                 >
-                  {lang === 'gu' ? 'યાદી' : (lang === 'hi' ? 'सूची' : 'List')}
+                  {t('common.listLabel', 'List')}
                 </Button>
               </Box>
             )}
