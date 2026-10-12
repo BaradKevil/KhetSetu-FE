@@ -83,6 +83,7 @@ export const navigation = {
   auditTrail: 'ऑडिट लॉग',
   platformSettings: 'प्लेटफॉर्म सेटिंग्स',
   aiAdvisory: 'किसान AI सलाहकार',
+  buyerAiAdvisory: 'मंडी AI सलाहकार',
   salesAnalytics: 'बिक्री विश्लेषण',
   statementsTax: 'विवरण और कर',
   farmerScore: 'किसान स्कोर',

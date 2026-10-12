@@ -1,6 +1,6 @@
 import { Box, Typography, Grid, Paper, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { MdStorefront, MdShoppingBag, MdSecurity, MdArrowForward, MdVerified, MdAgriculture } from 'react-icons/md';
+import { MdStorefront, MdShoppingBag, MdSecurity, MdArrowForward, MdVerified, MdAgriculture, MdSmartToy } from 'react-icons/md';
 import { useGetBuyerOrdersQuery, useGetProfileQuery, useGetMarketStatsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import PageHeader from '../../common/custom/PageHeader';
@@ -35,16 +35,27 @@ const BuyerDashboard = () => {
         title={t('buyerDashboardTitle', '🌾 Buyer Overview')}
         subtitle={t('buyerDashboardSubtitle', 'Direct farm produce procurement with institutional escrow protection.')}
         action={
-          <Button
-            component={Link}
-            to="/buyer/market"
-            variant="contained"
-            color="primary"
-            startIcon={<MdStorefront size={20} />}
-            sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
-          >
-            {t('exploreMandiListings', 'Explore Mandi Listings')}
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button
+              component={Link}
+              to="/buyer/ai-advisory"
+              variant="outlined"
+              startIcon={<MdSmartToy size={18} color="#2563EB" />}
+              sx={{ borderRadius: 2.5, fontWeight: 700 }}
+            >
+              {t('buyerAiAdvisory', 'Mandi AI Advisor')}
+            </Button>
+            <Button
+              component={Link}
+              to="/buyer/market"
+              variant="contained"
+              color="primary"
+              startIcon={<MdStorefront size={20} />}
+              sx={{ borderRadius: 2.5, fontWeight: 700, px: 2.5, py: 1 }}
+            >
+              {t('exploreMandiListings', 'Explore Mandi Listings')}
+            </Button>
+          </Box>
         }
       />
 
