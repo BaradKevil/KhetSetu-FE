@@ -40,8 +40,9 @@ const ProductDetail = () => {
   const { data: userProfile } = useGetProfileQuery();
   const createOrderMutation = useCreateOrderMutation();
 
-  const currentUserRole = userProfile?.role || localStorage.getItem('role');
-  const isSeller = currentUserRole === 'seller';
+  const userProfileRole = typeof userProfile?.role === 'object' ? userProfile?.role?.code : userProfile?.role;
+  const currentUserRole = userProfileRole || localStorage.getItem('role');
+  const isSeller = currentUserRole === 'seller' || currentUserRole === 'farmer';
 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);

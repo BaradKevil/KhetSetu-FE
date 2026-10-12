@@ -37,7 +37,10 @@ const Layout = () => {
         <Navbar onToggleSidebar={isMobile ? handleDrawerToggle : undefined} />
 
         {(() => {
-          const isFullPageChat = location.pathname.startsWith('/seller/ai-advisory');
+          const isFullPageChat =
+            location.pathname.startsWith('/seller/ai-advisory') ||
+            location.pathname.startsWith('/farmer/ai-advisory') ||
+            location.pathname.startsWith('/buyer/ai-advisory');
 
           return (
             <Box

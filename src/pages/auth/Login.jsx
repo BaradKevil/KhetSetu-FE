@@ -155,10 +155,42 @@ const Login = () => {
         return;
       }
 
+      // Robust role extraction handling string, object, role_code or JWT payload
+      let roleCode = '';
+      const rawRole = authData.user?.role;
+      if (typeof rawRole === 'string' && rawRole.trim() && rawRole !== '[object Object]') {
+        roleCode = rawRole.trim();
+      } else if (rawRole && typeof rawRole === 'object' && rawRole.code) {
+        roleCode = rawRole.code;
+      } else if (authData.user?.role_code) {
+        roleCode = authData.user.role_code;
+      }
+
+      if (!roleCode && authData.accessToken) {
+        try {
+          const parts = authData.accessToken.split('.');
+          if (parts.length >= 2) {
+            const payload = JSON.parse(atob(parts[1]));
+            roleCode = payload.role_code || payload.role || '';
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!roleCode) {
+        const queryRole = searchParams.get('role');
+        if (queryRole === 'buyer' || queryRole === 'seller' || queryRole === 'farmer') {
+          roleCode = queryRole;
+        } else {
+          roleCode = 'seller';
+        }
+      }
+
       localStorage.setItem('accessToken', authData.accessToken);
       localStorage.setItem('refreshToken', authData.refreshToken);
-      localStorage.setItem('role', authData.user?.role || '');
-      localStorage.setItem('phone', authData.user?.phone || '');
+      localStorage.setItem('role', roleCode);
+      localStorage.setItem('phone', authData.user?.phone || fullPhone);
       localStorage.setItem('fullName', authData.user?.full_name || 'User');
       localStorage.setItem('profilePhoto', authData.user?.profile_photo || '');
 
@@ -174,15 +206,14 @@ const Login = () => {
       toast.success(`Welcome back, ${authData.user?.full_name || 'User'}!`);
 
       // Dynamic redirection based on role associated with the mobile number
-      const userRole = authData.user?.role;
-      if (userRole === 'seller') {
+      if (roleCode === 'seller' || roleCode === 'farmer') {
         navigate('/seller');
-      } else if (userRole === 'buyer') {
+      } else if (roleCode === 'buyer') {
         navigate('/buyer');
-      } else if (userRole === 'super_admin' || userRole === 'staff') {
+      } else if (roleCode === 'super_admin' || roleCode === 'staff') {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate('/seller');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid OTP code. Please try again.');

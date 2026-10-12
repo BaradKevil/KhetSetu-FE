@@ -31,10 +31,10 @@ import { toast } from 'react-toastify';
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
 const STORAGE_KEY = 'khetsetu_ai_advisory_chat_history_v2';
 
-const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan AI" (ખેતસેતુ કિસાન AI / खेतसेतु किसान AI), an expert agronomy consultant, agricultural machinery specialist, and farm advisory intelligence dedicated to Indian farmers (especially in Gujarat and across India).
+const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan & Seller AI" (ખેતસેતુ કિસાન અને વિક્રેતા AI / खेतसेतु किसान एवं विक्रेता AI), an expert agronomy consultant, agricultural machinery specialist, and mandi trading & market intelligence assistant dedicated to Indian farmers and produce sellers (especially in Gujarat and across India).
 
 Your Core Mission & Domain Knowledge:
-1. Agricultural Equipment & Machinery:
+1. Agricultural Equipment & Machinery (For Farmers):
    - Tractor horsepower sizing by acreage: 35–45 HP for 3–7 acres; 45–55 HP for >8 acres with heavy soil. PTO HP specs (540 RPM).
    - Rotavator selection: 36, 42, or 48 blades (5 to 6 ft). L-type blades for heavy/black soil; C-type for sandy loam. Trusted brands in Gujarat (Shaktiman, Fieldking).
    - Solar Water Pumps (PM-KUSUM Component B): 3 HP (water depth 50–120 ft), 5 HP (120–180 ft), 7.5 HP (180–250+ ft) DC submersible. 60% combined subsidy (30% Central + 30% State); farmer pays 10–15%.
@@ -45,9 +45,12 @@ Your Core Mission & Domain Knowledge:
 3. Pest, Weed & Crop Health:
    - Integrated Pest Management (IPM), bio-pesticides (Neem oil 10,000 PPM @ 3ml/L, Beauveria bassiana, Trichoderma viride seed treatment).
    - Pheromone traps and yellow/blue sticky traps for whiteflies, thrips, and bollworms.
-4. Major Crops Cultivation & Post-Harvest Mandi Strategy:
+4. Crop Selling, Quality Grading & Mandi Price Strategy (For Sellers):
    - Garlic (Gujarat Garlic-4), Cumin (Jeera), Groundnut (GG-20), Cotton (Kapas), Wheat, Mustard, Castor, Onion.
-   - Harvest signs, shade curing (8–10 days for garlic), and sun-drying to <8% moisture to earn Grade A prices on KhetSetu without distress sales.
+   - Grade A standards: Large uniform bulb/pod size, foreign matter <1%, moisture content <8% through shade curing (8–10 days for garlic).
+   - Mandi Price Discovery: APMC arrivals, modal rates, optimal selling windows to prevent distress sales.
+   - Escrow & Safe Trade: How KhetSetu escrow protects seller payments, transparent 2.5% platform fee, weighment slip verification, and fast bank payouts upon delivery.
+   - Negotiating Buyer Quotes & RFQs: Responding to bulk buyer orders, setting realistic minimum order quantities (MOQ).
 5. Government Subsidies & Portals:
    - i-Khedut portal Gujarat (ikhedut.gujarat.gov.in), SMAM mechanization subsidies, PM-KUSUM, Kisan Credit Card (KCC).
 
@@ -58,8 +61,8 @@ Language Guidelines:
 
 Formatting Guidelines:
 - Use clean Markdown with headers (###), bold text (**bold**), bullet points (*), and numbers.
-- Use friendly emojis (🚜, ☀️, 💧, 🌾, 🌿, 💡).
-- Give practical, direct numbers (HP, subsidy %, spray dosage, seed rate).`;
+- Use friendly emojis (🚜, ☀️, 💧, 🌾, 🌿, 💡, 💰, 📦).
+- Give practical, direct numbers (HP, subsidy %, spray dosage, seed rate, moisture %, price ranges).`;
 
 export default function SellerAIAdvisory() {
   const { t, language } = useLanguage();
@@ -294,7 +297,7 @@ Choose one of the starter questions below or type your query in any language!`,
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <IconButton
             size="small"
-            onClick={() => navigate('/seller')}
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/seller'))}
             sx={{
               color: '#64748B',
               border: '1px solid #E2E8F0',
@@ -337,10 +340,10 @@ Choose one of the starter questions below or type your query in any language!`,
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
                 {activeLang === 'gu'
-                  ? 'ખેતસેતુ કિસાન AI સલાહકાર'
+                  ? 'ખેતસેતુ કિસાન અને વિક્રેતા AI સલાહકાર'
                   : activeLang === 'hi'
-                  ? 'खेतसेतु किसान AI सलाहकार'
-                  : 'KhetSetu Kisan AI Advisory'}
+                  ? 'खेतसेतु किसान एवं विक्रेता AI सलाहकार'
+                  : 'KhetSetu Kisan & Seller AI Advisory'}
               </Typography>
               <Chip
                 label="⚡ Gemini 3.8 Flash"
@@ -357,10 +360,10 @@ Choose one of the starter questions below or type your query in any language!`,
             </Box>
             <Typography variant="caption" color="#64748B" fontWeight={500}>
               {activeLang === 'gu'
-                ? '૨૪×૭ ખેતી ઓજારો, સિંચાઈ અને સબસિડી સહાયક'
+                ? '૨૪×૭ ખેતી ઓજારો, પાક ઉત્પાદન, મંડી ભાવો અને વેચાણ સહાયક'
                 : activeLang === 'hi'
-                ? '24×7 कृषि उपकरण, सिंचाई व सब्सिडी सहायक'
-                : '24×7 Intelligent Agronomist & Machinery Guidance'}
+                ? '24×7 कृषि उपकरण, फसल उत्पादन, मंडी भाव व व्यापार सहायक'
+                : '24×7 Intelligent Agronomist, Farm Machinery & Mandi Trade Guidance'}
             </Typography>
           </Box>
         </Box>
@@ -460,7 +463,7 @@ Choose one of the starter questions below or type your query in any language!`,
                           fontSize: '0.68rem',
                         }}
                       >
-                        🌾 {activeLang === 'gu' ? 'તમે (ખેડૂત)' : activeLang === 'hi' ? 'आप (किसान)' : 'You (Farmer)'}
+                        🌾 {activeLang === 'gu' ? 'તમે (ખેડૂત / વિક્રેતા)' : activeLang === 'hi' ? 'आप (किसान / विक्रेता)' : 'You (Farmer / Seller)'}
                       </Typography>
                     </Box>
                     <Typography
@@ -726,10 +729,10 @@ Choose one of the starter questions below or type your query in any language!`,
             maxRows={4}
             placeholder={
               activeLang === 'gu'
-                ? 'પાક, ખાતર, બિયારણ, સિંચાઈ, રોગ-જીવાત કે સરકારી સહાય અંગે પૂછો... (Enter દબાવો)'
+                ? 'પાક, ઓજારો, બિયારણ, ખાતર, સિંચાઈ, મંડી ભાવો, ગ્રેડિંગ કે વેચાણ અંગે પૂછો... (Enter દબાવો)'
                 : activeLang === 'hi'
-                ? 'फसल, खाद, बीज, सिंचाई, कीट नियंत्रण या सरकारी योजना पर पूछें... (Enter दबाएं)'
-                : 'Ask Kisan AI about tractor sizing, solar pumps, drip irrigation, pest control, or subsidies...'
+                ? 'फसल, कृषि यंत्र, बीज, खाद, सिंचाई, मंडी भाव, ग्रेडिंग या बिक्री पर पूछें... (Enter दबाएं)'
+                : 'Ask about tractor sizing, solar pumps, drip irrigation, pest control, mandi rates, grading, or selling...'
             }
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}

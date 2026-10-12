@@ -57,7 +57,6 @@ apiClient.interceptors.response.use(
       } catch {
         // Safe ignore
       }
-      window.location.href = `/not-authorized?error=${encodeURIComponent(errorMsg)}`;
       return Promise.reject(error);
     }
 

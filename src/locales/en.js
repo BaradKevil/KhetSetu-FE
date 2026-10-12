@@ -83,6 +83,7 @@ export const navigation = {
   auditTrail: 'Audit Trail',
   platformSettings: 'Platform Settings',
   aiAdvisory: 'Kisan AI Advisory',
+  buyerAiAdvisory: 'Mandi AI Advisor',
   salesAnalytics: 'Sales Analytics',
   statementsTax: 'Statements & Tax',
   farmerScore: 'Farmer Score',

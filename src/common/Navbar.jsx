@@ -20,6 +20,7 @@ import { clearSessionAndRedirect } from '../Api/ApiClient';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { useGetProfileQuery } from '../Api/Api';
+import { getStoredRole } from './Gaurd';
 import LanguageSelector from './custom/LanguageSelector';
 
 const Navbar = ({ onToggleSidebar }) => {
@@ -33,7 +34,8 @@ const Navbar = ({ onToggleSidebar }) => {
     skip: !isAuthenticated,
   });
 
-  const role = localStorage.getItem('role') || userProfile?.role || 'guest';
+  const profileRole = typeof userProfile?.role === 'object' ? userProfile?.role?.code : userProfile?.role;
+  const role = isAuthenticated ? (getStoredRole() || profileRole || 'guest') : 'guest';
 
   // 1. Role Written Component (Pill badge with role-specific icon and text)
   const renderRoleBadge = () => {
