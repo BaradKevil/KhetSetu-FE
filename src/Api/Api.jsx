@@ -209,10 +209,20 @@ export const sellerApi = {
   requestUnlock: (data) => apiClient.post('/seller/kyc/request-unlock', data),
   getDisputes: () => apiClient.get('/seller/disputes'),
   respondToDispute: (id, data) => apiClient.post(`/seller/disputes/${id}/respond`, data),
+  askAIAdvisory: (data) => apiClient.post('/seller/ai-advisory', data),
   uploadDocument: (formData) =>
     apiClient.post('/seller/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+};
+
+export const useAskAIAdvisoryMutation = () => {
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await sellerApi.askAIAdvisory(data);
+      return unwrap(res);
+    },
+  });
 };
 
 export const useGetSellerDisputesQuery = () => {

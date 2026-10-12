@@ -82,6 +82,14 @@ export const navigation = {
   payoutApprovals: 'ચૂકવણી મંજૂરીઓ',
   auditTrail: 'ઓડિટ ટ્રેઇલ',
   platformSettings: 'પ્લેટફોર્મ સેટિંગ્સ',
+  aiAdvisory: 'કિસાન AI સલાહકાર',
+  salesAnalytics: 'વેચાણ વિશ્લેષણ',
+  statementsTax: 'સ્ટેટમેન્ટ અને ટેક્સ',
+  farmerScore: 'ખેડૂત સ્કોર',
+  harvestPlanner: 'લણણી આયોજક',
+  apmcMandiRates: 'APMC મંડી ભાવો',
+  notifications: 'સૂચનાઓ',
+  kisanSupport: 'કિસાન સહાય',
   escrowProtectedFooter: 'ખેતસેતુ એસ્ક્રો સુરક્ષિત © 2026',
 };
 

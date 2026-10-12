@@ -82,6 +82,14 @@ export const navigation = {
   payoutApprovals: 'भुगतान अनुमोदन',
   auditTrail: 'ऑडिट लॉग',
   platformSettings: 'प्लेटफॉर्म सेटिंग्स',
+  aiAdvisory: 'किसान AI सलाहकार',
+  salesAnalytics: 'बिक्री विश्लेषण',
+  statementsTax: 'विवरण और कर',
+  farmerScore: 'किसान स्कोर',
+  harvestPlanner: 'फसल कटाई योजना',
+  apmcMandiRates: 'एपीएमसी मंडी भाव',
+  notifications: 'सूचनाएं',
+  kisanSupport: 'किसान सहायता',
   escrowProtectedFooter: 'खेतसेतु एस्क्रो सुरक्षित © 2026',
 };
 

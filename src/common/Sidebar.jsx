@@ -41,6 +41,7 @@ import {
   MdCalendarMonth,
   MdNotifications,
   MdSupportAgent,
+  MdSmartToy,
 } from 'react-icons/md';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -62,6 +63,7 @@ const menuTranslationKeys = {
   'seller-reputation': 'farmerScore',
   'seller-planner': 'harvestPlanner',
   'seller-mandi': 'apmcMandiRates',
+  'seller-ai-advisory': 'aiAdvisory',
   'seller-kyc': 'farmProfileKyc',
   'seller-notifications': 'notifications',
   'seller-support': 'kisanSupport',
@@ -102,6 +104,7 @@ const iconMap = {
   'seller-reputation': <MdStar size={20} />,
   'seller-planner': <MdCalendarMonth size={20} />,
   'seller-mandi': <MdStorefront size={20} />,
+  'seller-ai-advisory': <MdSmartToy size={20} />,
   'seller-kyc': <MdVerifiedUser size={20} />,
   'seller-notifications': <MdNotifications size={20} />,
   'seller-support': <MdSupportAgent size={20} />,

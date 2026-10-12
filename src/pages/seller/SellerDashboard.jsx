@@ -15,6 +15,7 @@ import {
   MdRefresh,
   MdTrendingUp,
   MdCheckCircle,
+  MdSmartToy,
 } from 'react-icons/md';
 import { useGetSellerProductsQuery, useGetSellerOrdersQuery, useGetProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -77,7 +78,16 @@ const SellerDashboard = () => {
         title={t('farmerDashboardTitle', '🌾 Farmer Dashboard')}
         subtitle={t('farmerDashboardSubtitle', 'Manage your live crop harvests, escrow order contracts, and bank disbursements.')}
         actions={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button
+              component={Link}
+              to="/seller/ai-advisory"
+              variant="outlined"
+              startIcon={<MdSmartToy size={18} color="#2563EB" />}
+              sx={{ borderRadius: 2, fontWeight: 700 }}
+            >
+              Kisan AI Advisory
+            </Button>
             <Button
               component={Link}
               to="/seller/analytics"
@@ -240,6 +250,23 @@ const SellerDashboard = () => {
             sx={{ borderRadius: 2, fontWeight: 700, borderColor: '#E2E8F0', color: '#475569' }}
           >
             Disputes (0)
+          </Button>
+
+          <Button
+            component={Link}
+            to="/seller/ai-advisory"
+            variant="outlined"
+            size="small"
+            startIcon={<MdSmartToy color="#2563EB" />}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+              borderColor: '#BFDBFE',
+              bgcolor: '#EFF6FF',
+              color: '#1D4ED8',
+            }}
+          >
+            AI Advisory 🤖
           </Button>
         </Box>
       </Paper>
