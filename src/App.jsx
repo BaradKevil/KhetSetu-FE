@@ -35,6 +35,7 @@ import SellerMandiPrices from './pages/seller/SellerMandiPrices';
 import SellerKYC from './pages/seller/SellerKYC';
 import SellerNotifications from './pages/seller/SellerNotifications';
 import SellerSupport from './pages/seller/SellerSupport';
+import SellerAIAdvisory from './pages/seller/SellerAIAdvisory';
 
 // Buyer Pages
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
@@ -135,6 +136,7 @@ function App() {
         { path: 'profile', element: <SellerKYC /> },
         { path: 'notifications', element: <SellerNotifications /> },
         { path: 'support', element: <SellerSupport /> },
+        { path: 'ai-advisory', element: <SellerAIAdvisory /> },
       ],
     },
 

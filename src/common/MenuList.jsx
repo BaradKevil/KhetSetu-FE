@@ -73,6 +73,12 @@ export const menulist = [
     roles: ['seller'],
   },
   {
+    id: 'seller-ai-advisory',
+    name: 'Kisan AI Advisory',
+    path: '/seller/ai-advisory',
+    roles: ['seller'],
+  },
+  {
     id: 'seller-kyc',
     name: 'Farm Profile & KYC',
     path: '/seller/profile',

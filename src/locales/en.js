@@ -82,6 +82,14 @@ export const navigation = {
   payoutApprovals: 'Payout Approvals',
   auditTrail: 'Audit Trail',
   platformSettings: 'Platform Settings',
+  aiAdvisory: 'Kisan AI Advisory',
+  salesAnalytics: 'Sales Analytics',
+  statementsTax: 'Statements & Tax',
+  farmerScore: 'Farmer Score',
+  harvestPlanner: 'Harvest Planner',
+  apmcMandiRates: 'APMC Mandi Rates',
+  notifications: 'Notifications',
+  kisanSupport: 'Kisan Support',
   escrowProtectedFooter: 'KhetSetu Escrow Protected © 2026',
 };
 
