@@ -29,129 +29,11 @@ import PhoneInput from '../../common/custom/PhoneInput';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
 
-const UI_TEXT = {
-  en: {
-    language: 'Language',
-    title: 'Create Your Free Account',
-    subtitle: 'Connect directly to India’s farmer & buyer marketplace',
-    farmerTitle: 'Farmer (Seller)',
-    farmerDesc: 'Sell crops directly with guaranteed bank payouts',
-    buyerTitle: 'Buyer (Personal / Trade)',
-    buyerDesc: 'Buy fresh crops for household or business use',
-    fullName: 'Full Name',
-    fullNamePlaceholder: 'e.g. Rameshwar Patel',
-    phone: 'Mobile Number',
-    phonePlaceholder: 'Enter 10-digit mobile number',
-    state: 'State',
-    district: 'District',
-    city: 'City / Taluka',
-    village: 'Village',
-    selectState: 'Select State',
-    selectDistrict: 'Select District',
-    selectCity: 'Select City / Taluka',
-    selectVillage: 'Select Village',
-    selectStateFirst: 'Select State first',
-    selectDistrictFirst: 'Select District first',
-    selectCityFirst: 'Select City first',
-    buyerType: 'Account Type',
-    individualBuyer: 'Individual (Personal / Household Use)',
-    tradeBuyer: 'Trader / Merchant',
-    millerBuyer: 'Grain Miller / Processor',
-    retailBuyer: 'Retailer / Store',
-    companyOptional: 'Company / Business Name (Optional)',
-    password: 'Create Password',
-    terms: 'I agree to the Terms of Service & Escrow Protection Guidelines',
-    createFarmerBtn: 'Create Farmer Account',
-    createBuyerBtn: 'Create Buyer Account',
-    alreadyAccount: 'Already have an account?',
-    signIn: 'Sign In',
-    registerSuccessFarmer: 'Farmer account created successfully! Please sign in to continue.',
-    registerSuccessBuyer: 'Buyer account created successfully! Please sign in to continue.',
-  },
-  hi: {
-    language: 'भाषा',
-    title: 'निःशुल्क खाता बनाएं',
-    subtitle: 'सीधे किसान और खरीदार मंच से जुड़ें',
-    farmerTitle: 'किसान (विक्रेता)',
-    farmerDesc: 'फसल बेचें, सीधा बैंक भुगतान प्राप्त करें',
-    buyerTitle: 'खरीदार (व्यक्तिगत / व्यापार)',
-    buyerDesc: 'घरेलू या व्यापारिक उपयोग के लिए ताजा फसल खरीदें',
-    fullName: 'पूरा नाम',
-    fullNamePlaceholder: 'उदा. रामेश्वर पटेल',
-    phone: 'मोबाइल नंबर',
-    phonePlaceholder: '10-अंकीय मोबाइल नंबर दर्ज करें',
-    state: 'राज्य',
-    district: 'ज़िला',
-    city: 'शहर / तालुका',
-    village: 'गाँव',
-    selectState: 'राज्य चुनें',
-    selectDistrict: 'ज़िला चुनें',
-    selectCity: 'शहर / तालुका चुनें',
-    selectVillage: 'गाँव चुनें',
-    selectStateFirst: 'पहले राज्य चुनें',
-    selectDistrictFirst: 'पहले ज़िला चुनें',
-    selectCityFirst: 'पहले शहर / तालुका चुनें',
-    buyerType: 'खाता प्रकार',
-    individualBuyer: 'व्यक्तिगत (घरेलू उपयोग)',
-    tradeBuyer: 'व्यापारी / आढ़ती',
-    millerBuyer: 'मिलर / प्रोसेसर',
-    retailBuyer: 'दुकानदार / रिटेलर',
-    companyOptional: 'कंपनी / फर्म का नाम (वैकल्पिक)',
-    password: 'पासवर्ड बनाएं',
-    terms: 'मैं नियमों और एस्क्रो सुरक्षा दिशानिर्देशों से सहमत हूँ',
-    createFarmerBtn: 'किसान खाता बनाएं',
-    createBuyerBtn: 'खरीदार खाता बनाएं',
-    alreadyAccount: 'पहले से खाता है?',
-    signIn: 'प्रवेश करें',
-    registerSuccessFarmer: 'किसान खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
-    registerSuccessBuyer: 'खरीदार खाता सफलतापूर्वक बन गया! कृपया जारी रखने के लिए लॉगिन करें.',
-  },
-  gu: {
-    language: 'ભાષા',
-    title: 'નવું ખાતું બનાવો',
-    subtitle: 'ખેડૂત અને વેપારી વચ્ચે સીધું પારદર્શક માર્કેટપ્લેસ',
-    farmerTitle: 'ખેડૂત (વેચનાર)',
-    farmerDesc: 'પાક વેચો અને સુરક્ષિત બેંક ચુકવણી મેળવો',
-    buyerTitle: 'ખરીદનાર (વ્યક્તિગત / વેપાર)',
-    buyerDesc: 'ઘર વપરાશ કે વેપાર માટે સીધો સારો પાક ખરીદો',
-    fullName: 'સંપૂર્ણ નામ',
-    fullNamePlaceholder: 'દા.ત. રમેશભાઈ પટેલ',
-    phone: 'મોબાઇલ નંબર',
-    phonePlaceholder: '10-અંકનો મોબાઈલ નંબર દાખલ કરો',
-    state: 'રાજ્ય',
-    district: 'જિલ્લો',
-    city: 'શહેર / તાલુકો',
-    village: 'ગામ',
-    selectState: 'રાજ્ય પસંદ કરો',
-    selectDistrict: 'જિલ્લો પસંદ કરો',
-    selectCity: 'શહેર / તાલુકો પસંદ કરો',
-    selectVillage: 'ગામ પસંદ કરો',
-    selectStateFirst: 'પહેલા રાજ્ય પસંદ કરો',
-    selectDistrictFirst: 'પહેલા જિલ્લો પસંદ કરો',
-    selectCityFirst: 'પહેલા શહેર / તાલુકો પસંદ કરો',
-    buyerType: 'ખાતાનો પ્રકાર',
-    individualBuyer: 'વ્યક્તિગત (ઘર વપરાશ માટે)',
-    tradeBuyer: 'વેપારી / દલાલ',
-    millerBuyer: 'મિલો / પ્રોસેસર',
-    retailBuyer: 'દુકાનદાર / રિટેલર',
-    companyOptional: 'કંપની / પેઢીનું નામ (મરજિયાત)',
-    password: 'પાસવર્ડ બનાવો',
-    terms: 'હું નિયમો અને એસ્ક્રો સુરક્ષા માર્ગદર્શિકા સાથે સંમત છું',
-    createFarmerBtn: 'ખેડૂત ખાતું બનાવો',
-    createBuyerBtn: 'ખરીદનાર ખાતું બનાવો',
-    alreadyAccount: 'પહેલેથી ખાતું છે?',
-    signIn: 'લૉગિન કરો',
-    registerSuccessFarmer: 'ખેડૂત ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
-    registerSuccessBuyer: 'ખરીદનાર ખાતું સફળતાપૂર્વક બની ગયું! આગળ વધવા માટે કૃપા કરીને લૉગિન કરો.',
-  },
-};
-
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { language: lang, changeLanguage: setLang } = useLanguage();
-  const t = UI_TEXT[lang] || UI_TEXT.en;
+  const { t, language: lang, changeLanguage: setLang } = useLanguage();
 
   // Initialize role based on URL parameter (?role=buyer or ?role=seller)
   const initialRole = searchParams.get('role') === 'buyer' ? 'buyer' : 'seller';
@@ -211,19 +93,19 @@ const Register = () => {
     e.preventDefault();
 
     if (!formData.full_name?.trim()) {
-      toast.error('Please enter your full name.');
+      toast.error(t('auth.enterFullName'));
       return;
     }
 
     const cleanDigits = formData.phone.replace(/\D/g, '').slice(-10);
     if (!cleanDigits || cleanDigits.length < 10) {
-      toast.error('Please provide a valid 10-digit mobile number.');
+      toast.error(t('auth.enterValidPhone'));
       return;
     }
     const fullPhone = `+91${cleanDigits}`;
 
     if (!acceptedTerms) {
-      toast.error('Please accept the Terms of Service to continue.');
+      toast.error(t('auth.acceptTermsError'));
       return;
     }
 
@@ -260,15 +142,15 @@ const Register = () => {
 
       const successMsg =
         role === 'seller'
-          ? (t.registerSuccessFarmer || 'Farmer account created successfully! Please sign in to continue.')
-          : (t.registerSuccessBuyer || 'Buyer account created successfully! Please sign in to continue.');
+          ? t('auth.registrationSuccessFarmer')
+          : t('auth.registrationSuccessBuyer');
 
       toast.success(successMsg);
 
       // Production-grade flow: Redirect to /login after successful account registration
       navigate(`/login?phone=${encodeURIComponent(cleanDigits)}&role=${role}&lang=${lang}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
+      toast.error(err.response?.data?.message || t('auth.registrationFailed'));
     }
   };
 
@@ -308,7 +190,7 @@ const Register = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
             <MdLanguage color="#64748B" size={18} />
             <Typography variant="caption" fontWeight={700} color="text.secondary">
-              {t.language || 'Language'}
+              {t('common.language')}
             </Typography>
           </Box>
           <LanguageSelector variant="chips" size="small" showIcon={false} />
@@ -336,10 +218,10 @@ const Register = () => {
             {role === 'seller' ? <MdAgriculture /> : <MdShoppingCart />}
           </Box>
           <Typography variant="h5" fontWeight={800} color="#0F172A" sx={{ letterSpacing: '-0.3px' }}>
-            {t.title}
+            {t('auth.regTitle')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {t.subtitle}
+            {t('auth.regSubtitle')}
           </Typography>
         </Box>
 
@@ -435,7 +317,7 @@ const Register = () => {
                   lineHeight: 1.2,
                 }}
               >
-                {t.farmerTitle}
+                {t('auth.farmerTitle')}
               </Typography>
 
               <Typography
@@ -452,7 +334,7 @@ const Register = () => {
                   overflow: 'hidden',
                 }}
               >
-                {t.farmerDesc}
+                {t('auth.farmerDesc')}
               </Typography>
             </Box>
           </Card>
@@ -539,7 +421,7 @@ const Register = () => {
                   lineHeight: 1.2,
                 }}
               >
-                {t.buyerTitle}
+                {t('auth.buyerTitle')}
               </Typography>
 
               <Typography
@@ -556,7 +438,7 @@ const Register = () => {
                   overflow: 'hidden',
                 }}
               >
-                {t.buyerDesc}
+                {t('auth.buyerDesc')}
               </Typography>
             </Box>
           </Card>
@@ -566,14 +448,14 @@ const Register = () => {
         <Box component="form" onSubmit={handleRegister} noValidate>
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-              {t.fullName} *
+              {t('auth.fullName')} *
             </Typography>
             <TextField
               fullWidth
               required
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              placeholder={t.fullNamePlaceholder}
+              placeholder={t('auth.fullNamePlaceholder')}
               size="medium"
               InputProps={{ sx: { borderRadius: 2.5 } }}
             />
@@ -581,14 +463,14 @@ const Register = () => {
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-              {t.phone} *
+              {t('auth.phone')} *
             </Typography>
             <PhoneInput
               fullWidth
               required
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder={t.phonePlaceholder}
+              placeholder={t('auth.phonePlaceholder')}
               autoComplete="off"
               size="medium"
             />
@@ -606,17 +488,17 @@ const Register = () => {
               onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
               showVillage={role === 'seller'}
               labels={{
-                state: t.state,
-                district: t.district,
-                city: t.city,
-                village: t.village,
-                selectState: t.selectState,
-                selectDistrict: t.selectDistrict,
-                selectCity: t.selectCity,
-                selectVillage: t.selectVillage,
-                selectStateFirst: t.selectStateFirst,
-                selectDistrictFirst: t.selectDistrictFirst,
-                selectCityFirst: t.selectCityFirst,
+                state: t('common.state'),
+                district: t('common.district'),
+                city: t('common.city'),
+                village: t('common.village'),
+                selectState: t('common.selectState'),
+                selectDistrict: t('common.selectDistrict'),
+                selectCity: t('common.selectCity'),
+                selectVillage: t('common.selectVillage'),
+                selectStateFirst: t('common.selectStateFirst'),
+                selectDistrictFirst: t('common.selectDistrictFirst'),
+                selectCityFirst: t('common.selectCityFirst'),
                 lang: lang,
               }}
             />
@@ -627,7 +509,7 @@ const Register = () => {
             <>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                  {t.buyerType}
+                  {t('auth.buyerType')}
                 </Typography>
                 <TextField
                   select
@@ -637,10 +519,10 @@ const Register = () => {
                   size="medium"
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 >
-                  <MenuItem value="individual">{t.individualBuyer}</MenuItem>
-                  <MenuItem value="trader">{t.tradeBuyer}</MenuItem>
-                  <MenuItem value="retailer">{t.retailBuyer}</MenuItem>
-                  <MenuItem value="miller">{t.millerBuyer}</MenuItem>
+                  <MenuItem value="individual">{t('auth.individualBuyer')}</MenuItem>
+                  <MenuItem value="trader">{t('auth.tradeBuyer')}</MenuItem>
+                  <MenuItem value="retailer">{t('auth.retailBuyer')}</MenuItem>
+                  <MenuItem value="miller">{t('auth.millerBuyer')}</MenuItem>
                 </TextField>
               </Box>
 
@@ -648,7 +530,7 @@ const Register = () => {
               {formData.buyer_type !== 'individual' && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-                    {t.companyOptional}
+                    {t('auth.companyOptional')}
                   </Typography>
                   <TextField
                     fullWidth
@@ -665,7 +547,7 @@ const Register = () => {
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block' }}>
-              {t.password} (Optional)
+              {t('auth.password')}
             </Typography>
             <TextField
               fullWidth
@@ -675,7 +557,7 @@ const Register = () => {
               placeholder="••••••••"
               size="medium"
               InputProps={{ sx: { borderRadius: 2.5 } }}
-              helperText="You can also login anytime using just your mobile number & OTP"
+              helperText={t('auth.passwordHelper')}
             />
           </Box>
 
@@ -688,7 +570,7 @@ const Register = () => {
                 size="small"
               />
             }
-            label={<Typography variant="caption" color="text.secondary">{t.terms}</Typography>}
+            label={<Typography variant="caption" color="text.secondary">{t('auth.terms')}</Typography>}
             sx={{ mb: 2.5 }}
           />
 
@@ -716,19 +598,19 @@ const Register = () => {
             }}
           >
             {registerMutation.isPending
-              ? 'Creating Account...'
+              ? t('auth.creatingAccount')
               : role === 'seller'
-              ? t.createFarmerBtn
-              : t.createBuyerBtn}
+              ? t('auth.createFarmerBtn')
+              : t('auth.createBuyerBtn')}
           </Button>
         </Box>
 
         {/* Footer Link to Login */}
         <Box sx={{ mt: 3, textAlign: 'center', pt: 2, borderTop: '1px solid #F1F5F9' }}>
           <Typography variant="body2" color="text.secondary">
-            {t.alreadyAccount}{' '}
+            {t('auth.alreadyAccount')}{' '}
             <Link to="/login" style={{ color: '#2E7D32', fontWeight: 800, textDecoration: 'none' }}>
-              {t.signIn}
+              {t('auth.signIn')}
             </Link>
           </Typography>
         </Box>

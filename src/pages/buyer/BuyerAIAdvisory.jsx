@@ -18,9 +18,6 @@ import {
   MdCheck,
   MdStorefront,
   MdArrowBack,
-  MdSecurity,
-  MdAttachMoney,
-  MdVerified,
 } from 'react-icons/md';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +26,7 @@ import { useAskAIAdvisoryMutation } from '../../Api/Api';
 import { toast } from 'react-toastify';
 
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
-const STORAGE_KEY = 'khetsetu_buyer_ai_advisory_chat_history_v1';
+const STORAGE_KEY_PREFIX = 'khetsetu_buyer_ai_advisory_chat_history_v2';
 
 const SYSTEM_INSTRUCTION = `You are "KhetSetu Mandi & Buyer AI" (ખેતસેતુ મંડી અને ખરીદનાર AI / खेतसेतु मंडी एवं खरीदार AI), an expert agricultural commodity consultant, produce quality grading specialist, APMC mandi trading analyst, and bulk procurement advisor dedicated to produce buyers, traders, processors, retailers, and individual consumers purchasing directly from Indian farmers (especially in Gujarat and across India).
 
@@ -64,16 +61,11 @@ export default function BuyerAIAdvisory() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const askAIMutation = useAskAIAdvisoryMutation();
-
-  const [activeLang, setActiveLang] = useState(language || 'en');
-
-  useEffect(() => {
-    if (language) setActiveLang(language);
-  }, [language]);
+  const storageKey = `${STORAGE_KEY_PREFIX}_${language || 'en'}`;
 
   const [messages, setMessages] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}_${language || 'en'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -86,39 +78,7 @@ export default function BuyerAIAdvisory() {
       {
         id: 'msg-welcome-buyer',
         sender: 'ai',
-        text:
-          language === 'gu'
-            ? `🙏 **નમસ્તે વેપારી અને ખરીદનાર મિત્ર!** હું છું તમારો **ખેતસેતુ મંડી અને ખરીદનાર AI સલાહકાર** (Powered by Google Gemini 3.8 Flash).
-
-હું તમને નીચેની બાબતોમાં સીધી મદદ કરી શકું છું:
-• 🔍 **પાકની ગુણવત્તા અને ગ્રેડિંગ**: લસણ, જીરું, મગફળી અને કપાસના Grade A પરિમાણો તથા ભેજની ટકાવારી (< 8%)
-• 💰 **APMC મંડી બજાર ભાવ**: ઊંઝા, ગોંડલ, રાજકોટ સહિતની મંડીઓના સરેરાશ બજાર ભાવો અને મોસમી આવક
-• 🛡️ **એસ્ક્રો પેમેન્ટ સુરક્ષા**: માલ મળ્યા અને ચકાસણી કર્યા પછી જ ચુકવણી કેવી રીતે સુરક્ષિત રહે છે
-• 📋 **જથ્થાબંધ ખરીદી અને RFQ**: ખેડૂતો પાસેથી સીધા મોટા ઓર્ડર અને વ્યાજબી ભાવે સોદા કરવાની રીત
-• 🚚 **પેકિંગ અને ટ્રાન્સપોર્ટ**: ૫૦ કિલો ગૂણી પેકિંગ અને સંગ્રહ દરમિયાન ગુણવત્તા જાળવણી
-
-નીચે આપેલા સૂચવેલા પ્રશ્નોમાંથી પસંદ કરો અથવા તમારો પોતાનો પ્રશ્ન લખીને પૂછો!`
-            : language === 'hi'
-            ? `🙏 **नमस्ते व्यापारी व खरीदार साथी!** मैं हूँ आपका **खेतसेतु मंडी एवं खरीदार AI सलाहकार** (Powered by Google Gemini 3.8 Flash).
-
-मैं आपकी कृषि उपज खरीद, गुणवत्ता जांच और व्यापार में पूर्ण सहायता कर सकता हूँ:
-• 🔍 **उपज गुणवत्ता व ग्रेडिंग**: लहसुन, जीरा, मूंगफली और कपास के Grade A मानक व नमी परीक्षण (< 8%)
-• 💰 **APMC मंडी भाव विश्लेषण**: ऊंझा, गोंडल, राजकोट आदि मंडियों के मॉडल भाव व आवक चक्र
-• 🛡️ **एस्क्रो सुरक्षा**: माल प्राप्ति और वजन पर्ची सत्यापन तक 100% सुरक्षित भुगतान प्रणाली
-• 📋 **थोक खरीद व RFQ**: बिना बिचौलियों के सीधे किसानों से कोटेशन प्राप्त करने की प्रक्रिया
-• 🚚 **पैकिंग व परिवहन**: जूट बैग पैकिंग और वेयरहाउसिंग नमी प्रबंधन
-
-नीचे दिए गए सुझावों में से चुनें या अपना सवाल टाइप करें!`
-            : `🙏 **Welcome Buyer & Trader Partner!** I am your **KhetSetu Mandi & Buyer AI Advisory** assistant, powered live by **Google Gemini 3.8 Flash**.
-
-I can assist you with all aspects of farm produce procurement and market intelligence:
-• 🔍 **Crop Quality & Grade A Standards**: Moisture limits (<8%) & visual parameters for Cumin, Garlic, Groundnut, Cotton & Wheat
-• 💰 **APMC Mandi Price Intelligence**: Modal rates, arrivals & seasonal trading windows across Gujarat Mandis
-• 🛡️ **100% Escrow Protection**: How buyer funds remain safe until physical delivery and weighment slip verification
-• 📋 **Bulk Procurement & RFQs**: Posting customized requirements and negotiating directly with verified farmers
-• 🚚 **Packaging & Logistics**: 50kg gunny bag specs, storage conditions & freight optimization
-
-Choose one of the starter questions below or type your query in any language!`,
+        text: t('aiAdvisory.buyerWelcome'),
         model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
@@ -129,51 +89,60 @@ Choose one of the starter questions below or type your query in any language!`,
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const chatBottomRef = useRef(null);
+  const previousLanguageRef = useRef(language);
 
+  // Switch chat language in real-time when global language changes
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch {
-      // ignore
+    if (previousLanguageRef.current !== language) {
+      previousLanguageRef.current = language;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      setMessages([
+        {
+          id: `msg-welcome-buyer-${language}`,
+          sender: 'ai',
+          text: t('aiAdvisory.buyerWelcome'),
+          model: GEMINI_MODEL,
+          time: new Date().toISOString(),
+        },
+      ]);
     }
+  }, [language, storageKey, t]);
+
+  // Persist conversation
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(messages));
+      } catch {
+        // ignore
+      }
+    }
+  }, [messages, storageKey]);
+
+  // Auto-scroll
+  useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const callGeminiAI = async (userText, chatHistory) => {
-    const recentHistory = chatHistory.slice(-8);
-
-    try {
-      const res = await askAIMutation.mutateAsync({
-        message: userText,
-        language: activeLang,
-        systemInstruction: SYSTEM_INSTRUCTION,
-        history: recentHistory.map((m) => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }],
-        })),
-      });
-
-      if (res?.answer || res?.data?.answer) {
-        return {
-          answer: res.answer || res.data.answer,
-          model: res.model || GEMINI_MODEL,
-        };
-      }
-    } catch (backendError) {
-      console.warn('Buyer AI Advisory service error:', backendError?.message);
-    }
-
-    throw new Error('Unable to connect to the AI advisory service. Please try again.');
-  };
-
   const handleSendMessage = async (textToSend) => {
-    const text = (textToSend || inputQuery).trim();
-    if (!text || isTyping) return;
+    const query = (textToSend || inputQuery).trim();
+    if (!query || isTyping) return;
 
     const userMessage = {
       id: `msg-${Date.now()}-user`,
       sender: 'user',
-      text,
+      text: query,
       time: new Date().toISOString(),
     };
 
@@ -182,7 +151,18 @@ Choose one of the starter questions below or type your query in any language!`,
     setIsTyping(true);
 
     try {
-      const result = await callGeminiAI(text, messages);
+      const historyPayload = messages.slice(-10).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }],
+      }));
+
+      const result = await askAIMutation.mutateAsync({
+        prompt: query,
+        context: 'buyer_procurement_and_mandi_quality',
+        history: historyPayload,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        language: language || 'en',
+      });
 
       const aiMessage = {
         id: `msg-${Date.now()}-ai`,
@@ -197,17 +177,12 @@ Choose one of the starter questions below or type your query in any language!`,
       const errorMessage = {
         id: `msg-${Date.now()}-ai-error`,
         sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? `⚠️ **ક્ષમા કરશો, AI સાથે જોડાણ થઈ શક્યું નથી.**\n\nભૂલ: ${err?.message || 'ઇન્ટરનેટ જોડાણ તપાસો.'}\n\nકૃપા કરીને ફરીથી પ્રયાસ કરો.`
-            : activeLang === 'hi'
-            ? `⚠️ **क्षमा करें, AI सेवा से संपर्क नहीं हो पाया।**\n\nकारण: ${err?.message || 'कृपया इंटरनेट कनेक्शन जांचें।'}\n\nकृपया दोबारा प्रयास करें।`
-            : `⚠️ **Unable to connect to Google Gemini AI service.**\n\nError: ${err?.message || 'Please check your internet connection.'}\n\nPlease try again in a few moments.`,
+        text: t('aiAdvisory.connectionError'),
         model: 'connection-error',
         time: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      toast.error('AI connection issue. Please retry.');
+      toast.error(t('errors.SOMETHING_WENT_WRONG', 'AI connection issue. Please retry.'));
     } finally {
       setIsTyping(false);
     }
@@ -223,7 +198,7 @@ Choose one of the starter questions below or type your query in any language!`,
   const handleCopyText = (id, text) => {
     navigator.clipboard?.writeText(text);
     setCopiedId(id);
-    toast.success(t('farmer.copiedToast', 'Copied advice to clipboard!'));
+    toast.success(t('aiAdvisory.copiedAdvice', 'Copied advice to clipboard!'));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -232,77 +207,32 @@ Choose one of the starter questions below or type your query in any language!`,
       {
         id: `msg-${Date.now()}-ai`,
         sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? 'ચેટ રીસેટ થઈ ગઈ છે. પાક ગ્રેડિંગ, મંડી ભાવો કે એસ્ક્રો ચુકવણી અંગે નવો પ્રશ્ન પૂછો!'
-            : activeLang === 'hi'
-            ? 'चैट रीसेट हो गई है। फसल ग्रेडिंग, मंडी भाव या एस्क्रो सुरक्षा पर नया प्रश्न पूछें!'
-            : 'Conversation reset. Ask any question about crop quality grading, APMC rates, or escrow payment!',
+        text: t('aiAdvisory.buyerResetWelcome'),
         model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
     ];
     setMessages(welcome);
-    localStorage.removeItem(STORAGE_KEY);
-    toast.info('Chat cleared.');
+    localStorage.removeItem(storageKey);
+    toast.info(t('aiAdvisory.chatCleared', 'Chat cleared.'));
   };
 
   const starterQuestions = [
     {
-      label:
-        activeLang === 'gu'
-          ? '🔍 જીરું અને લસણના Grade A પરિમાણો'
-          : activeLang === 'hi'
-          ? '🔍 जीरा व लहसुन के Grade A मानक'
-          : '🔍 Grade A Quality Parameters for Cumin & Garlic',
-      query:
-        activeLang === 'gu'
-          ? 'ગુજરાત જીરું (Jeera) અને લસણ (Garlic) ના Grade A ગુણવત્તા પરિમાણો, દાણાનું કદ અને ભેજની ટકાવારી (Moisture %) કેટલી હોવી જોઈએ?'
-          : activeLang === 'hi'
-          ? 'गुजरात जीरा (Jeera) और लहसुन (Garlic) के Grade A गुणवत्ता मानक, दाने का आकार और नमी प्रतिशत (Moisture %) क्या होना चाहिए?'
-          : 'What are the Grade A quality parameters, seed uniformity, and moisture limits for Gujarat Cumin (Jeera) and Garlic?',
+      label: t('aiAdvisory.buyerPrompt1Label'),
+      query: t('aiAdvisory.buyerPrompt1Query'),
     },
     {
-      label:
-        activeLang === 'gu'
-          ? '🛡️ ખેતસેતુ એસ્ક્રો પેમેન્ટ સુરક્ષા'
-          : activeLang === 'hi'
-          ? '🛡️ खेतसेतु एस्क्रो भुगतान सुरक्षा'
-          : '🛡️ How KhetSetu Escrow Protects Buyers',
-      query:
-        activeLang === 'gu'
-          ? 'ખેતસેતુ એસ્ક્રો સિસ્ટમ ખરીદનારના પૈસાની સુરક્ષા કેવી રીતે કરે છે અને ડિલિવરી ચકાસ્યા પછી જ રકમ કેવી રીતે રિલીઝ થાય છે?'
-          : activeLang === 'hi'
-          ? 'खेतसेतु एस्क्रो प्रणाली खरीदार के पैसे की सुरक्षा कैसे करती है और डिलीवरी सत्यापन के बाद ही भुगतान कैसे रिलीज होता है?'
-          : 'How does KhetSetu Escrow guarantee 100% payment safety for buyers until physical delivery and weighment slip verification?',
+      label: t('aiAdvisory.buyerPrompt2Label'),
+      query: t('aiAdvisory.buyerPrompt2Query'),
     },
     {
-      label:
-        activeLang === 'gu'
-          ? '💰 મગફળી અને કપાસના મંડી બજાર ભાવો'
-          : activeLang === 'hi'
-          ? '💰 मूंगफली व कपास के मंडी मॉडल भाव'
-          : '💰 Peak Arrival & Pricing for Groundnut & Cotton',
-      query:
-        activeLang === 'gu'
-          ? 'ગુજરાત મંડીઓમાં મગફળી (GG-20) અને કપાસ (Kapas) ની ખરીદી માટે શ્રેષ્ઠ મોસમ અને સરેરાશ બજાર ભાવો (Modal Rates) ની ગણતરી કેવી રીતે થાય?'
-          : activeLang === 'hi'
-          ? 'गुजरात मंडियों में मूंगफली (GG-20) और कपास (Kapas) खरीद के लिए सबसे अच्छा समय और मॉडल भाव (Modal Rates) का विश्लेषण बताएं?'
-          : 'What are the seasonal peak arrival months, APMC modal price trends, and procurement strategies for Groundnut and Cotton in Gujarat?',
+      label: t('aiAdvisory.buyerPrompt3Label'),
+      query: t('aiAdvisory.buyerPrompt3Query'),
     },
     {
-      label:
-        activeLang === 'gu'
-          ? '📋 જથ્થાબંધ ખરીદી અને RFQ પ્રક્રિયા'
-          : activeLang === 'hi'
-          ? '📋 थोक खरीद व RFQ प्रक्रिया'
-          : '📋 How to Post Bulk RFQ to Farmers',
-      query:
-        activeLang === 'gu'
-          ? 'ખરીદનાર તરીકે મોટી માત્રામાં પાક ખરીદવા માટે RFQ કેવી રીતે પોસ્ટ કરવી અને ખેડૂતો સાથે સીધો સોદો કેવી રીતે કરવો?'
-          : activeLang === 'hi'
-          ? 'खरीदार के रूप में थोक फसल खरीद के लिए RFQ कैसे पोस्ट करें और सीधे किसानों से कोटेशन कैसे प्राप्त करें?'
-          : 'What is the step-by-step process for a buyer to post a bulk RFQ and negotiate competitive purchase quotes with verified farmers?',
+      label: t('aiAdvisory.buyerPrompt4Label'),
+      query: t('aiAdvisory.buyerPrompt4Query'),
     },
   ];
 
@@ -377,14 +307,10 @@ Choose one of the starter questions below or type your query in any language!`,
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
-                {activeLang === 'gu'
-                  ? 'ખેતસેતુ મંડી અને ખરીદનાર AI સલાહકાર'
-                  : activeLang === 'hi'
-                  ? 'खेतसेतु मंडी एवं खरीदार AI सलाहकार'
-                  : 'KhetSetu Mandi & Buyer AI Advisory'}
+                {t('aiAdvisory.buyerTitle')}
               </Typography>
               <Chip
-                label="⚡ Gemini 3.8 Flash"
+                label={t('aiAdvisory.model', '⚡ Gemini 3.8 Flash')}
                 size="small"
                 sx={{
                   height: 22,
@@ -397,18 +323,14 @@ Choose one of the starter questions below or type your query in any language!`,
               />
             </Box>
             <Typography variant="caption" color="#64748B" fontWeight={500}>
-              {activeLang === 'gu'
-                ? '૨૪×૭ કૃષિ ઉપજ ગુણવત્તા ગ્રેડિંગ, મંડી ભાવો અને એસ્ક્રો ખરીદી સહાયક'
-                : activeLang === 'hi'
-                ? '24×7 कृषि उपज गुणवत्ता ग्रेडिंग, मंडी भाव व सुरक्षित खरीद सहायक'
-                : '24×7 Produce Procurement, Crop Quality Grading & Mandi Price Intelligence'}
+              {t('aiAdvisory.buyerSubtitle')}
             </Typography>
           </Box>
         </Box>
 
         {/* Right side controls: Reset chat */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title="Reset Chat">
+          <Tooltip title={t('aiAdvisory.resetChat', 'Reset Chat')}>
             <Button
               variant="outlined"
               size="small"
@@ -425,7 +347,7 @@ Choose one of the starter questions below or type your query in any language!`,
                 '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' },
               }}
             >
-              Reset
+              {t('aiAdvisory.reset', 'Reset')}
             </Button>
           </Tooltip>
         </Box>
@@ -493,7 +415,7 @@ Choose one of the starter questions below or type your query in any language!`,
                       position: 'relative',
                       p: { xs: 2, sm: 2.5 },
                       borderRadius: isUser ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
-                      bgcolor: isUser ? '#FFFFFF' : '#FFFFFF',
+                      bgcolor: '#FFFFFF',
                       color: '#0F172A',
                       boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                       border: isUser ? '1.5px solid #2563EB' : '1px solid #E2E8F0',
@@ -518,55 +440,35 @@ Choose one of the starter questions below or type your query in any language!`,
                           mt: 1.5,
                           mb: 0.8,
                         },
-                        '& code': {
-                          bgcolor: '#F1F5F9',
-                          px: 0.8,
-                          py: 0.2,
-                          borderRadius: 1,
-                          fontSize: '0.88rem',
-                          fontFamily: 'monospace',
-                        },
                       }}
                     >
                       <ReactMarkdown>{msg.text}</ReactMarkdown>
                     </Box>
 
-                    {/* Copy Advice Button */}
+                    {/* Copy action for AI responses */}
                     {!isUser && (
                       <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'flex-end',
+                          justifyContent: 'space-between',
                           mt: 1.5,
                           pt: 1,
                           borderTop: '1px solid #F1F5F9',
-                          gap: 1,
                         }}
                       >
-                        <Button
-                          size="small"
-                          onClick={() => handleCopyText(msg.id, msg.text)}
-                          startIcon={
-                            copiedId === msg.id ? (
-                              <MdCheck size={14} color="#16A34A" />
-                            ) : (
-                              <MdContentCopy size={14} />
-                            )
-                          }
-                          sx={{
-                            color: copiedId === msg.id ? '#16A34A' : '#64748B',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            textTransform: 'none',
-                            p: '2px 8px',
-                            borderRadius: 1.5,
-                            bgcolor: copiedId === msg.id ? '#F0FDF4' : 'transparent',
-                            '&:hover': { bgcolor: '#F8FAFC' },
-                          }}
-                        >
-                          {copiedId === msg.id ? 'Copied' : 'Copy'}
-                        </Button>
+                        <Typography variant="caption" color="#94A3B8" fontWeight={500}>
+                          {t('aiAdvisory.buyerAssistantName')}
+                        </Typography>
+                        <Tooltip title={copiedId === msg.id ? t('aiAdvisory.copiedAdvice') : t('aiAdvisory.copyAdvice')}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopyText(msg.id, msg.text)}
+                            sx={{ color: copiedId === msg.id ? '#16A34A' : '#94A3B8' }}
+                          >
+                            {copiedId === msg.id ? <MdCheck size={16} /> : <MdContentCopy size={16} />}
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     )}
                   </Box>
@@ -584,7 +486,7 @@ Choose one of the starter questions below or type your query in any language!`,
                 color="#64748B"
                 sx={{ display: 'block', mb: 1.5, textTransform: 'uppercase', letterSpacing: 0.5 }}
               >
-                💡 {activeLang === 'gu' ? 'વારંવાર પૂછાતા વેપારી પ્રશ્નો:' : activeLang === 'hi' ? 'अक्सर पूछे जाने वाले व्यापार प्रश्न:' : 'Common Procurement Inquiries:'}
+                💡 {t('aiAdvisory.commonInquiries')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
                 {starterQuestions.map((q, idx) => (
@@ -642,11 +544,7 @@ Choose one of the starter questions below or type your query in any language!`,
               >
                 <CircularProgress size={16} sx={{ color: '#2563EB' }} />
                 <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600 }}>
-                  {activeLang === 'gu'
-                    ? 'મંડી AI વિશ્લેષણ કરી રહ્યું છે...'
-                    : activeLang === 'hi'
-                    ? 'मंडी AI विश्लेषण कर रहा है...'
-                    : 'Mandi AI is analyzing your procurement inquiry...'}
+                  {t('aiAdvisory.buyerAnalyzing')}
                 </Typography>
               </Box>
             </Box>
@@ -695,20 +593,14 @@ Choose one of the starter questions below or type your query in any language!`,
             fullWidth
             multiline
             maxRows={4}
-            placeholder={
-              activeLang === 'gu'
-                ? 'પાક ગુણવત્તા, ગ્રેડિંગ, મંડી ભાવો, એસ્ક્રો ચુકવણી કે જથ્થાબંધ ઓર્ડર અંગે પૂછો... (Enter દબાવો)'
-                : activeLang === 'hi'
-                ? 'फसल गुणवत्ता, ग्रेडिंग, मंडी भाव, एस्क्रो भुगतान या थोक खरीद पर पूछें... (Enter दबाएं)'
-                : 'Ask about crop quality, grading, APMC mandi rates, escrow payment, or bulk procurement...'
-            }
+            placeholder={t('aiAdvisory.buyerPlaceholder')}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isTyping}
             sx={{
               flex: 1,
-              color: '#000000', // Pure black text
+              color: '#000000',
               fontWeight: 500,
               fontSize: '0.98rem',
               py: 0.5,

@@ -168,16 +168,16 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const getRoleDisplayName = () => {
     switch (userRole) {
       case 'super_admin':
-        return 'Admin';
+        return t('navigation.superAdmin');
       case 'staff':
-        return 'Staff';
+        return t('navigation.staff');
       case 'seller':
       case 'farmer':
-        return 'Farmer / Seller';
+        return t('navigation.farmerSeller');
       case 'buyer':
-        return 'Buyer';
+        return t('navigation.traderBuyer');
       default:
-        return 'User';
+        return t('common.user');
     }
   };
 
@@ -285,7 +285,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
                 textTransform: 'uppercase',
               }}
             >
-              Kisan Escrow Platform
+              {t('common.kisanEscrowPlatform')}
             </Typography>
           </Box>
         </Link>
@@ -320,8 +320,8 @@ const Sidebar = ({ open, onClose, isMobile }) => {
             const showSection = item.section && (!prevItem || prevItem.section !== item.section);
             const isActive = location.pathname === item.path;
             const transKey = menuTranslationKeys[item.id];
-            const translated = transKey ? t(transKey) : null;
-            const translatedName = translated && translated !== transKey ? translated : item.name;
+            const translated = transKey ? (t(`navigation.${transKey}`) || t(transKey)) : null;
+            const translatedName = translated && !translated.startsWith('navigation.') && translated !== transKey ? translated : item.name;
 
             return (
               <Box key={item.id}>

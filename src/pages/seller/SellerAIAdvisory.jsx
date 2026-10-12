@@ -29,7 +29,7 @@ import { useAskAIAdvisoryMutation } from '../../Api/Api';
 import { toast } from 'react-toastify';
 
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
-const STORAGE_KEY = 'khetsetu_ai_advisory_chat_history_v2';
+const STORAGE_KEY_PREFIX = 'khetsetu_ai_advisory_chat_history_v3';
 
 const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan & Seller AI" (ખેતસેતુ કિસાન અને વિક્રેતા AI / खेतसेतु किसान एवं विक्रेता AI), an expert agronomy consultant, agricultural machinery specialist, and mandi trading & market intelligence assistant dedicated to Indian farmers and produce sellers (especially in Gujarat and across India).
 
@@ -68,17 +68,11 @@ export default function SellerAIAdvisory() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const askAIMutation = useAskAIAdvisoryMutation();
-
-  const [activeLang, setActiveLang] = useState(language || 'en');
-
-  // Keep activeLang in sync with system language changes
-  useEffect(() => {
-    if (language) setActiveLang(language);
-  }, [language]);
+  const storageKey = `${STORAGE_KEY_PREFIX}_${language}`;
 
   const [messages, setMessages] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}_${language || 'en'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -94,16 +88,25 @@ export default function SellerAIAdvisory() {
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const chatBottomRef = useRef(null);
+  const previousLanguageRef = useRef(language);
+
+  useEffect(() => {
+    if (previousLanguageRef.current !== language) {
+      previousLanguageRef.current = language;
+      setMessages([]);
+      localStorage.removeItem(storageKey);
+    }
+  }, [language, storageKey]);
 
   // Sync chat history to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem(storageKey, JSON.stringify(messages));
     } catch {
       // ignore
     }
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, storageKey]);
 
   // Live AI call through the protected backend advisory service.
   const callGeminiAI = async (userText, chatHistory) => {
@@ -114,7 +117,7 @@ export default function SellerAIAdvisory() {
     try {
       const res = await askAIMutation.mutateAsync({
         message: userText,
-        language: activeLang,
+        language,
         systemInstruction: SYSTEM_INSTRUCTION,
         maxOutputTokens: 4096,
         responseInstruction:
@@ -182,14 +185,14 @@ export default function SellerAIAdvisory() {
   const handleCopyText = (id, text) => {
     navigator.clipboard?.writeText(text);
     setCopiedId(id);
-    toast.success(t('farmer.copiedToast', 'Copied advice to clipboard!'));
+    toast.success(t('aiAdvisory.copiedAdvice'));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleClearChat = () => {
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
-    toast.info('Chat cleared.');
+    localStorage.removeItem(storageKey);
+    toast.info(t('aiAdvisory.chatCleared'));
   };
 
   const formatTime = (isoString) => {
@@ -275,14 +278,10 @@ export default function SellerAIAdvisory() {
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
-                {activeLang === 'gu'
-                  ? 'ખેતસેતુ કિસાન અને વિક્રેતા AI સલાહકાર'
-                  : activeLang === 'hi'
-                  ? 'खेतसेतु किसान एवं विक्रेता AI सलाहकार'
-                  : 'KhetSetu Kisan & Seller AI Advisory'}
+                {t('aiAdvisory.title')}
               </Typography>
               <Chip
-                label="⚡ Gemini 3.8 Flash"
+                label={t('aiAdvisory.model')}
                 size="small"
                 sx={{
                   height: 22,
@@ -295,18 +294,14 @@ export default function SellerAIAdvisory() {
               />
             </Box>
             <Typography variant="caption" color="#64748B" fontWeight={500}>
-              {activeLang === 'gu'
-                ? '૨૪×૭ ખેતી ઓજારો, પાક ઉત્પાદન, મંડી ભાવો અને વેચાણ સહાયક'
-                : activeLang === 'hi'
-                ? '24×7 कृषि उपकरण, फसल उत्पादन, मंडी भाव व व्यापार सहायक'
-                : '24×7 Intelligent Agronomist, Farm Machinery & Mandi Trade Guidance'}
+              {t('aiAdvisory.subtitle')}
             </Typography>
           </Box>
         </Box>
 
         {/* Right side controls: Reset chat */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title="Reset Chat">
+          <Tooltip title={t('aiAdvisory.resetChat')}>
             <Button
               variant="outlined"
               size="small"
@@ -323,7 +318,7 @@ export default function SellerAIAdvisory() {
                 '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' },
               }}
             >
-              Reset
+              {t('aiAdvisory.reset')}
             </Button>
           </Tooltip>
         </Box>
@@ -399,7 +394,7 @@ export default function SellerAIAdvisory() {
                           fontSize: '0.68rem',
                         }}
                       >
-                        🌾 {activeLang === 'gu' ? 'તમે (ખેડૂત / વિક્રેતા)' : activeLang === 'hi' ? 'आप (किसान / विक्रेता)' : 'You (Farmer / Seller)'}
+                        {t('aiAdvisory.userLabel')}
                       </Typography>
                     </Box>
                     <Typography
@@ -453,10 +448,10 @@ export default function SellerAIAdvisory() {
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.75rem' }}>
-                          🤖 KhetSetu Kisan AI
+                          {t('aiAdvisory.assistantName')}
                         </Typography>
                         <Chip
-                          label="⚡ Gemini 3.8 Flash"
+                          label={t('aiAdvisory.model')}
                           size="small"
                           sx={{
                             height: 18,
@@ -468,7 +463,7 @@ export default function SellerAIAdvisory() {
                           }}
                         />
                       </Box>
-                      <Tooltip title="Copy Advice">
+                      <Tooltip title={t('aiAdvisory.copyAdvice')}>
                         <IconButton
                           size="small"
                           onClick={() => handleCopyText(msg.id, msg.text)}
@@ -610,11 +605,7 @@ export default function SellerAIAdvisory() {
               >
                 <CircularProgress size={16} sx={{ color: '#2563EB' }} />
                 <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600 }}>
-                  {activeLang === 'gu'
-                    ? 'કિસાન AI વિશ્લેષણ કરી રહ્યું છે...'
-                    : activeLang === 'hi'
-                    ? 'किसान AI विश्लेषण कर रहा है...'
-                    : 'Kisan AI is analyzing your farm inquiry...'}
+                  {t('aiAdvisory.analyzing')}
                 </Typography>
               </Box>
             </Box>
@@ -663,13 +654,7 @@ export default function SellerAIAdvisory() {
             fullWidth
             multiline
             maxRows={4}
-            placeholder={
-              activeLang === 'gu'
-                ? 'પાક, ઓજારો, બિયારણ, ખાતર, સિંચાઈ, મંડી ભાવો, ગ્રેડિંગ કે વેચાણ અંગે પૂછો... (Enter દબાવો)'
-                : activeLang === 'hi'
-                ? 'फसल, कृषि यंत्र, बीज, खाद, सिंचाई, मंडी भाव, ग्रेडिंग या बिक्री पर पूछें... (Enter दबाएं)'
-                : 'Ask about tractor sizing, solar pumps, drip irrigation, pest control, mandi rates, grading, or selling...'
-            }
+            placeholder={t('aiAdvisory.inputPlaceholder')}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={handleKeyDown}
