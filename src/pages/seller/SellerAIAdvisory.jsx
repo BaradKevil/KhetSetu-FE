@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Paper,
-  TextField,
+  InputBase,
   Button,
   Chip,
   Avatar,
@@ -15,259 +14,114 @@ import {
 import {
   MdSmartToy,
   MdSend,
-  MdAgriculture,
   MdContentCopy,
   MdDeleteOutline,
-  MdHelpOutline,
-  MdLightbulb,
-  MdArrowForward,
   MdCheck,
+  MdAgriculture,
+  MdAutoAwesome,
+  MdArrowBack,
+  MdRefresh,
 } from 'react-icons/md';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import PageHeader from '../../common/custom/PageHeader';
 import { useAskAIAdvisoryMutation } from '../../Api/Api';
 import { toast } from 'react-toastify';
 
-const STORAGE_KEY = 'khetsetu_ai_advisory_chat_history';
+const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
+const STORAGE_KEY = 'khetsetu_ai_advisory_chat_history_v2';
 
-// Knowledge base queries and responses
-const KNOWLEDGE_BASE = [
-  {
-    keywords: ['tractor', 'rotavator', 'machinery', 'hp', 'equipment', 'implement'],
-    response: {
-      en: `🚜 **Equipment Recommendation: Tractors & Soil Preparation Implements**
+const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan AI" (ખેતસેતુ કિસાન AI / खेतसेतु किसान AI), an expert agronomy consultant, agricultural machinery specialist, and farm advisory intelligence dedicated to Indian farmers (especially in Gujarat and across India).
 
-1. **Recommended Tractor Capacity**:
-   • **Small/Medium Farms (3–7 Acres)**: 35 HP to 45 HP (e.g., Mahindra 275 DI, Swaraj 735 FE, Sonalika DI 35). Excellent fuel economy for rotavator and trolley haulage.
-   • **Large Farms (> 8 Acres / Commercial)**: 45 HP to 55 HP with Dual Clutch & Power Steering for heavy 6-foot rotavator, disc harrow, and laser leveler.
+Your Core Mission & Domain Knowledge:
+1. Agricultural Equipment & Machinery:
+   - Tractor horsepower sizing by acreage: 35–45 HP for 3–7 acres; 45–55 HP for >8 acres with heavy soil. PTO HP specs (540 RPM).
+   - Rotavator selection: 36, 42, or 48 blades (5 to 6 ft). L-type blades for heavy/black soil; C-type for sandy loam. Trusted brands in Gujarat (Shaktiman, Fieldking).
+   - Solar Water Pumps (PM-KUSUM Component B): 3 HP (water depth 50–120 ft), 5 HP (120–180 ft), 7.5 HP (180–250+ ft) DC submersible. 60% combined subsidy (30% Central + 30% State); farmer pays 10–15%.
+   - Implements: Laser land levelers, disc harrows, drip fertigation systems, power sprayers, mini-tractors for orchards.
+2. Modern Farming Techniques & Water Management:
+   - Inline drip irrigation and sprinkler systems. GGRC (Gujarat Green Revolution Company) 70% subsidy workflow.
+   - Soil fertility, organic carbon, zero tillage, mulching, farm ponds.
+3. Pest, Weed & Crop Health:
+   - Integrated Pest Management (IPM), bio-pesticides (Neem oil 10,000 PPM @ 3ml/L, Beauveria bassiana, Trichoderma viride seed treatment).
+   - Pheromone traps and yellow/blue sticky traps for whiteflies, thrips, and bollworms.
+4. Major Crops Cultivation & Post-Harvest Mandi Strategy:
+   - Garlic (Gujarat Garlic-4), Cumin (Jeera), Groundnut (GG-20), Cotton (Kapas), Wheat, Mustard, Castor, Onion.
+   - Harvest signs, shade curing (8–10 days for garlic), and sun-drying to <8% moisture to earn Grade A prices on KhetSetu without distress sales.
+5. Government Subsidies & Portals:
+   - i-Khedut portal Gujarat (ikhedut.gujarat.gov.in), SMAM mechanization subsidies, PM-KUSUM, Kisan Credit Card (KCC).
 
-2. **Rotavator Recommendation**:
-   • 42-blade to 48-blade rotavator (5 to 6 feet width) matching 40+ HP tractor PTO speed (540 RPM).
-   • Top trusted brands: Shaktiman, Fieldking, Swan Agro.
-   • Ensures fine seedbed preparation in single pass, saving up to 35% diesel compared to traditional cultivators.
+Language Guidelines:
+- If user writes in Gujarati or asks in Gujarati, reply in authentic, polite Gujarati (ગુજરાતી).
+- If user writes in Hindi, reply in clear, respectful Hindi (हिन्दी).
+- If user writes in English, reply in English.
 
-3. **Government Subsidy (SMAM & i-Khedut Gujarat)**:
-   • 40% subsidy for General category (up to ₹45,000–₹50,000 on rotavators).
-   • 50% subsidy for SC/ST and Small/Marginal farmers.
-   • Apply online at **ikhedut.gujarat.gov.in** during seasonal approval windows.`,
-      gu: `🚜 **ખેતી ઓજારો અને ટ્રેક્ટર ભલામણ (ટ્રેક્ટર અને રોટાવેટર)**
-
-૧. **જમીન મુજબ યોગ્ય ટ્રેક્ટર (HP)**:
-   • **૩ થી ૭ એકર માટે**: ૩૫ થી ૪૫ HP (દા.ત. મહિન્દ્રા ૨૭૫ DI, સ્વરાજ ૭૩૫, સોનાલીકા ૩૫). ડીઝલનો ઓછો વપરાશ અને ઉત્તમ પાવર.
-   • **૮ એકરથી વધુ જમીન માટે**: ૪૫ થી ૫૫ HP (ડ્યુઅલ ક્લચ) મોટા ૬-ફૂટ રોટાવેટર અને લેસર લેવલર માટે.
-
-૨. **રોટાવેટરની પસંદગી**:
-   • ૪૨ થી ૪૮ બ્લેડ (૫ થી ૬ ફૂટ પહોળાઈ) રોટાવેટર.
-   • મુખ્ય ભરોસાપાત્ર બ્રાન્ડ: શક્તિમાન (Shaktiman), ફિલ્ડકિંગ (Fieldking).
-   • એક જ ફેરામાં ઉત્તમ ઢેફા ભાંગીને જમીન વાવણી લાયક બનાવે છે, ૩૫% ડીઝલ બચાવે છે.
-
-૩. **સરકારી સહાય (i-ખેડૂત પોર્ટલ સબસિડી)**:
-   • સામાન્ય ખેડૂતો માટે ૪૦% સબસિડી (રૂ. ૪૦,૦૦૦ થી ૪૫,૦૦૦ સુધી).
-   • નાના, સીમાંત અને SC/ST ખેડૂતો માટે ૫૦% સબસિડી.
-   • **ikhedut.gujarat.gov.in** પોર્ટલ પર અરજી કરી શકાય છે.`,
-      hi: `🚜 **कृषि उपकरण अनुशंसा: ट्रैक्टर और रोटावेटर**
-
-1. **ट्रैक्टर क्षमता (HP) का चुनाव**:
-   • **3 से 7 एकड़ के लिए**: 35 HP से 45 HP (महिंद्रा 275 DI, स्वराज 735 FE, सोनालीका)। कम डीजल खपत और बढ़िया ताकत।
-   • **8 एकड़ से अधिक के लिए**: 45 HP से 55 HP बड़े 6-फीट रोटावेटर और लेजर लेवलर हेतु।
-
-2. **रोटावेटर अनुशंसा**:
-   • 42 से 48 ब्लेड (5 से 6 फीट चौड़ाई)।
-   • प्रमुख ब्रांड: शक्तिमान, फील्डकिंग।
-   • एक ही बार में मिट्टी भुरभुरी बनाता है और 35% तक डीजल बचाता है।
-
-3. **सरकारी सब्सिडी (SMAM योजना)**:
-   • सामान्य वर्ग: 40% तक सब्सिडी।
-   • छोटे, सीमांत और आरक्षित वर्ग: 50% तक सब्सिडी।`,
-    },
-  },
-  {
-    keywords: ['solar', 'pump', 'kusum', 'irrigation', 'water', 'borewell', 'electricity'],
-    response: {
-      en: `☀️ **Solar Water Pump Recommendation (PM-KUSUM Yojana)**
-
-1. **Pump Size Sizing**:
-   • **Water Table 50–120 ft**: 3 HP to 5 HP DC Submersible solar pump (covers 4 to 8 acres easily).
-   • **Water Table 120–250 ft**: 7.5 HP Submersible solar pump with high-efficiency MPPT solar controller.
-
-2. **Financial Breakdown & Subsidy**:
-   • **Central Govt Subsidy**: 30% of benchmark cost.
-   • **State Govt Subsidy (Gujarat / PM-KUSUM Component B)**: 30% to 35%.
-   • **Farmer Share**: Only **10% to 15%** of capital cost (bank loans cover the remaining).
-   • Eliminates high diesel generator costs and removes reliance on night-time agricultural power grids.
-
-3. **Key Advice**:
-   • Pair solar pumps directly with drip irrigation to double water efficiency.
-   • Regular cleaning of solar panels once a week increases pump flow rate by 15–20%.`,
-      gu: `☀️ **સોલાર વોટર પંપ ભલામણ (પીએમ-કુસુમ યોજના)**
-
-૧. **પંપની સાઈઝ પસંદગી**:
-   • **૫૦ થી ૧૨૦ ફૂટ ઊંડાઈ માટે**: ૩ થી ૫ HP સોલાર સબમર્સિબલ પંપ (૪ થી ૭ એકર માટે ઉત્તમ).
-   • **૧૨૦ થી ૨૫૦ ફૂટ ઊંડાઈ માટે**: ૭.૫ HP સબમર્સિબલ પંપ.
-
-૨. **સરકારી સબસિડી અને ખેડૂત ખર્ચ**:
-   • કેન્દ્ર સરકાર સબસિડી: ૩૦%
-   • રાજ્ય સરકાર (ગુજરાત ઊર્જા વિકાસ): ૩૦% થી ૩૫%
-   • **ખેડૂતનો હિસ્સો**: ફક્ત ૧૦% થી ૧૫% રકમ ભરવાની રહે છે.
-   • રાત્રે વીજળી આવવાની ઝંઝટ અને ડીઝલ એન્જિનના ખર્ચમાંથી સંપૂર્ણ મુક્તિ.
-
-૩. **મહત્વની સલાહ**:
-   • સોલાર પંપ સાથે ટપક પદ્ધતિ જોડવાથી પાણીનો બગાડ અટકે છે અને બમણી જમીન પીવડાવી શકાય છે.`,
-      hi: `☀️ **सोलर वाटर पंप अनुशंसा (पीएम-कुसुम योजना)**
-
-1. **पंप की क्षमता**:
-   • **50–120 फीट गहराई**: 3 HP से 5 HP सोलर सबमर्सिबल पंप (4 से 8 एकड़ हेतु)।
-   • **120–250 फीट गहराई**: 7.5 HP सोलर पंप।
-
-2. **सब्सिडी विवरण**:
-   • केंद्र व राज्य सरकार द्वारा 60% से 70% तक सब्सिडी।
-   • किसान को मात्र **10% से 15%** लागत वहन करनी होती है।
-   • दिन के समय बिना बिजली बिल या डीजल के मुफ्त सिंचाई।`,
-    },
-  },
-  {
-    keywords: ['drip', 'sprinkler', 'tapak', 'water saving', 'micro irrigation', 'glpc', 'gsdc'],
-    response: {
-      en: `💧 **Modern Farming Technique: Drip & Micro-Irrigation Setup**
-
-1. **Suitable Crops in Gujarat**:
-   • **Row Crops**: Cotton (કપાસ), Groundnut (મગફળી), Castor (દિવેલા) — 16mm inline lateral pipes with 40cm emitter spacing.
-   • **Spices & Vegetables**: Cumin (જીરું), Garlic (લસણ), Chilli, Onion — 12mm or 16mm drip lines with 2.0 LPH discharge emitters.
-
-2. **Yield & Resource Advantages**:
-   • Saves **45% to 60% water** compared to traditional flood irrigation.
-   • Reduces weed growth by 70% because only root zones receive moisture.
-   • Enables **Fertigation** (soluble liquid fertilizer via venturi injector), improving fertilizer absorption by 40%.
-
-3. **Gujarat Green Revolution Company (GGRC) Subsidy**:
-   • Up to **70% to 85% financial assistance** for small & marginal farmers in Gujarat.
-   • 50% assistance for general larger landholders.
-   • Apply directly via GGRC or authorized dealers (Jain, Netafim, Captain Polyplast).`,
-      gu: `💧 **આધુનિક ખેતી પદ્ધતિ: ટપક સિંચાઈ (Drip Irrigation)**
-
-૧. **મુખ્ય પાકો માટે સેટઅપ**:
-   • **કપાસ અને મગફળી**: ૧૬ mm ઈનલાઈન પાઇપ (૪૦ સેમી ડ્રીપર અંતર).
-   • **જીરું અને લસણ**: ૧૨ mm અથવા ૧૬ mm માઈક્રો ડ્રીપ લાઈન (૨ લીટર પ્રતિ કલાક ડ્રિપર).
-
-૨. **ખેડૂતને થતા મોટા ફાયદા**:
-   • ૫૦% થી ૬૦% પાણીની સીધી બચત.
-   • નીંદણ ૭૦% ઘટી જાય છે કારણ કે માત્ર મૂળિયા પાસે જ પાણી મળે છે.
-   • **વેન્ચ્યુરી દ્વારા ખાતર (ફર્ટિગેશન)** આપવાથી ખાતરનો ૪૦% વધુ ઉપયોગ થાય છે.
-
-૩. **GGRC (ગુજરાત ગ્રીન રિવોલ્યુશન કંપની) સબસિડી**:
-   • નાના અને સીમાંત ખેડૂતોને **૭૦% થી ૮૫% સુધી સહાય**.
-   • મોટા ખેડૂતોને ૫૦% સહાય. જૈન ઇરિગેશન કે નેટાફિમ ડીલર દ્વારા અરજી કરી શકાય.`,
-      hi: `💧 **ड्रिप सिंचाई (टपक पद्धति) अनुशंसा**
-
-1. **फायदे**:
-   • 50% से 60% पानी की बचत।
-   • उर्वरक को सीधे जड़ों तक पहुंचाने की सुविधा (फर्टिगेशन)।
-   • कपास, मूंगफली, लहसुन और जीरे में 30% अधिक पैदावार।
-
-2. **सब्सिडी सहायता**:
-   • लघु व सीमांत किसानों को 70% से 80% तक सरकारी अनुदान।`,
-    },
-  },
-  {
-    keywords: ['pest', 'insect', 'organic', 'fungicide', 'whitefly', 'bollworm', 'yellow', 'disease', 'neem'],
-    response: {
-      en: `🌿 **Integrated Pest Management & Organic Plant Protection**
-
-1. **Whitefly & Sucking Pests (Cotton & Groundnut)**:
-   • **Natural Solution**: Neem Oil (Azadirachtin 10,000 PPM) @ 3 ml per Liter of water + 1 ml liquid soap.
-   • **Sticky Traps**: Install 8 yellow and 8 blue sticky traps per acre at crop canopy level.
-   • **Biological Control**: Spray *Verticillium lecanii* or *Beauveria bassiana* @ 5 grams/Liter in evening hours.
-
-2. **Bollworm / Pod Borer Prevention**:
-   • Install 4 pheromone traps per acre to monitor moth populations early.
-   • Spray NPV (Nuclear Polyhedrosis Virus) or Bacillus thuringiensis (Bt) @ 2 ml/Liter during initial larval hatching.
-
-3. **Soil Fungal Diseases (Wilt & Root Rot)**:
-   • Treat seeds with **Trichoderma viride** (10 g/kg of seeds) before sowing.
-   • Avoid excess flood irrigation during heavy vegetative stages.`,
-      gu: `🌿 **રોગ-જીવાત નિયંત્રણ અને દેશી ઉપચાર (IPM પદ્ધતિ)**
-
-૧. **ચૂસિયા પ્રકારની જીવાત (સફેદ માખી, થ્રીપ્સ, તડતડિયા)**:
-   • **કુદરતી ઉપાય**: લીંબોળીનું તેલ (Neem Oil ૧૦,૦૦૦ PPM) ૧૫ લિટર પંપમાં ૪૫-૫૦ ml + સહેજ સાબુનું ફીણ.
-   • **પીળા અને વાદળી ચીકણા ટ્રેપ**: એકરે ૮ પીળા અને ૮ વાદળી ટ્રેપ લગાવવાથી ૬૦% માખીઓ કુદરતી રીતે નાશ પામે છે.
-   • **જૈવિક ફૂગ**: બ્યુવેરિયા બાસિયાના (Beauveria bassiana) ૫૦ ગ્રામ/પંપ સાંજના સમયે છંટકાવ કરવો.
-
-૨. **ગુલાબી ઈયળ અને લશ્કરી ઈયળ નિયંત્રણ**:
-   • એકરમાં ૪ ફેરોમોન ટ્રેપ લગાવવા.
-   • ઈયળો નાની હોય ત્યારે લીમડાના અર્ક અથવા ટ્રાઈકોડર્માનો ઉપયોગ કરવો.
-
-૩. **મૂળનો સડો અને સુકારો અટકાવવા**:
-   • વાવણી પહેલા ટ્રાઈકોડર્મા વિરીડી (૧૦ ગ્રામ/કિલો બીજ) પટ આપવો.`,
-      hi: `🌿 **प्राकृतिक कीट व रोग प्रबंधन**
-
-1. **सफेद मक्खी और थ्रिप्स**:
-   • नीम तेल (10,000 PPM) 3 ml प्रति लीटर पानी में मिलाकर छिड़काव करें।
-   • प्रति एकड़ 8 पीले व नीले चिपचिपे ट्रैप लगाएं।
-
-2. **उकठा व जड़ सड़न**:
-   • बुवाई से पहले ट्राइकोडर्मा विरिडी से बीज उपचार करें।`,
-    },
-  },
-  {
-    keywords: ['garlic', 'cumin', 'cotton', 'groundnut', 'mandi', 'sell', 'price', 'timing', 'harvest'],
-    response: {
-      en: `📈 **Harvest Timing & Mandi Selling Strategy**
-
-1. **Groundnut (Mungfali / GG-20)**:
-   • **Harvest Signal**: 75–80% of inner pod shells turn blackish-brown.
-   • **Post-Harvest Drying**: Sun-dry pods for 5–7 days until moisture is below 8%. Pods stored with < 8% moisture fetch premium Grade A prices on KhetSetu without mould deductions.
-
-2. **Garlic (Gujarat Garlic-4)**:
-   • **Harvest Timing**: When 60–70% of upper green foliage lodges (bends down) and dries.
-   • **Curing**: Cure with leaves attached under shade for 8–10 days before trimming roots and stems.
-   • **Price Tip**: Avoid flooding mandi in the first 2 weeks of peak harvest. Storing well-cured garlic for 45–60 days typically yields 25% to 40% higher modal rates.
-
-3. **Cumin (Jeera)**:
-   • Harvest in early morning to prevent seed shattering. Clean via grader to ensure zero dust (< 1% foreign matter) to qualify for export-grade bulk buyer tenders.`,
-      gu: `📈 **લસણ, જીરું અને મગફળી પાક લણણી અને બજાર ભાવ વ્યૂહરચના**
-
-૧. **મગફળી (GG-20)**:
-   • કાપણી સમય: ૭૫-૮૦% ડોડવાના અંદરના ફોતરા કાળા-ભૂરા રંગના થાય ત્યારે જ કાઢવી.
-   • સુકવણી: ડોડવામાં ૮% થી ઓછો ભેજ રહે ત્યાં સુધી ૫-૭ દિવસ તડકામાં સૂકવવી. ઓછા ભેજવાળી મગફળી પર ખેતસેતુ પર પ્રીમિયમ ભાવ મળે છે.
-
-૨. **લસણ (GG-4)**:
-   • છોડના ૬૦-૭૦% પાન પીળા પડીને ઢળી પડે ત્યારે કાઢવું.
-   • ખેતરમાં જ ૮-૧૦ દિવસ છાંયડે પકવવું (Curing). મૂળિયા કાપી સાફ રાખવાથી બગાડ થતો નથી.
-   • લણણી સમયે તરત વેચવાને બદલે ૪૫ થી ૬૦ દિવસ સંગ્રહ કરવાથી ૨૫% થી ૪૦% ઊંચો ભાવ મળે છે.
-
-૩. **જીરું (Jeera)**:
-   • વહેલી સવારે ઝાકળ હોય ત્યારે જ લણણી કરવી જેથી દાણા ખરે નહીં. ડસ્ટ વગરનું ગ્રેડિંગ કરેલું જીરું મોટા વેપારીઓ ઊંચા ભાવે ખરીદે છે.`,
-      hi: `📈 **फसल कटाई व मंडी बिक्री रणनीति**
-
-1. **लहसुन व जीरा**:
-   • फसल पूरी पकने के बाद अच्छी तरह सुखाकर (8% से कम नमी) ही ग्रेडिंग करें।
-   • पीक सीजन के तुरंत बाद बेचने पर 20% से 30% बेहतर भाव मिलते हैं।`,
-    },
-  },
-];
+Formatting Guidelines:
+- Use clean Markdown with headers (###), bold text (**bold**), bullet points (*), and numbers.
+- Use friendly emojis (🚜, ☀️, 💧, 🌾, 🌿, 💡).
+- Give practical, direct numbers (HP, subsidy %, spray dosage, seed rate).`;
 
 export default function SellerAIAdvisory() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const askAIMutation = useAskAIAdvisoryMutation();
+
+  const [activeLang, setActiveLang] = useState(language || 'en');
+
+  // Keep activeLang in sync with system language changes
+  useEffect(() => {
+    if (language) setActiveLang(language);
+  }, [language]);
 
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {
       // ignore
     }
+
     return [
       {
         id: 'msg-welcome',
         sender: 'ai',
         text:
           language === 'gu'
-            ? 'નમસ્તે ખેડૂત મિત્ર! 🙏 હું છું તમારો ખેતસેતુ કિસાન AI સલાહકાર. ખેતીના સાધનો, ટ્રેક્ટર, સોલાર પંપ સબસિડી, ટપક પદ્ધતિ અથવા પાક રોગ-જીવાત અંગે કોઈ પણ પ્રશ્ન પૂછો!'
+            ? `🙏 **નમસ્તે ખેડૂત મિત્ર!** હું છું તમારો **ખેતસેતુ કિસાન AI સલાહકાર** (Powered by Google Gemini 3.8 Flash).
+
+હું તમને નીચેની બાબતોમાં સીધી મદદ કરી શકું છું:
+• 🚜 **ટ્રેક્ટર અને રોટાવેટર**: તમારી જમીન મુજબ યોગ્ય HP અને બ્લેડ સાઇઝ
+• ☀️ **PM-KUSUM સોલાર પંપ**: ૬૦% સબસિડી અને બોરવેલ મુજબ યોગ્ય ક્ષમતા (3HP / 5HP / 7.5HP)
+• 💧 **ટપક સિંચાઈ (Drip Irrigation)**: GGRC ૭૦% સબસિડી અને ગોઠવણ
+• 🌿 **ઓર્ગેનિક રોગ-જીવાત નિયંત્રણ**: લીંબોળી તેલ, ટ્રાઈકોડર્મા અને ફેરોમોન ટ્રેપ
+• 🌾 **પાક લણણી અને બજાર ભાવ**: લસણ, જીરું, મગફળી અને કપાસના સારા ભાવ મેળવવાની પદ્ધતિ
+
+નીચે આપેલા સૂચવેલા પ્રશ્નોમાંથી પસંદ કરો અથવા તમારો પોતાનો પ્રશ્ન લખીને પૂછો!`
             : language === 'hi'
-            ? 'नमस्ते किसान साथी! 🙏 मैं हूँ आपका खेतसेतु किसान AI सलाहकार। कृषि उपकरण, ट्रैक्टर, सोलर पंप सब्सिडी, टपक सिंचाई या फसल सुरक्षा पर कोई भी सवाल पूछें!'
-            : 'Welcome Farmer Friend! 🙏 I am your KhetSetu Kisan AI Advisory Assistant. Ask me anything about farm machinery, tractor sizing, solar pumps, drip irrigation, pest remedies, or government subsidies!',
+            ? `🙏 **नमस्ते किसान साथी!** मैं हूँ आपका **खेतसेतु किसान AI सलाहकार** (Powered by Google Gemini 3.8 Flash).
+
+मैं आपकी खेती और उपकरणों से जुड़े हर सवाल में सहायता कर सकता हूँ:
+• 🚜 **ट्रैक्टर व रोटावेटर**: आपकी जमीन अनुसार सही HP और ब्लेड का चुनाव
+• ☀️ **कुसुम सोलर पंप (PM-KUSUM)**: 60% सरकारी सब्सिडी और सही क्षमता
+• 💧 **ड्रिप सिंचाई**: ड्रिप सब्सिडी और फसल अनुरूप योजना
+• 🌿 **जैविक कीट व रोग नियंत्रण**: नीम तेल, ट्राइकोडर्मा और प्राकृतिक उपचार
+• 🌾 **फसल कटाई व मंडी बिक्री**: लहसुन, जीरा, मूंगफली और कपास के उत्तम भाव
+
+नीचे दिए गए सुझावों में से चुनें या अपना सवाल टाइप करें!`
+            : `🙏 **Welcome Farmer Friend!** I am your **KhetSetu Kisan AI Advisory** assistant, powered live by **Google Gemini 3.8 Flash**.
+
+Ask me anything about modern farming and machinery:
+• 🚜 **Tractor & Rotavator Sizing**: Best HP and blade specs for your acreage & soil
+• ☀️ **Solar Water Pumps (PM-KUSUM)**: 60% subsidy breakdown & HP selection
+• 💧 **Drip Irrigation Setup**: Subsidies (GGRC) & water management
+• 🌿 **Organic Pest Management**: Neem oil, Trichoderma & natural bio-controls
+• 🌾 **Optimal Harvest Timing**: Maximize Grade A mandi prices for Garlic, Cumin, Groundnut & Cotton
+
+Choose one of the starter questions below or type your query in any language!`,
+        model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
     ];
@@ -278,9 +132,7 @@ export default function SellerAIAdvisory() {
   const [copiedId, setCopiedId] = useState(null);
   const chatBottomRef = useRef(null);
 
-  const askAIMutation = useAskAIAdvisoryMutation();
-  const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
-
+  // Sync chat history to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
@@ -290,85 +142,34 @@ export default function SellerAIAdvisory() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const promptStarters = [
-    {
-      title: t('farmer.promptTractor', 'Best Tractor & Rotavator for 5 Acres'),
-      query: 'Which tractor HP and rotavator is best for a 5-acre farm in Gujarat?',
-    },
-    {
-      title: t('farmer.promptSolar', 'Solar Pump PM-KUSUM Subsidy'),
-      query: 'How to apply for solar water pump under PM-KUSUM yojana?',
-    },
-    {
-      title: t('farmer.promptDrip', 'Drip Irrigation Setup for Groundnut'),
-      query: 'What is the best drip irrigation setup and GGRC subsidy for Groundnut?',
-    },
-    {
-      title: t('farmer.promptPest', 'Organic Pest Remedy for Cotton'),
-      query: 'Natural organic remedy for whitefly and bollworm in cotton crop.',
-    },
-    {
-      title: t('farmer.promptTiming', 'Garlic & Cumin Harvest Strategy'),
-      query: 'When should I harvest and sell my Garlic and Cumin for best prices?',
-    },
-  ];
+  // Pure Live AI Call using Gemini with automatic fallback
+  const callGeminiAI = async (userText, chatHistory) => {
+    // 1. Prepare multi-turn conversation context
+    const recentHistory = chatHistory.slice(-8);
 
-  const generateAnswer = (query) => {
-    const qLower = query.toLowerCase();
-    const currentLang = language === 'gu' ? 'gu' : language === 'hi' ? 'hi' : 'en';
+    // 2. First attempt via Backend Service
+    try {
+      const res = await askAIMutation.mutateAsync({
+        message: userText,
+        language: activeLang,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        history: recentHistory.map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }],
+        })),
+      });
 
-    // Find best match in knowledge base
-    let bestMatch = null;
-    let highestScore = 0;
-
-    for (const item of KNOWLEDGE_BASE) {
-      let score = 0;
-      for (const kw of item.keywords) {
-        if (qLower.includes(kw)) score++;
+      if (res?.answer || res?.data?.answer) {
+        return {
+          answer: res.answer || res.data.answer,
+          model: res.model || GEMINI_MODEL,
+        };
       }
-      if (score > highestScore) {
-        highestScore = score;
-        bestMatch = item;
-      }
+    } catch (backendError) {
+      console.warn('Backend proxy unavailable, calling Gemini API directly:', backendError?.message);
     }
 
-    if (bestMatch && highestScore > 0) {
-      return bestMatch.response[currentLang] || bestMatch.response.en;
-    }
-
-    // Default intelligent farming response
-    if (currentLang === 'gu') {
-      return `🌱 **કિસાન AI વિશ્લેષણ અને ભલામણ:**
-
-આપના પ્રશ્ન **"${query}"** માટે નીચે મુજબ મહત્વપૂર્ણ સલાહ છે:
-
-૧. **જમીન અને ભેજ ચકાસણી**: પાક વાવણી કે ઓજાર પસંદગી પહેલા જમીનમાં ઓર્ગેનિક કાર્બન અને ભેજનું પ્રમાણ તપાસવું હિતાવહ છે.
-૨. **આધુનિક કૃષિ ઓજારો**: નાના અને મધ્યમ ખેતરો માટે ૩૫-૪૫ HP ટ્રેક્ટર સાથે ૫-ફૂટ રોટાવેટર સૌથી વધુ કિફાયતી રહે છે.
-૩. **સરકારી સહાય (i-ખેડૂત)**: કોઈપણ યાંત્રિકીકરણ કે ટપક સિંચાઈ માટે ગુજરાત સરકારના i-khedut પોર્ટલ પર નોંધણી કરાવો જેથી ૪૦% થી ૫૦% સબસિડી મળી શકે.
-૪. **બજાર સલાહ**: ખેતસેતુ મંડી રેટ્સ પેજ પરથી દૈનિક એપીએમસી ભાવ ચકાસીને પાકનું વેચાણ કરો.
-
-વધુ માહિતી માટે નજીકના કૃષિ વિજ્ઞાન કેન્દ્ર (KVK) અથવા ખેતસેતુ હેલ્પલાઇન 1800-889-KHET પર સંપર્ક કરી શકો છો!`;
-    }
-
-    if (currentLang === 'hi') {
-      return `🌱 **किसान AI विश्लेषण व अनुशंसा:**
-
-आपके प्रश्न **"${query}"** पर मुख्य कृषि सलाह:
-
-1. **उपकरण व तकनीक**: 5 से 8 एकड़ भूमि के लिए 40 HP ट्रैक्टर और रोटावेटर उत्तम संतुलन प्रदान करता है।
-2. **जल प्रबंधन**: परंपरागत सिंचाई के स्थान पर ड्रिप पद्धति अपनाएं जिससे 50% पानी की बचत होगी।
-3. **सरकारी योजनाएं**: कृषि यंत्रीकरण (SMAM) एवं कुसुम योजना के तहत 40% से 60% सब्सिडी उपलब्ध है।
-4. **गुणवत्ता युक्त पैदावार**: फसल को 8% से कम नमी पर ग्रेडिंग करके ही बाजार में लाएं।`;
-    }
-
-    return `🌱 **Kisan AI Farm Analysis & Recommendation:**
-
-Regarding your inquiry on **"${query}"**:
-
-1. **Equipment & Machinery**: For small to medium farms (3–7 acres), a 35–45 HP tractor coupled with a 5-foot rotary tiller offers maximum fuel economy and low maintenance.
-2. **Water & Soil Technique**: Implement inline drip irrigation with venturi injectors to save up to 55% water and improve root nutrient absorption.
-3. **Government Subsidies**: Check the **SMAM** and **PM-KUSUM** portals where subsidies ranging from 40% to 70% are provided for registered farmers.
-4. **Market Realization**: Ensure thorough shade curing and grading (< 8% moisture) to earn top Grade A pricing on KhetSetu without distress sales.`;
+    throw new Error('Unable to connect to the AI advisory service. Please try again.');
   };
 
   const handleSendMessage = async (textToSend) => {
@@ -387,55 +188,41 @@ Regarding your inquiry on **"${query}"**:
     setIsTyping(true);
 
     try {
-      // Prepare previous conversation context (last 6 messages)
-      const historyContext = messages.slice(-6).map((m) => ({
-        role: m.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: m.text }],
-      }));
-
-      let aiReplyText = '';
-      let usedModel = GEMINI_MODEL;
-
-      // Tier 1: Try backend AI advisory endpoint
-      try {
-        const res = await askAIMutation.mutateAsync({
-          message: text,
-          language,
-          history: historyContext,
-        });
-        aiReplyText = res?.answer || res?.data?.answer;
-        if (res?.model) usedModel = res.model;
-      } catch (backendErr) {
-        console.warn('Backend AI service call failed, using offline knowledge base...', backendErr);
-      }
-
-      // Curated offline agronomy knowledge base fallback
-      if (!aiReplyText) {
-        aiReplyText = generateAnswer(text);
-        usedModel = 'kisan-knowledge-base';
-      }
+      const result = await callGeminiAI(text, messages);
 
       const aiMessage = {
         id: `msg-${Date.now()}-ai`,
         sender: 'ai',
-        text: aiReplyText,
-        model: usedModel,
+        text: result.answer,
+        model: result.model || GEMINI_MODEL,
         time: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
-      console.error('AI chat failed:', err);
-      const fallbackText = generateAnswer(text);
-      const aiMessage = {
-        id: `msg-${Date.now()}-ai`,
+      console.error('Kisan AI Generation Error:', err);
+      const errorMessage = {
+        id: `msg-${Date.now()}-ai-error`,
         sender: 'ai',
-        text: fallbackText,
-        model: 'kisan-knowledge-base',
+        text:
+          activeLang === 'gu'
+            ? `⚠️ **ક્ષમા કરશો, AI સાથે જોડાણ થઈ શક્યું નથી.**\n\nભૂલ: ${err?.message || 'ઇન્ટરનેટ જોડાણ તપાસો.'}\n\nકૃપા કરીને ફરીથી પ્રયાસ કરો.`
+            : activeLang === 'hi'
+            ? `⚠️ **क्षमा करें, AI सेवा से संपर्क नहीं हो पाया।**\n\nकारण: ${err?.message || 'कृपया इंटरनेट कनेक्शन जांचें।'}\n\nकृपया दोबारा प्रयास करें।`
+            : `⚠️ **Unable to connect to Google Gemini AI service.**\n\nError: ${err?.message || 'Please check your internet connection.'}\n\nPlease try again in a few moments.`,
+        model: 'connection-error',
         time: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
+      toast.error('AI connection issue. Please retry.');
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -452,154 +239,175 @@ Regarding your inquiry on **"${query}"**:
         id: `msg-${Date.now()}-ai`,
         sender: 'ai',
         text:
-          language === 'gu'
-            ? 'ચેટ રીસેટ થઈ ગઈ છે. ખેતી સાધનો, રોગ-જીવાત કે સરકારી સહાય અંગે નવો પ્રશ્ન પૂછો!'
-            : 'Chat cleared. Ask me any new questions about farm machinery, crop protection, or subsidies!',
+          activeLang === 'gu'
+            ? 'ચેટ રીસેટ થઈ ગઈ છે. ખેતી સાધનો, સોલાર પંપ કે પાક રોગ-જીવાત અંગે નવો પ્રશ્ન પૂછો!'
+            : activeLang === 'hi'
+            ? 'चैट रीसेट हो गई है। उपकरण, सोलर पंप या फसल सलाह पर नया प्रश्न पूछें!'
+            : 'Conversation reset. Ask any question about tractors, solar pumps, drip irrigation, or subsidies!',
+        model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
     ];
     setMessages(welcome);
     localStorage.removeItem(STORAGE_KEY);
-    toast.info(t('farmer.chatCleared', 'Conversation reset.'));
+    toast.info('Chat cleared.');
+  };
+
+  const formatTime = (isoString) => {
+    try {
+      return new Date(isoString).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return '';
+    }
   };
 
   return (
-    <Box sx={{ maxWidth: '1150px', mx: 'auto', p: { xs: 2, sm: 3 } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-        <PageHeader
-          title={t('farmer.aiAdvisoryTitle', '🤖 Kisan AI Advisory & Machinery Guide')}
-          subtitle={t(
-            'farmer.aiAdvisorySubtitle',
-            'Get instant smart recommendations on farm implements, solar pumps, drip irrigation, pest control, and government subsidies.'
-          )}
-          showBack={true}
-        />
-
-        <Button
-          variant="outlined"
-          color="inherit"
-          startIcon={<MdDeleteOutline />}
-          onClick={handleClearChat}
-          sx={{
-            textTransform: 'none',
-            borderRadius: 2,
-            borderColor: '#CBD5E1',
-            color: '#64748B',
-            fontWeight: 600,
-            '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' },
-          }}
-        >
-          {t('farmer.clearConversation', 'Reset Chat')}
-        </Button>
-      </Box>
-
-      {/* Suggested Topics / Prompt Starters */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="caption" fontWeight={700} color="#64748B" sx={{ display: 'block', mb: 1, textTransform: 'uppercase' }}>
-          💡 {t('farmer.quickAdvisoryQuestions', 'Recommended Questions & Common Inquiries')}:
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {promptStarters.map((starter, i) => (
-            <Chip
-              key={i}
-              label={starter.title}
-              onClick={() => handleSendMessage(starter.query)}
-              clickable
-              sx={{
-                bgcolor: '#EFF6FF',
-                color: '#1D4ED8',
-                border: '1px solid #BFDBFE',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                py: 2,
-                borderRadius: 2.5,
-                transition: 'all 0.15s ease',
-                '&:hover': {
-                  bgcolor: '#DBEAFE',
-                  transform: 'translateY(-1px)',
-                },
-              }}
-            />
-          ))}
-        </Box>
-      </Box>
-
-      {/* Main Chat Box Container */}
-      <Paper
-        elevation={0}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+        bgcolor: '#FFFFFF',
+        overflow: 'hidden',
+      }}
+    >
+      {/* 1. Full-Width Chat Header Bar */}
+      <Box
         sx={{
-          borderRadius: 3.5,
-          border: '1px solid #E2E8F0',
+          px: { xs: 2, sm: 3 },
+          py: 1.5,
+          borderBottom: '1px solid #E2E8F0',
           bgcolor: '#FFFFFF',
           display: 'flex',
-          flexDirection: 'column',
-          height: { xs: '650px', sm: '700px' },
-          boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 1.5,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+          zIndex: 10,
         }}
       >
-        {/* Chat Status Header */}
-        <Box
-          sx={{
-            px: 2.5,
-            py: 1.5,
-            borderBottom: '1px solid #E2E8F0',
-            bgcolor: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 1,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <IconButton
+            size="small"
+            onClick={() => navigate('/seller')}
+            sx={{
+              color: '#64748B',
+              border: '1px solid #E2E8F0',
+              borderRadius: 2,
+              p: 0.75,
+              '&:hover': { bgcolor: '#F8FAFC' },
+            }}
+          >
+            <MdArrowBack size={18} />
+          </IconButton>
+
+          <Box sx={{ position: 'relative' }}>
+            <Avatar
+              sx={{
+                width: 42,
+                height: 42,
+                bgcolor: '#2563EB',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+              }}
+            >
+              <MdSmartToy size={24} />
+            </Avatar>
+            {/* Green glowing online dot */}
             <Box
               sx={{
-                width: 10,
-                height: 10,
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: 12,
+                height: 12,
                 borderRadius: '50%',
                 bgcolor: '#16A34A',
-                boxShadow: '0 0 0 3px rgba(22, 163, 74, 0.2)',
-              }}
-            />
-            <Typography variant="body2" fontWeight={800} color="#0F172A">
-              {t('farmer.aiAssistantName', 'KhetSetu Kisan AI Advisory')}
-            </Typography>
-            <Chip
-              label="⚡ Gemini 3.8 Flash Online"
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                bgcolor: '#EFF6FF',
-                color: '#2563EB',
-                border: '1px solid #BFDBFE',
+                border: '2px solid #FFFFFF',
               }}
             />
           </Box>
 
-          <Typography variant="caption" color="text.secondary" fontWeight={600}>
-            {language === 'gu'
-              ? 'ગુજરાતી / हिन्दी / English સપોર્ટ'
-              : language === 'hi'
-              ? 'गुजराती / हिन्दी / English सपोर्ट'
-              : 'Gujarati / Hindi / English Support'}
-          </Typography>
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
+                {activeLang === 'gu'
+                  ? 'ખેતસેતુ કિસાન AI સલાહકાર'
+                  : activeLang === 'hi'
+                  ? 'खेतसेतु किसान AI सलाहकार'
+                  : 'KhetSetu Kisan AI Advisory'}
+              </Typography>
+              <Chip
+                label="⚡ Gemini 3.8 Flash"
+                size="small"
+                sx={{
+                  height: 22,
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  bgcolor: '#EFF6FF',
+                  color: '#2563EB',
+                  border: '1px solid #BFDBFE',
+                }}
+              />
+            </Box>
+            <Typography variant="caption" color="#64748B" fontWeight={500}>
+              {activeLang === 'gu'
+                ? '૨૪×૭ ખેતી ઓજારો, સિંચાઈ અને સબસિડી સહાયક'
+                : activeLang === 'hi'
+                ? '24×7 कृषि उपकरण, सिंचाई व सब्सिडी सहायक'
+                : '24×7 Intelligent Agronomist & Machinery Guidance'}
+            </Typography>
+          </Box>
         </Box>
 
-        {/* Chat Messages Area */}
-        <Box
-          sx={{
-            flex: 1,
-            p: { xs: 2, sm: 3 },
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2.5,
-            bgcolor: '#F8FAFC',
-          }}
-        >
+        {/* Right side controls: Reset chat */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Reset Chat">
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<MdDeleteOutline />}
+              onClick={handleClearChat}
+              sx={{
+                borderRadius: 2,
+                borderColor: '#E2E8F0',
+                color: '#64748B',
+                fontWeight: 600,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                py: 0.5,
+                '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' },
+              }}
+            >
+              Reset
+            </Button>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {/* 2. Chat Messages Area (Full Height Scrollable Stream) */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 3,
+          bgcolor: '#F8FAFC',
+          display: 'flex',
+          flexDirection: 'column',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#CBD5E1 transparent',
+          '&::-webkit-scrollbar': { width: '6px' },
+          '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { bgcolor: '#CBD5E1', borderRadius: '4px' },
+        }}
+      >
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {messages.map((msg) => {
             const isUser = msg.sender === 'user';
 
@@ -611,135 +419,284 @@ Regarding your inquiry on **"${query}"**:
                   justifyContent: isUser ? 'flex-end' : 'flex-start',
                   gap: 1.5,
                   alignItems: 'flex-start',
+                  width: '100%',
                 }}
               >
                 {!isUser && (
                   <Avatar
                     sx={{
-                      width: 38,
-                      height: 38,
+                      width: 36,
+                      height: 36,
                       bgcolor: '#2563EB',
-                      color: '#fff',
+                      color: '#FFFFFF',
                       boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
+                      flexShrink: 0,
                     }}
                   >
-                    <MdSmartToy size={22} />
+                    <MdSmartToy size={20} />
                   </Avatar>
                 )}
 
-                <Box
-                  sx={{
-                    maxWidth: { xs: '88%', sm: '78%' },
-                    p: { xs: 2, sm: 2.5 },
-                    borderRadius: 3,
-                    bgcolor: isUser ? '#2563EB' : '#FFFFFF',
-                    color: isUser ? '#FFFFFF' : '#1E293B',
-                    border: isUser ? 'none' : '1px solid #E2E8F0',
-                    boxShadow: isUser
-                      ? '0 3px 12px rgba(37,99,235,0.25)'
-                      : '0 2px 6px rgba(0,0,0,0.03)',
-                  }}
-                >
-                  {!isUser && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Chip
-                        label={
-                          msg.model === 'gemini-3.8-flash'
-                            ? '⚡ Gemini 3.8 Flash'
-                            : '🌱 Kisan AI Agronomist'
-                        }
-                        size="small"
+                {/* Farmer Message Bubble (High Contrast Black Text) */}
+                {isUser ? (
+                  <Box
+                    sx={{
+                      maxWidth: { xs: '88%', sm: '78%', md: '68%' },
+                      p: 2,
+                      borderRadius: '18px 18px 4px 18px',
+                      bgcolor: '#F1F5F9', // Crisp soft background
+                      border: '1.5px solid #CBD5E1', // Visible border
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Typography
+                        variant="caption"
                         sx={{
-                          height: 20,
-                          fontSize: '0.68rem',
                           fontWeight: 800,
-                          bgcolor: msg.model === 'gemini-3.8-flash' ? '#EFF6FF' : '#DCFCE7',
-                          color: msg.model === 'gemini-3.8-flash' ? '#1D4ED8' : '#166534',
-                          border: msg.model === 'gemini-3.8-flash' ? '1px solid #BFDBFE' : 'none',
+                          color: '#475569',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          fontSize: '0.68rem',
                         }}
-                      />
-                      <Tooltip title={t('common.copy', 'Copy text')}>
+                      >
+                        🌾 {activeLang === 'gu' ? 'તમે (ખેડૂત)' : activeLang === 'hi' ? 'आप (किसान)' : 'You (Farmer)'}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#000000', // Deep black as explicitly requested!
+                        fontWeight: 600,
+                        fontSize: '0.98rem',
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {msg.text}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        mt: 0.75,
+                        textAlign: 'right',
+                        color: '#64748B',
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {formatTime(msg.time)}
+                    </Typography>
+                  </Box>
+                ) : (
+                  /* AI Message Bubble (Structured Markdown & Formatting) */
+                  <Box
+                    sx={{
+                      flex: 1,
+                      maxWidth: { xs: '100%', sm: '94%', md: '92%' },
+                      p: { xs: 2, sm: 2.5 },
+                      borderRadius: '4px 18px 18px 18px',
+                      bgcolor: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 1.25,
+                        pb: 1,
+                        borderBottom: '1px solid #F1F5F9',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.75rem' }}>
+                          🤖 KhetSetu Kisan AI
+                        </Typography>
+                        <Chip
+                          label="⚡ Gemini 3.8 Flash"
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontSize: '0.65rem',
+                            fontWeight: 800,
+                            bgcolor: '#EFF6FF',
+                            color: '#2563EB',
+                            border: '1px solid #BFDBFE',
+                          }}
+                        />
+                      </Box>
+                      <Tooltip title="Copy Advice">
                         <IconButton
                           size="small"
                           onClick={() => handleCopyText(msg.id, msg.text)}
-                          sx={{ color: '#94A3B8', p: 0.5 }}
+                          sx={{ color: '#94A3B8', p: 0.5, '&:hover': { color: '#0F172A' } }}
                         >
                           {copiedId === msg.id ? <MdCheck size={16} color="#16A34A" /> : <MdContentCopy size={16} />}
                         </IconButton>
                       </Tooltip>
                     </Box>
-                  )}
 
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      lineHeight: 1.65,
-                      whiteSpace: 'pre-wrap',
-                      fontSize: '0.92rem',
-                    }}
-                  >
-                    {msg.text}
-                  </Typography>
+                    {/* Markdown Formatted AI Advice */}
+                    <Box
+                      sx={{
+                        color: '#0F172A',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.7,
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => (
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', mt: 1.5, mb: 0.75 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          h2: ({ children }) => (
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
+                                fontWeight: 800,
+                                color: '#1E293B',
+                                mt: 1.5,
+                                mb: 0.75,
+                                borderBottom: '1px solid #F1F5F9',
+                                pb: 0.4,
+                              }}
+                            >
+                              {children}
+                            </Typography>
+                          ),
+                          h3: ({ children }) => (
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: 800, color: '#2563EB', mt: 1.25, mb: 0.5, fontSize: '0.98rem' }}
+                            >
+                              {children}
+                            </Typography>
+                          ),
+                          p: ({ children }) => (
+                            <Typography
+                              variant="body2"
+                              sx={{ color: '#1E293B', mb: 1, fontSize: '0.94rem', lineHeight: 1.7 }}
+                            >
+                              {children}
+                            </Typography>
+                          ),
+                          ul: ({ children }) => (
+                            <Box component="ul" sx={{ pl: 2.5, my: 0.75, '& li': { mb: 0.5, color: '#1E293B' } }}>
+                              {children}
+                            </Box>
+                          ),
+                          ol: ({ children }) => (
+                            <Box component="ol" sx={{ pl: 2.5, my: 0.75, '& li': { mb: 0.5, color: '#1E293B' } }}>
+                              {children}
+                            </Box>
+                          ),
+                          li: ({ children }) => (
+                            <Typography component="li" variant="body2" sx={{ color: '#1E293B', fontSize: '0.93rem', lineHeight: 1.65 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          strong: ({ children }) => (
+                            <Box component="strong" sx={{ fontWeight: 800, color: '#0F172A' }}>
+                              {children}
+                            </Box>
+                          ),
+                          hr: () => <Divider sx={{ my: 1.5, borderColor: '#E2E8F0' }} />,
+                          table: ({ children }) => (
+                            <Box sx={{ overflowX: 'auto', my: 1.5 }}>
+                              <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.88rem' }}>{children}</table>
+                            </Box>
+                          ),
+                          th: ({ children }) => (
+                            <th style={{ border: '1px solid #CBD5E1', padding: '6px 12px', background: '#F1F5F9', fontWeight: 700 }}>
+                              {children}
+                            </th>
+                          ),
+                          td: ({ children }) => (
+                            <td style={{ border: '1px solid #E2E8F0', padding: '6px 12px' }}>{children}</td>
+                          ),
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
+                    </Box>
 
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: 'block',
-                      mt: 1,
-                      textAlign: isUser ? 'right' : 'left',
-                      opacity: isUser ? 0.8 : 0.5,
-                      fontSize: '0.7rem',
-                    }}
-                  >
-                    {new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Typography>
-                </Box>
-
-                {isUser && (
-                  <Avatar
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      bgcolor: '#16A34A',
-                      color: '#fff',
-                    }}
-                  >
-                    <MdAgriculture size={20} />
-                  </Avatar>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        mt: 1.25,
+                        textAlign: 'left',
+                        color: '#94A3B8',
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {formatTime(msg.time)}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             );
           })}
 
+          {/* Typing Indicator */}
           {isTyping && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar sx={{ width: 36, height: 36, bgcolor: '#2563EB', color: '#fff' }}>
-                <MdSmartToy size={20} />
-              </Avatar>
-              <Paper
-                elevation={0}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+              <Avatar
                 sx={{
-                  p: 1.8,
-                  borderRadius: 3,
-                  border: '1px solid #E2E8F0',
-                  bgcolor: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
+                  width: 36,
+                  height: 36,
+                  bgcolor: '#2563EB',
+                  color: '#FFFFFF',
                 }}
               >
-                <CircularProgress size={16} color="primary" />
-                <Typography variant="body2" color="#64748B" fontWeight={500}>
-                  {t('farmer.aiAnalyzingAdvice', 'Analyzing farm guidelines & equipment data...')}
+                <MdSmartToy size={20} />
+              </Avatar>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: '4px 18px 18px 18px',
+                  bgcolor: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                }}
+              >
+                <CircularProgress size={16} sx={{ color: '#2563EB' }} />
+                <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600 }}>
+                  {activeLang === 'gu'
+                    ? 'કિસાન AI વિશ્લેષણ કરી રહ્યું છે...'
+                    : activeLang === 'hi'
+                    ? 'किसान AI विश्लेषण कर रहा है...'
+                    : 'Kisan AI is analyzing your farm inquiry...'}
                 </Typography>
-              </Paper>
+              </Box>
             </Box>
           )}
 
           <div ref={chatBottomRef} />
         </Box>
+      </Box>
 
-        {/* Chat Input Bar */}
+      {/* 3. Bottom Full-Width Text Typing Bar */}
+      <Box
+        sx={{
+          width: '100%',
+          borderTop: '1px solid #E2E8F0',
+          bgcolor: '#FFFFFF',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 1.5,
+          zIndex: 10,
+          boxShadow: '0 -2px 14px rgba(0,0,0,0.03)',
+        }}
+      >
         <Box
           component="form"
           onSubmit={(e) => {
@@ -747,51 +704,75 @@ Regarding your inquiry on **"${query}"**:
             handleSendMessage();
           }}
           sx={{
-            p: 2,
-            borderTop: '1px solid #E2E8F0',
-            bgcolor: '#FFFFFF',
+            width: '100%',
             display: 'flex',
             alignItems: 'center',
             gap: 1.5,
+            bgcolor: '#F8FAFC',
+            border: '1.5px solid #CBD5E1',
+            borderRadius: 3.5,
+            p: '8px 16px',
+            transition: 'all 0.2s ease',
+            '&:focus-within': {
+              borderColor: '#2563EB',
+              bgcolor: '#FFFFFF',
+              boxShadow: '0 0 0 3px rgba(37,99,235,0.12)',
+            },
           }}
         >
-          <TextField
+          <InputBase
             fullWidth
-            size="medium"
+            multiline
+            maxRows={4}
             placeholder={
-              language === 'gu'
-                ? 'ટ્રેક્ટર, સોલાર પંપ, ટપક પદ્ધતિ કે પાક રોગ-જીવાત અંગે પૂછો...'
-                : language === 'hi'
-                ? 'ट्रैक्टर, सोलर पंप, ड्रिप सिंचाई या फसल सुरक्षा के बारे में पूछें...'
-                : 'Ask about tractor sizing, solar pumps, drip irrigation, pest control, or subsidies...'
+              activeLang === 'gu'
+                ? 'પાક, ખાતર, બિયારણ, સિંચાઈ, રોગ-જીવાત કે સરકારી સહાય અંગે પૂછો... (Enter દબાવો)'
+                : activeLang === 'hi'
+                ? 'फसल, खाद, बीज, सिंचाई, कीट नियंत्रण या सरकारी योजना पर पूछें... (Enter दबाएं)'
+                : 'Ask Kisan AI about tractor sizing, solar pumps, drip irrigation, pest control, or subsidies...'
             }
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={isTyping}
             sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 3,
-                bgcolor: '#F8FAFC',
+              flex: 1,
+              color: '#000000', // Pure black text
+              fontWeight: 500,
+              fontSize: '0.98rem',
+              py: 0.5,
+              border: 'none',
+              outline: 'none',
+              '& .MuiInputBase-input': {
+                color: '#000000',
+                fontWeight: 500,
+                fontSize: '0.98rem',
+                border: 'none',
+                outline: 'none',
               },
             }}
           />
+
           <Button
             type="submit"
             variant="contained"
             disabled={!inputQuery.trim() || isTyping}
             sx={{
-              minWidth: 52,
-              height: 52,
-              borderRadius: 3,
+              minWidth: 46,
+              width: 46,
+              height: 46,
+              borderRadius: '50%',
               bgcolor: '#2563EB',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+              p: 0,
+              boxShadow: '0 3px 10px rgba(37,99,235,0.3)',
               '&:hover': { bgcolor: '#1D4ED8' },
+              '&:disabled': { bgcolor: '#CBD5E1', color: '#FFFFFF' },
             }}
           >
-            <MdSend size={22} />
+            <MdSend size={20} />
           </Button>
         </Box>
-      </Paper>
+      </Box>
     </Box>
   );
 }
