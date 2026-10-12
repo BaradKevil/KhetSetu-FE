@@ -36,28 +36,43 @@ const Layout = () => {
         {/* Common Top Header across all pages (mobile and desktop) */}
         <Navbar onToggleSidebar={isMobile ? handleDrawerToggle : undefined} />
 
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, sm: 2.5, md: 3.5 },
-            maxWidth: '100%',
-            overflowX: 'hidden',
-          }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
+        {(() => {
+          const isFullPageChat = location.pathname.startsWith('/seller/ai-advisory');
+
+          return (
+            <Box
+              component="main"
+              sx={{
+                flexGrow: 1,
+                px: isFullPageChat ? 0 : { xs: 2, sm: 3, md: 4 },
+                py: isFullPageChat ? 0 : { xs: 2, sm: 2.5, md: 3.5 },
+                maxWidth: '100%',
+                overflowX: 'hidden',
+                display: isFullPageChat ? 'flex' : 'block',
+                flexDirection: isFullPageChat ? 'column' : 'initial',
+                height: isFullPageChat ? { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 65px)' } : 'auto',
+                minHeight: isFullPageChat ? 0 : 'auto',
+              }}
             >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
-        </Box>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  style={
+                    isFullPageChat
+                      ? { flex: 1, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minHeight: 0 }
+                      : undefined
+                  }
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
+            </Box>
+          );
+        })()}
       </Box>
     </Box>
   );
