@@ -53,6 +53,7 @@ import BuyerRFQ from './pages/buyer/BuyerRFQ';
 import BuyerOffers from './pages/buyer/BuyerOffers';
 import BuyerInvoices from './pages/buyer/BuyerInvoices';
 import BuyerWatchlist from './pages/buyer/BuyerWatchlist';
+import BuyerAIAdvisory from './pages/buyer/BuyerAIAdvisory';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -121,7 +122,39 @@ function App() {
       path: '/seller',
       element: (
         <AuthGaurd>
-          <RoleGuard allowedRoles={['seller', 'super_admin']}>
+          <RoleGuard allowedRoles={['seller', 'farmer', 'super_admin']}>
+            <Layout />
+          </RoleGuard>
+        </AuthGaurd>
+      ),
+      children: [
+        { path: '', element: <SellerDashboard /> },
+        { path: 'products', element: <MyProducts /> },
+        { path: 'products/new', element: <AddProduct /> },
+        { path: 'products/:id', element: <SellerProductDetail /> },
+        { path: 'orders', element: <SellerOrders /> },
+        { path: 'orders/:id', element: <SellerOrderDetail /> },
+        { path: 'analytics', element: <SellerAnalytics /> },
+        { path: 'earnings', element: <SellerEarnings /> },
+        { path: 'statements', element: <SellerStatements /> },
+        { path: 'offers', element: <SellerOffers /> },
+        { path: 'disputes', element: <SellerDisputes /> },
+        { path: 'reputation', element: <SellerReputation /> },
+        { path: 'planner', element: <SellerHarvestPlanner /> },
+        { path: 'mandi-rates', element: <SellerMandiPrices /> },
+        { path: 'profile', element: <SellerKYC /> },
+        { path: 'notifications', element: <SellerNotifications /> },
+        { path: 'support', element: <SellerSupport /> },
+        { path: 'ai-advisory', element: <SellerAIAdvisory /> },
+      ],
+    },
+
+    // Farmer Portal: /farmer/* (Both farmer and seller access)
+    {
+      path: '/farmer',
+      element: (
+        <AuthGaurd>
+          <RoleGuard allowedRoles={['seller', 'farmer', 'super_admin']}>
             <Layout />
           </RoleGuard>
         </AuthGaurd>
@@ -177,6 +210,7 @@ function App() {
         { path: 'invoices', element: <BuyerInvoices /> },
         { path: 'watchlist', element: <BuyerWatchlist /> },
         { path: 'profile', element: <BuyerProfile /> },
+        { path: 'ai-advisory', element: <BuyerAIAdvisory /> },
       ],
     },
 

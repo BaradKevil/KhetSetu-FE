@@ -25,65 +25,10 @@ import LanguageSelector from '../../common/custom/LanguageSelector';
 import PhoneInput from '../../common/custom/PhoneInput';
 import { toast } from 'react-toastify';
 
-const UI_TEXT = {
-  en: {
-    language: 'Language',
-    title: 'Sign In to KhetSetu',
-    subtitle: 'Farmer & Buyer Unified Marketplace',
-    phoneLabel: 'Registered Mobile Number',
-    phonePlaceholder: 'Enter 10-digit mobile number',
-    getOtpBtn: 'Get OTP',
-    otpLabel: 'Enter 6-Digit Verification Code',
-    otpPlaceholder: 'Enter 6-digit OTP',
-    verifyBtn: 'Verify & Sign In',
-    resendIn: 'Resend code in',
-    resendBtn: 'Resend OTP',
-    changeNumber: 'Change Number',
-    newAccount: 'New to KhetSetu?',
-    registerLink: 'Register Free Account',
-    demoNotice: '💡 Demo Sandbox OTP: 123456',
-  },
-  hi: {
-    language: 'भाषा',
-    title: 'खेतसेतु में प्रवेश करें',
-    subtitle: 'किसान और खरीदार का एकीकृत कृषि बाजार',
-    phoneLabel: 'पंजीकृत मोबाइल नंबर',
-    phonePlaceholder: '10-अंकीय मोबाइल नंबर दर्ज करें',
-    getOtpBtn: 'OTP प्राप्त करें',
-    otpLabel: '6-अंकीय सत्यापन कोड दर्ज करें',
-    otpPlaceholder: '6-अंकीय OTP दर्ज करें',
-    verifyBtn: 'सत्यापित करें और प्रवेश करें',
-    resendIn: 'पुनः कोड भेजें',
-    resendBtn: 'OTP पुनः भेजें',
-    changeNumber: 'नंबर बदलें',
-    newAccount: 'खेतसेतु पर नए हैं?',
-    registerLink: 'निःशुल्क खाता बनाएं',
-    demoNotice: '💡 डेमो टेस्ट OTP: 123456',
-  },
-  gu: {
-    language: 'ભાષા',
-    title: 'ખેતસેતુમાં લોગિન કરો',
-    subtitle: 'ખેડૂત અને વેપારી માટે વિશ્વસનીય કૃષિ પ્લેટફોર્મ',
-    phoneLabel: 'નોંધાયેલ મોબાઈલ નંબર',
-    phonePlaceholder: '10-અંકનો મોબાઈલ નંબર દાખલ કરો',
-    getOtpBtn: 'OTP મેળવો',
-    otpLabel: '6-અંકનો વેરિફિકેશન કોડ દાખલ કરો',
-    otpPlaceholder: '6-અંકનો OTP દાખલ કરો',
-    verifyBtn: 'ચકાસો અને આગળ વધો',
-    resendIn: 'ફરીથી કોડ મોકલો',
-    resendBtn: 'OTP ફરીથી મોકલો',
-    changeNumber: 'નંબર બદલો',
-    newAccount: 'ખેતસેતુ પર નવા છો?',
-    registerLink: 'નવું ખાતું બનાવો',
-    demoNotice: '💡 ડેમો ટેસ્ટ OTP: 123456',
-  },
-};
-
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { language: lang, changeLanguage: setLang } = useLanguage();
-  const t = UI_TEXT[lang] || UI_TEXT.en;
+  const { t, language: lang, changeLanguage: setLang } = useLanguage();
 
   const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
   const [otp, setOtp] = useState('');
@@ -118,7 +63,7 @@ const Login = () => {
     if (e) e.preventDefault();
     const cleanDigits = phone.replace(/\D/g, '').slice(-10);
     if (!cleanDigits || cleanDigits.length < 10) {
-      toast.error('Please enter a valid 10-digit mobile number.');
+      toast.error(t('auth.enterValidPhone'));
       return;
     }
     const fullPhone = `+91${cleanDigits}`;
@@ -126,9 +71,9 @@ const Login = () => {
       const res = await sendOtpMutation.mutateAsync({ phone: fullPhone });
       setOtpSent(true);
       setResendCooldown(30);
-      toast.success(res.data?.message || res.message || 'OTP sent! Test OTP is 123456');
+      toast.success(res.data?.message || res.message || t('auth.otpSentToast'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send OTP.');
+      toast.error(err.response?.data?.message || t('auth.otpSendFailed'));
     }
   };
 
@@ -136,7 +81,7 @@ const Login = () => {
     if (e) e.preventDefault();
     const cleanOtp = otp.trim();
     if (!cleanOtp || cleanOtp.length < 6) {
-      toast.error('Please enter the 6-digit OTP code.');
+      toast.error(t('auth.enterValidOtp'));
       return;
     }
 
@@ -151,14 +96,46 @@ const Login = () => {
 
       const authData = unwrap(res);
       if (!authData || !authData.accessToken) {
-        toast.error('Authentication response invalid. Please try again.');
+        toast.error(t('auth.authResponseInvalid'));
         return;
+      }
+
+      // Robust role extraction handling string, object, role_code or JWT payload
+      let roleCode = '';
+      const rawRole = authData.user?.role;
+      if (typeof rawRole === 'string' && rawRole.trim() && rawRole !== '[object Object]') {
+        roleCode = rawRole.trim();
+      } else if (rawRole && typeof rawRole === 'object' && rawRole.code) {
+        roleCode = rawRole.code;
+      } else if (authData.user?.role_code) {
+        roleCode = authData.user.role_code;
+      }
+
+      if (!roleCode && authData.accessToken) {
+        try {
+          const parts = authData.accessToken.split('.');
+          if (parts.length >= 2) {
+            const payload = JSON.parse(atob(parts[1]));
+            roleCode = payload.role_code || payload.role || '';
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!roleCode) {
+        const queryRole = searchParams.get('role');
+        if (queryRole === 'buyer' || queryRole === 'seller' || queryRole === 'farmer') {
+          roleCode = queryRole;
+        } else {
+          roleCode = 'seller';
+        }
       }
 
       localStorage.setItem('accessToken', authData.accessToken);
       localStorage.setItem('refreshToken', authData.refreshToken);
-      localStorage.setItem('role', authData.user?.role || '');
-      localStorage.setItem('phone', authData.user?.phone || '');
+      localStorage.setItem('role', roleCode);
+      localStorage.setItem('phone', authData.user?.phone || fullPhone);
       localStorage.setItem('fullName', authData.user?.full_name || 'User');
       localStorage.setItem('profilePhoto', authData.user?.profile_photo || '');
 
@@ -171,21 +148,20 @@ const Login = () => {
         setLang(lang);
       }
 
-      toast.success(`Welcome back, ${authData.user?.full_name || 'User'}!`);
+      toast.success(t('auth.welcomeBackUser', { name: authData.user?.full_name || t('common.user') }));
 
       // Dynamic redirection based on role associated with the mobile number
-      const userRole = authData.user?.role;
-      if (userRole === 'seller') {
+      if (roleCode === 'seller' || roleCode === 'farmer') {
         navigate('/seller');
-      } else if (userRole === 'buyer') {
+      } else if (roleCode === 'buyer') {
         navigate('/buyer');
-      } else if (userRole === 'super_admin' || userRole === 'staff') {
+      } else if (roleCode === 'super_admin' || roleCode === 'staff') {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate('/seller');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid OTP code. Please try again.');
+      toast.error(err.response?.data?.message || t('auth.invalidOtpCode'));
     }
   };
 
@@ -225,7 +201,7 @@ const Login = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
             <MdLanguage color="#64748B" size={18} />
             <Typography variant="caption" fontWeight={700} color="text.secondary">
-              {t.language || 'Language'}
+              {t('common.language')}
             </Typography>
           </Box>
           <LanguageSelector variant="chips" size="small" showIcon={false} />
@@ -252,10 +228,10 @@ const Login = () => {
             <MdAgriculture />
           </Box>
           <Typography variant="h5" fontWeight={800} color="#0F172A" sx={{ letterSpacing: '-0.3px' }}>
-            {t.title}
+            {t('auth.loginTitle')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {t.subtitle}
+            {t('auth.loginSubtitle')}
           </Typography>
         </Box>
 
@@ -263,13 +239,13 @@ const Login = () => {
         <Box component="form" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} noValidate>
           <Box sx={{ mb: 2.5 }}>
             <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.8, display: 'block' }}>
-              {t.phoneLabel}
+              {t('auth.phoneLabel')}
             </Typography>
             <PhoneInput
               fullWidth
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder={t.phonePlaceholder}
+              placeholder={t('auth.phonePlaceholder')}
               autoComplete="off"
               disabled={otpSent}
               size="medium"
@@ -299,7 +275,7 @@ const Login = () => {
                 boxShadow: '0 6px 16px rgba(46, 125, 50, 0.25)',
               }}
             >
-              {sendOtpMutation.isPending ? 'Sending OTP...' : t.getOtpBtn}
+              {sendOtpMutation.isPending ? t('common.loading') : t('auth.getOtpBtn')}
             </Button>
           )}
 
@@ -309,7 +285,7 @@ const Login = () => {
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
                   <Typography variant="caption" fontWeight={700} color="#334155">
-                    {t.otpLabel}
+                    {t('auth.otpLabel')}
                   </Typography>
                   <Button
                     size="small"
@@ -320,7 +296,7 @@ const Login = () => {
                     }}
                     sx={{ p: 0, minWidth: 'auto', textTransform: 'none', fontSize: '0.75rem', color: '#64748B' }}
                   >
-                    {t.changeNumber}
+                    {t('auth.changeNumber')}
                   </Button>
                 </Box>
                 <TextField
@@ -360,7 +336,7 @@ const Login = () => {
                   mb: 1.5,
                 }}
               >
-                {verifyOtpMutation.isPending ? 'Verifying...' : t.verifyBtn}
+                {verifyOtpMutation.isPending ? t('common.loading') : t('auth.verifyBtn')}
               </Button>
 
               {/* Resend Timer & Notice */}
@@ -373,10 +349,10 @@ const Login = () => {
                   startIcon={<MdTimer size={16} />}
                   sx={{ textTransform: 'none', fontSize: '0.8rem', color: resendCooldown > 0 ? '#94A3B8' : '#2E7D32', fontWeight: 600 }}
                 >
-                  {resendCooldown > 0 ? `${t.resendIn} ${resendCooldown}s` : t.resendBtn}
+                  {resendCooldown > 0 ? `${t('auth.resendIn')} ${resendCooldown}s` : t('auth.resendBtn')}
                 </Button>
                 <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.75rem' }}>
-                  {t.demoNotice}
+                  {t('auth.demoNotice')}
                 </Typography>
               </Box>
             </Box>
@@ -386,12 +362,12 @@ const Login = () => {
         {/* Footer Link to Register */}
         <Box sx={{ mt: 3.5, textAlign: 'center', pt: 2.5, borderTop: '1px solid #F1F5F9' }}>
           <Typography variant="body2" color="text.secondary">
-            {t.newAccount}{' '}
+            {t('auth.newAccount')}{' '}
             <Link
               to={`/register?phone=${encodeURIComponent(phone)}&lang=${lang}`}
               style={{ color: '#2E7D32', fontWeight: 800, textDecoration: 'none' }}
             >
-              {t.registerLink}
+              {t('auth.registerLink')}
             </Link>
           </Typography>
         </Box>

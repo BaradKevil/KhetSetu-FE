@@ -57,6 +57,7 @@ apiClient.interceptors.response.use(
       } catch {
         // Safe ignore
       }
+<<<<<<< HEAD
 
       // Do not hijack navigation if user is on public pages (home, market, login)
       const currentPath = window.location.pathname;
@@ -68,6 +69,8 @@ apiClient.interceptors.response.use(
       if (!isPublic && currentPath !== '/not-authorized') {
         window.location.href = `/not-authorized?error=${encodeURIComponent(errorMsg)}`;
       }
+=======
+>>>>>>> 61bc75303194bd2b24964f9b62b11805abc5daaa
       return Promise.reject(error);
     }
 

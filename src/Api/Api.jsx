@@ -229,7 +229,10 @@ export const sellerApi = {
 export const useAskAIAdvisoryMutation = () => {
   return useMutation({
     mutationFn: async (data) => {
-      const res = await sellerApi.askAIAdvisory(data);
+      const isBuyer = window.location.pathname.startsWith('/buyer');
+      const res = isBuyer
+        ? await apiClient.post('/buyer/ai-advisory', data)
+        : await apiClient.post('/seller/ai-advisory', data);
       return unwrap(res);
     },
   });
@@ -317,6 +320,7 @@ export const buyerApi = {
   setDefaultAddress: (id) => apiClient.patch(`/buyer/addresses/${id}/default`),
   getDisputes: () => apiClient.get('/buyer/disputes'),
   raiseDispute: (data) => apiClient.post('/buyer/disputes', data),
+  askAIAdvisory: (data) => apiClient.post('/buyer/ai-advisory', data),
 };
 
 export const useGetBuyerProfileQuery = (options = {}) => {

@@ -46,6 +46,7 @@ import {
 
 import { useLanguage } from '../context/LanguageContext';
 import { useGetProfileQuery, useGetSellerOrdersQuery } from '../Api/Api';
+import { getStoredRole } from './Gaurd';
 import { toast } from 'react-toastify';
 
 const DRAWER_WIDTH = 320;
@@ -69,6 +70,7 @@ const menuTranslationKeys = {
   'seller-support': 'kisanSupport',
   'buyer-dashboard': 'buyerOverview',
   'buyer-market': 'exploreMandi',
+  'buyer-ai-advisory': 'buyerAiAdvisory',
   'buyer-farmers': 'verifiedFarmers',
   'buyer-cart': 'myCart',
   'buyer-orders': 'myEscrowOrders',
@@ -110,6 +112,7 @@ const iconMap = {
   'seller-support': <MdSupportAgent size={20} />,
   'buyer-dashboard': <MdDashboard size={20} />,
   'buyer-market': <MdStorefront size={20} />,
+  'buyer-ai-advisory': <MdSmartToy size={20} />,
   'buyer-farmers': <MdPeople size={20} />,
   'buyer-cart': <MdShoppingCart size={20} />,
   'buyer-orders': <MdShoppingBag size={20} />,
@@ -136,13 +139,13 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const userRole = localStorage.getItem('role') || 'buyer';
+  const userRole = getStoredRole();
   const { data: userProfile } = useGetProfileQuery();
   const kycStatus = userProfile?.seller_profile?.kyc_status || 'unverified';
 
   const { data: sellerOrdersData } = useGetSellerOrdersQuery(
     {},
-    { enabled: userRole === 'seller' && !!localStorage.getItem('accessToken') }
+    { enabled: (userRole === 'seller' || userRole === 'farmer') && !!localStorage.getItem('accessToken') }
   );
   const ordersList = Array.isArray(sellerOrdersData?.items)
     ? sellerOrdersData.items
@@ -165,15 +168,16 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const getRoleDisplayName = () => {
     switch (userRole) {
       case 'super_admin':
-        return 'Admin';
+        return t('navigation.superAdmin');
       case 'staff':
-        return 'Staff';
+        return t('navigation.staff');
       case 'seller':
-        return 'Farmer';
+      case 'farmer':
+        return t('navigation.farmerSeller');
       case 'buyer':
-        return 'Buyer';
+        return t('navigation.traderBuyer');
       default:
-        return 'User';
+        return t('common.user');
     }
   };
 
@@ -182,7 +186,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
       return rawFullName;
     }
     if (userRole === 'super_admin') return 'admin1';
-    if (userRole === 'seller') return 'farmer1';
+    if (userRole === 'seller' || userRole === 'farmer') return 'farmer1';
     if (userRole === 'buyer') return 'buyer1';
     return 'User';
   };
@@ -201,8 +205,11 @@ const Sidebar = ({ open, onClose, isMobile }) => {
   const displayName = getDisplayName();
   const avatarLetter = (displayName ? displayName.charAt(0) : 'U').toUpperCase();
 
-  const filteredMenu = menulist.filter((item) =>
-    item.roles.includes(userRole)
+  const filteredMenu = menulist.filter(
+    (item) =>
+      item.roles.includes(userRole) ||
+      (item.roles.includes('seller') && userRole === 'farmer') ||
+      (item.roles.includes('farmer') && userRole === 'seller')
   );
 
   const drawerContent = (
@@ -278,7 +285,7 @@ const Sidebar = ({ open, onClose, isMobile }) => {
                 textTransform: 'uppercase',
               }}
             >
-              Kisan Escrow Platform
+              {t('common.kisanEscrowPlatform')}
             </Typography>
           </Box>
         </Link>
@@ -313,8 +320,8 @@ const Sidebar = ({ open, onClose, isMobile }) => {
             const showSection = item.section && (!prevItem || prevItem.section !== item.section);
             const isActive = location.pathname === item.path;
             const transKey = menuTranslationKeys[item.id];
-            const translated = transKey ? t(transKey) : null;
-            const translatedName = translated && translated !== transKey ? translated : item.name;
+            const translated = transKey ? (t(`navigation.${transKey}`) || t(transKey)) : null;
+            const translatedName = translated && !translated.startsWith('navigation.') && translated !== transKey ? translated : item.name;
 
             return (
               <Box key={item.id}>

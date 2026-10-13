@@ -29,12 +29,12 @@ import { useAskAIAdvisoryMutation } from '../../Api/Api';
 import { toast } from 'react-toastify';
 
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.8-flash';
-const STORAGE_KEY = 'khetsetu_ai_advisory_chat_history_v2';
+const STORAGE_KEY_PREFIX = 'khetsetu_ai_advisory_chat_history_v3';
 
-const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan AI" (ખેતસેતુ કિસાન AI / खेतसेतु किसान AI), an expert agronomy consultant, agricultural machinery specialist, and farm advisory intelligence dedicated to Indian farmers (especially in Gujarat and across India).
+const SYSTEM_INSTRUCTION = `You are "KhetSetu Kisan & Seller AI" (ખેતસેતુ કિસાન અને વિક્રેતા AI / खेतसेतु किसान एवं विक्रेता AI), an expert agronomy consultant, agricultural machinery specialist, and mandi trading & market intelligence assistant dedicated to Indian farmers and produce sellers (especially in Gujarat and across India).
 
 Your Core Mission & Domain Knowledge:
-1. Agricultural Equipment & Machinery:
+1. Agricultural Equipment & Machinery (For Farmers):
    - Tractor horsepower sizing by acreage: 35–45 HP for 3–7 acres; 45–55 HP for >8 acres with heavy soil. PTO HP specs (540 RPM).
    - Rotavator selection: 36, 42, or 48 blades (5 to 6 ft). L-type blades for heavy/black soil; C-type for sandy loam. Trusted brands in Gujarat (Shaktiman, Fieldking).
    - Solar Water Pumps (PM-KUSUM Component B): 3 HP (water depth 50–120 ft), 5 HP (120–180 ft), 7.5 HP (180–250+ ft) DC submersible. 60% combined subsidy (30% Central + 30% State); farmer pays 10–15%.
@@ -45,9 +45,12 @@ Your Core Mission & Domain Knowledge:
 3. Pest, Weed & Crop Health:
    - Integrated Pest Management (IPM), bio-pesticides (Neem oil 10,000 PPM @ 3ml/L, Beauveria bassiana, Trichoderma viride seed treatment).
    - Pheromone traps and yellow/blue sticky traps for whiteflies, thrips, and bollworms.
-4. Major Crops Cultivation & Post-Harvest Mandi Strategy:
+4. Crop Selling, Quality Grading & Mandi Price Strategy (For Sellers):
    - Garlic (Gujarat Garlic-4), Cumin (Jeera), Groundnut (GG-20), Cotton (Kapas), Wheat, Mustard, Castor, Onion.
-   - Harvest signs, shade curing (8–10 days for garlic), and sun-drying to <8% moisture to earn Grade A prices on KhetSetu without distress sales.
+   - Grade A standards: Large uniform bulb/pod size, foreign matter <1%, moisture content <8% through shade curing (8–10 days for garlic).
+   - Mandi Price Discovery: APMC arrivals, modal rates, optimal selling windows to prevent distress sales.
+   - Escrow & Safe Trade: How KhetSetu escrow protects seller payments, transparent 2.5% platform fee, weighment slip verification, and fast bank payouts upon delivery.
+   - Negotiating Buyer Quotes & RFQs: Responding to bulk buyer orders, setting realistic minimum order quantities (MOQ).
 5. Government Subsidies & Portals:
    - i-Khedut portal Gujarat (ikhedut.gujarat.gov.in), SMAM mechanization subsidies, PM-KUSUM, Kisan Credit Card (KCC).
 
@@ -58,24 +61,18 @@ Language Guidelines:
 
 Formatting Guidelines:
 - Use clean Markdown with headers (###), bold text (**bold**), bullet points (*), and numbers.
-- Use friendly emojis (🚜, ☀️, 💧, 🌾, 🌿, 💡).
-- Give practical, direct numbers (HP, subsidy %, spray dosage, seed rate).`;
+- Use friendly emojis (🚜, ☀️, 💧, 🌾, 🌿, 💡, 💰, 📦).
+- Give practical, direct numbers (HP, subsidy %, spray dosage, seed rate, moisture %, price ranges).`;
 
 export default function SellerAIAdvisory() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const askAIMutation = useAskAIAdvisoryMutation();
-
-  const [activeLang, setActiveLang] = useState(language || 'en');
-
-  // Keep activeLang in sync with system language changes
-  useEffect(() => {
-    if (language) setActiveLang(language);
-  }, [language]);
+  const storageKey = `${STORAGE_KEY_PREFIX}_${language}`;
 
   const [messages, setMessages] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}_${language || 'en'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -84,65 +81,34 @@ export default function SellerAIAdvisory() {
       // ignore
     }
 
-    return [
-      {
-        id: 'msg-welcome',
-        sender: 'ai',
-        text:
-          language === 'gu'
-            ? `🙏 **નમસ્તે ખેડૂત મિત્ર!** હું છું તમારો **ખેતસેતુ કિસાન AI સલાહકાર** (Powered by Google Gemini 3.8 Flash).
-
-હું તમને નીચેની બાબતોમાં સીધી મદદ કરી શકું છું:
-• 🚜 **ટ્રેક્ટર અને રોટાવેટર**: તમારી જમીન મુજબ યોગ્ય HP અને બ્લેડ સાઇઝ
-• ☀️ **PM-KUSUM સોલાર પંપ**: ૬૦% સબસિડી અને બોરવેલ મુજબ યોગ્ય ક્ષમતા (3HP / 5HP / 7.5HP)
-• 💧 **ટપક સિંચાઈ (Drip Irrigation)**: GGRC ૭૦% સબસિડી અને ગોઠવણ
-• 🌿 **ઓર્ગેનિક રોગ-જીવાત નિયંત્રણ**: લીંબોળી તેલ, ટ્રાઈકોડર્મા અને ફેરોમોન ટ્રેપ
-• 🌾 **પાક લણણી અને બજાર ભાવ**: લસણ, જીરું, મગફળી અને કપાસના સારા ભાવ મેળવવાની પદ્ધતિ
-
-નીચે આપેલા સૂચવેલા પ્રશ્નોમાંથી પસંદ કરો અથવા તમારો પોતાનો પ્રશ્ન લખીને પૂછો!`
-            : language === 'hi'
-            ? `🙏 **नमस्ते किसान साथी!** मैं हूँ आपका **खेतसेतु किसान AI सलाहकार** (Powered by Google Gemini 3.8 Flash).
-
-मैं आपकी खेती और उपकरणों से जुड़े हर सवाल में सहायता कर सकता हूँ:
-• 🚜 **ट्रैक्टर व रोटावेटर**: आपकी जमीन अनुसार सही HP और ब्लेड का चुनाव
-• ☀️ **कुसुम सोलर पंप (PM-KUSUM)**: 60% सरकारी सब्सिडी और सही क्षमता
-• 💧 **ड्रिप सिंचाई**: ड्रिप सब्सिडी और फसल अनुरूप योजना
-• 🌿 **जैविक कीट व रोग नियंत्रण**: नीम तेल, ट्राइकोडर्मा और प्राकृतिक उपचार
-• 🌾 **फसल कटाई व मंडी बिक्री**: लहसुन, जीरा, मूंगफली और कपास के उत्तम भाव
-
-नीचे दिए गए सुझावों में से चुनें या अपना सवाल टाइप करें!`
-            : `🙏 **Welcome Farmer Friend!** I am your **KhetSetu Kisan AI Advisory** assistant, powered live by **Google Gemini 3.8 Flash**.
-
-Ask me anything about modern farming and machinery:
-• 🚜 **Tractor & Rotavator Sizing**: Best HP and blade specs for your acreage & soil
-• ☀️ **Solar Water Pumps (PM-KUSUM)**: 60% subsidy breakdown & HP selection
-• 💧 **Drip Irrigation Setup**: Subsidies (GGRC) & water management
-• 🌿 **Organic Pest Management**: Neem oil, Trichoderma & natural bio-controls
-• 🌾 **Optimal Harvest Timing**: Maximize Grade A mandi prices for Garlic, Cumin, Groundnut & Cotton
-
-Choose one of the starter questions below or type your query in any language!`,
-        model: GEMINI_MODEL,
-        time: new Date().toISOString(),
-      },
-    ];
+    return [];
   });
 
   const [inputQuery, setInputQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const chatBottomRef = useRef(null);
+  const previousLanguageRef = useRef(language);
+
+  useEffect(() => {
+    if (previousLanguageRef.current !== language) {
+      previousLanguageRef.current = language;
+      setMessages([]);
+      localStorage.removeItem(storageKey);
+    }
+  }, [language, storageKey]);
 
   // Sync chat history to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem(storageKey, JSON.stringify(messages));
     } catch {
       // ignore
     }
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, storageKey]);
 
-  // Pure Live AI Call using Gemini with automatic fallback
+  // Live AI call through the protected backend advisory service.
   const callGeminiAI = async (userText, chatHistory) => {
     // 1. Prepare multi-turn conversation context
     const recentHistory = chatHistory.slice(-8);
@@ -151,8 +117,11 @@ Choose one of the starter questions below or type your query in any language!`,
     try {
       const res = await askAIMutation.mutateAsync({
         message: userText,
-        language: activeLang,
+        language,
         systemInstruction: SYSTEM_INSTRUCTION,
+        maxOutputTokens: 4096,
+        responseInstruction:
+          'Return a complete, self-contained answer. Do not stop mid-sentence or mid-section. If the topic is broad, prioritize the most useful actionable points and finish with a concise summary.',
         history: recentHistory.map((m) => ({
           role: m.sender === 'user' ? 'user' : 'model',
           parts: [{ text: m.text }],
@@ -166,7 +135,7 @@ Choose one of the starter questions below or type your query in any language!`,
         };
       }
     } catch (backendError) {
-      console.warn('Backend proxy unavailable, calling Gemini API directly:', backendError?.message);
+      console.warn('AI advisory service request failed:', backendError?.message);
     }
 
     throw new Error('Unable to connect to the AI advisory service. Please try again.');
@@ -200,20 +169,7 @@ Choose one of the starter questions below or type your query in any language!`,
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
       console.error('Kisan AI Generation Error:', err);
-      const errorMessage = {
-        id: `msg-${Date.now()}-ai-error`,
-        sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? `⚠️ **ક્ષમા કરશો, AI સાથે જોડાણ થઈ શક્યું નથી.**\n\nભૂલ: ${err?.message || 'ઇન્ટરનેટ જોડાણ તપાસો.'}\n\nકૃપા કરીને ફરીથી પ્રયાસ કરો.`
-            : activeLang === 'hi'
-            ? `⚠️ **क्षमा करें, AI सेवा से संपर्क नहीं हो पाया।**\n\nकारण: ${err?.message || 'कृपया इंटरनेट कनेक्शन जांचें।'}\n\nकृपया दोबारा प्रयास करें।`
-            : `⚠️ **Unable to connect to Google Gemini AI service.**\n\nError: ${err?.message || 'Please check your internet connection.'}\n\nPlease try again in a few moments.`,
-        model: 'connection-error',
-        time: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      toast.error('AI connection issue. Please retry.');
+      toast.error(err?.message || 'AI connection issue. Please retry.');
     } finally {
       setIsTyping(false);
     }
@@ -229,28 +185,14 @@ Choose one of the starter questions below or type your query in any language!`,
   const handleCopyText = (id, text) => {
     navigator.clipboard?.writeText(text);
     setCopiedId(id);
-    toast.success(t('farmer.copiedToast', 'Copied advice to clipboard!'));
+    toast.success(t('aiAdvisory.copiedAdvice'));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleClearChat = () => {
-    const welcome = [
-      {
-        id: `msg-${Date.now()}-ai`,
-        sender: 'ai',
-        text:
-          activeLang === 'gu'
-            ? 'ચેટ રીસેટ થઈ ગઈ છે. ખેતી સાધનો, સોલાર પંપ કે પાક રોગ-જીવાત અંગે નવો પ્રશ્ન પૂછો!'
-            : activeLang === 'hi'
-            ? 'चैट रीसेट हो गई है। उपकरण, सोलर पंप या फसल सलाह पर नया प्रश्न पूछें!'
-            : 'Conversation reset. Ask any question about tractors, solar pumps, drip irrigation, or subsidies!',
-        model: GEMINI_MODEL,
-        time: new Date().toISOString(),
-      },
-    ];
-    setMessages(welcome);
-    localStorage.removeItem(STORAGE_KEY);
-    toast.info('Chat cleared.');
+    setMessages([]);
+    localStorage.removeItem(storageKey);
+    toast.info(t('aiAdvisory.chatCleared'));
   };
 
   const formatTime = (isoString) => {
@@ -294,7 +236,7 @@ Choose one of the starter questions below or type your query in any language!`,
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <IconButton
             size="small"
-            onClick={() => navigate('/seller')}
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/seller'))}
             sx={{
               color: '#64748B',
               border: '1px solid #E2E8F0',
@@ -336,14 +278,10 @@ Choose one of the starter questions below or type your query in any language!`,
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
-                {activeLang === 'gu'
-                  ? 'ખેતસેતુ કિસાન AI સલાહકાર'
-                  : activeLang === 'hi'
-                  ? 'खेतसेतु किसान AI सलाहकार'
-                  : 'KhetSetu Kisan AI Advisory'}
+                {t('aiAdvisory.title')}
               </Typography>
               <Chip
-                label="⚡ Gemini 3.8 Flash"
+                label={t('aiAdvisory.model')}
                 size="small"
                 sx={{
                   height: 22,
@@ -356,18 +294,14 @@ Choose one of the starter questions below or type your query in any language!`,
               />
             </Box>
             <Typography variant="caption" color="#64748B" fontWeight={500}>
-              {activeLang === 'gu'
-                ? '૨૪×૭ ખેતી ઓજારો, સિંચાઈ અને સબસિડી સહાયક'
-                : activeLang === 'hi'
-                ? '24×7 कृषि उपकरण, सिंचाई व सब्सिडी सहायक'
-                : '24×7 Intelligent Agronomist & Machinery Guidance'}
+              {t('aiAdvisory.subtitle')}
             </Typography>
           </Box>
         </Box>
 
         {/* Right side controls: Reset chat */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title="Reset Chat">
+          <Tooltip title={t('aiAdvisory.resetChat')}>
             <Button
               variant="outlined"
               size="small"
@@ -384,7 +318,7 @@ Choose one of the starter questions below or type your query in any language!`,
                 '&:hover': { bgcolor: '#F8FAFC', borderColor: '#CBD5E1' },
               }}
             >
-              Reset
+              {t('aiAdvisory.reset')}
             </Button>
           </Tooltip>
         </Box>
@@ -460,7 +394,7 @@ Choose one of the starter questions below or type your query in any language!`,
                           fontSize: '0.68rem',
                         }}
                       >
-                        🌾 {activeLang === 'gu' ? 'તમે (ખેડૂત)' : activeLang === 'hi' ? 'आप (किसान)' : 'You (Farmer)'}
+                        {t('aiAdvisory.userLabel')}
                       </Typography>
                     </Box>
                     <Typography
@@ -514,10 +448,10 @@ Choose one of the starter questions below or type your query in any language!`,
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.75rem' }}>
-                          🤖 KhetSetu Kisan AI
+                          {t('aiAdvisory.assistantName')}
                         </Typography>
                         <Chip
-                          label="⚡ Gemini 3.8 Flash"
+                          label={t('aiAdvisory.model')}
                           size="small"
                           sx={{
                             height: 18,
@@ -529,7 +463,7 @@ Choose one of the starter questions below or type your query in any language!`,
                           }}
                         />
                       </Box>
-                      <Tooltip title="Copy Advice">
+                      <Tooltip title={t('aiAdvisory.copyAdvice')}>
                         <IconButton
                           size="small"
                           onClick={() => handleCopyText(msg.id, msg.text)}
@@ -671,11 +605,7 @@ Choose one of the starter questions below or type your query in any language!`,
               >
                 <CircularProgress size={16} sx={{ color: '#2563EB' }} />
                 <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600 }}>
-                  {activeLang === 'gu'
-                    ? 'કિસાન AI વિશ્લેષણ કરી રહ્યું છે...'
-                    : activeLang === 'hi'
-                    ? 'किसान AI विश्लेषण कर रहा है...'
-                    : 'Kisan AI is analyzing your farm inquiry...'}
+                  {t('aiAdvisory.analyzing')}
                 </Typography>
               </Box>
             </Box>
@@ -724,13 +654,7 @@ Choose one of the starter questions below or type your query in any language!`,
             fullWidth
             multiline
             maxRows={4}
-            placeholder={
-              activeLang === 'gu'
-                ? 'પાક, ખાતર, બિયારણ, સિંચાઈ, રોગ-જીવાત કે સરકારી સહાય અંગે પૂછો... (Enter દબાવો)'
-                : activeLang === 'hi'
-                ? 'फसल, खाद, बीज, सिंचाई, कीट नियंत्रण या सरकारी योजना पर पूछें... (Enter दबाएं)'
-                : 'Ask Kisan AI about tractor sizing, solar pumps, drip irrigation, pest control, or subsidies...'
-            }
+            placeholder={t('aiAdvisory.inputPlaceholder')}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={handleKeyDown}

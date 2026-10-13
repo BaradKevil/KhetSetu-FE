@@ -226,9 +226,14 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
   const moistureText = current.moisture_percentage ? `• Moisture ${current.moisture_percentage}%` : '';
   const priceFormatted = current.price_per_unit_paise
     ? `₹${Math.round(current.price_per_unit_paise / 100).toLocaleString('en-IN')}`
+<<<<<<< HEAD
     : 'Market Rate';
   const stockFormatted = `${Math.round(Number(current?.available_quantity || current?.total_quantity || 0))} ${current?.unit || 'Quintals'}`;
   const cropFallbackImage = current?.crop?.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80';
+=======
+    : '₹0';
+  const cropFallbackImage = current.crop?.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80';
+>>>>>>> 61bc75303194bd2b24964f9b62b11805abc5daaa
   const imageUrl = getFirstImage(current, cropFallbackImage);
 
   const slideVariants = {

@@ -171,53 +171,28 @@ const AddProduct = () => {
   const packagingTypes = [
     {
       value: '50kg Jute / Gunny Bags',
-      label:
-        language === 'gu'
-          ? '૫૦ કિલો શણની બોરી (અનાજ/કઠોળ માટે)'
-          : language === 'hi'
-          ? '50 किग्रा पटसन बोरी (अनाज/दलहन मानक)'
-          : '50 kg Jute / Gunny Bags (Standard Grains/Pulses)',
-      desc: 'Standard 50kg biodegradable jute gunny sack',
+      label: t('farmer.pkgJuteBags'),
+      desc: t('farmer.pkgJuteBagsDesc'),
     },
     {
       value: 'PP Woven Sacks / Plastic Bags',
-      label:
-        language === 'gu'
-          ? 'પ્લાસ્ટિક કટ્ટા / પીપી બોરી (૨૫/૫૦ કિલો)'
-          : language === 'hi'
-          ? 'पीपी प्लास्टिक बोरी (25/50 किग्रा)'
-          : 'PP Woven Sacks / Plastic Bags (25/50 kg)',
-      desc: 'High-density polypropylene woven sack',
+      label: t('farmer.pkgPlasticBags'),
+      desc: t('farmer.pkgPlasticBagsDesc'),
     },
     {
       value: 'Plastic / Wooden Crates',
-      label:
-        language === 'gu'
-          ? 'પ્લાસ્ટિક/લાકડાના કેરેટ (શાકભાજી/ફળો)'
-          : language === 'hi'
-          ? 'प्लास्टिक / लकड़ी के क्रेट्स (सब्जी/फल)'
-          : 'Plastic / Wooden Crates (Fruits & Veggies)',
-      desc: 'Ventilated stackable crates for perishable items',
+      label: t('farmer.pkgCrates'),
+      desc: t('farmer.pkgCratesDesc'),
     },
     {
       value: 'Corrugated Boxes / Cartons',
-      label:
-        language === 'gu'
-          ? 'કાર્ટન બોક્સ / પેકિંગ પેટી'
-          : language === 'hi'
-          ? 'कार्टन बॉक्स / गत्ते के डिब्बे'
-          : 'Corrugated Boxes / Cartons (Export Grade)',
-      desc: 'Export quality heavy-duty carton packaging',
+      label: t('farmer.pkgBoxes'),
+      desc: t('farmer.pkgBoxesDesc'),
     },
     {
       value: 'Bulk / Loose Load in Trolley',
-      label:
-        language === 'gu'
-          ? 'છૂટક / ટ્રોલી / ખુલ્લો પાક (સીધો થ્રેશર/ખેતરેથી)'
-          : language === 'hi'
-          ? 'खुला माल / ट्रॉली (थ्रेशर/ट्रैक्टर से सीधा)'
-          : 'Bulk / Loose Load (Direct Harvester / Trolley)',
-      desc: 'Loose produce loaded directly into transport trolley/truck',
+      label: t('farmer.pkgLooseLoad'),
+      desc: t('farmer.pkgLooseLoadDesc'),
     },
   ];
 
@@ -225,48 +200,23 @@ const AddProduct = () => {
   const addressTypes = [
     {
       value: 'Farm Gate / Field',
-      label:
-        language === 'gu'
-          ? '🌱 ખેતર / વાડી પરથી (સીધું ખેતરેથી વેચાણ)'
-          : language === 'hi'
-          ? '🌱 खेत / वाड़ी (सीधे खेत से बिक्री)'
-          : '🌱 Farm Gate / Field (Direct from Farm)',
+      label: t('farmer.addrFarmGate'),
     },
     {
       value: 'Warehouse / Godown',
-      label:
-        language === 'gu'
-          ? '🏬 ગોડાઉન / વેરહાઉસ'
-          : language === 'hi'
-          ? '🏬 गोदाम / वेयरहाउस'
-          : '🏬 Warehouse / Godown',
+      label: t('farmer.addrWarehouse'),
     },
     {
       value: 'Farmer Residence',
-      label:
-        language === 'gu'
-          ? '🏠 ખેડૂતનું ઘર / રહેઠાણ'
-          : language === 'hi'
-          ? '🏠 किसान का घर / निवास स्थान'
-          : '🏠 Farmer Residence / Village Home',
+      label: t('farmer.addrResidence'),
     },
     {
       value: 'Cold Storage',
-      label:
-        language === 'gu'
-          ? '❄️ કોલ્ડ સ્ટોરેજ'
-          : language === 'hi'
-          ? '❄️ कोल्ड स्टोरेज'
-          : '❄️ Cold Storage Facility',
+      label: t('farmer.addrColdStorage'),
     },
     {
       value: 'APMC Mandi Yard',
-      label:
-        language === 'gu'
-          ? '🏛️ એપીએમસી માર્કેટ યાર્ડ'
-          : language === 'hi'
-          ? '🏛️ एपीएमसी मंडी यार्ड'
-          : '🏛️ APMC Mandi Yard / Sub-market',
+      label: t('farmer.addrMandiYard'),
     },
   ];
 
@@ -361,16 +311,10 @@ const AddProduct = () => {
           images: [...prev.images, ...newUploadedUrls],
         }));
         setErrors((prev) => ({ ...prev, images: '' }));
-        toast.success(
-          language === 'gu'
-            ? `${newUploadedUrls.length} ફોટો સફળતાપૂર્વક જોડાયા!`
-            : language === 'hi'
-            ? `${newUploadedUrls.length} फ़ोटो सफलतापूर्वक जुड़ी!`
-            : `${newUploadedUrls.length} photo(s) added successfully!`
-        );
+        toast.success(t('farmer.photosAddedSuccess', { count: newUploadedUrls.length }));
       }
     } catch {
-      toast.error('Failed to upload photos.');
+      toast.error(t('farmer.failedToUploadPhotos'));
     } finally {
       setUploadingPhotos(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -394,13 +338,7 @@ const AddProduct = () => {
       updated.unshift(promoted);
       return { ...prev, images: updated };
     });
-    toast.info(
-      language === 'gu'
-        ? 'કવર ફોટો બદલાઈ ગયો! આ ફોટો માર્કેટપ્લેસ પર મુખ્ય દેખાશે.'
-        : language === 'hi'
-        ? 'कवर फ़ोटो अपडेट हुआ! यह फ़ोटो मार्केटप्लेस पर सबसे आगे दिखेगा।'
-        : 'Cover photo updated! This photo will be shown first across the marketplace.'
-    );
+    toast.info(t('farmer.coverPhotoUpdated'));
   };
 
   // Helper for red asterisk in labels
@@ -445,7 +383,7 @@ const AddProduct = () => {
         newErrors.total_quantity = t('farmer.totalQuantityRequired', 'Total available quantity is required (> 0).');
       }
       if (!formData.unit) {
-        newErrors.unit = 'Measuring unit is required.';
+        newErrors.unit = t('farmer.measuringUnitRequired');
       }
       const price = Number(formData.price_per_unit);
       if (!formData.price_per_unit || isNaN(price) || price <= 0) {
@@ -467,10 +405,10 @@ const AddProduct = () => {
         newErrors.packaging_type = t('farmer.packagingTypeRequired', 'Packaging type is mandatory.');
       }
     } else if (activeStep === 2) {
-      if (!formData.pickup_state) newErrors.pickup_state = 'State is required.';
-      if (!formData.pickup_district) newErrors.pickup_district = 'District is required.';
-      if (!formData.pickup_city) newErrors.pickup_city = 'City / Taluka is required.';
-      if (!formData.pickup_village) newErrors.pickup_village = 'Village is required.';
+      if (!formData.pickup_state) newErrors.pickup_state = t('farmer.stateRequired');
+      if (!formData.pickup_district) newErrors.pickup_district = t('farmer.districtRequired');
+      if (!formData.pickup_city) newErrors.pickup_city = t('farmer.cityRequired');
+      if (!formData.pickup_village) newErrors.pickup_village = t('farmer.villageRequired');
       if (!formData.pickup_pincode || !PINCODE_REGEX.test(String(formData.pickup_pincode).trim())) {
         newErrors.pickup_pincode = t('farmer.pincodeRequired', 'Valid 6-digit postal pincode is mandatory.');
       }
@@ -673,7 +611,7 @@ const AddProduct = () => {
                 {selectedCrop?.varieties && selectedCrop.varieties.length > 0 && (
                   <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.8, alignItems: 'center' }}>
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      {language === 'gu' ? 'જાણીતી જાતો:' : language === 'hi' ? 'लोकप्रिय किस्में:' : 'Common varieties:'}
+                      {t('farmer.commonVarieties')}
                     </Typography>
                     {selectedCrop.varieties.map((v) => (
                       <Chip
@@ -705,13 +643,7 @@ const AddProduct = () => {
                 </Typography>
                 <TextField
                   fullWidth
-                  placeholder={
-                    language === 'gu'
-                      ? 'દા.ત. લોકવન, જીડબલ્યુ-૪૯૬, શરબતી, દેશી'
-                      : language === 'hi'
-                      ? 'उदा. लोकवन, जीडब्ल्यू-496, शरबती, देसी'
-                      : 'e.g. Lokwan, GW-496, Basmati 1121, Sharbati'
-                  }
+                  placeholder={t('farmer.varietyPlaceholder')}
                   value={formData.variety}
                   onChange={(e) => {
                     setFormData({ ...formData, variety: e.target.value });
@@ -802,18 +734,10 @@ const AddProduct = () => {
                       </Box>
                       <Box>
                         <Typography variant="subtitle1" fontWeight={700} color="#0F172A">
-                          {language === 'gu'
-                            ? 'સજીવ ખેતી પ્રમાણપત્ર (Certified Organic Harvest)'
-                            : language === 'hi'
-                            ? 'जैविक फसल प्रमाणीकरण (Certified Organic Harvest)'
-                            : 'Certified Organic Harvest'}
+                          {t('farmer.certifiedOrganicHarvest')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {language === 'gu'
-                            ? 'જો આ પાક રાસાયણિક ખાતર વગર સજીવ પદ્ધતિથી ઉગાડેલ હોય અને પ્રમાણપત્ર હોય તો ચાલુ કરો.'
-                            : language === 'hi'
-                            ? 'यदि यह फसल जैविक पद्धति से उगाई गई है और आपके पास वैध प्रमाणपत्र है तो चालू करें।'
-                            : 'Enable if your harvest is grown using certified organic agricultural methods.'}
+                          {t('farmer.certifiedOrganicDesc')}
                         </Typography>
                       </Box>
                     </Box>
@@ -842,7 +766,7 @@ const AddProduct = () => {
                           {t('farmer.organicCertificationTitle', 'Certified Organic Certificate')} <RedStar />
                         </Typography>
                         <Chip
-                          label={language === 'gu' ? 'ફરજિયાત દસ્તાવેજ' : language === 'hi' ? 'अनिवार्य दस्तावेज़' : 'Mandatory Document'}
+                          label={t('farmer.mandatoryCertDoc')}
                           size="small"
                           color="success"
                           sx={{ fontWeight: 700, fontSize: '0.68rem', height: 22 }}
@@ -885,7 +809,7 @@ const AddProduct = () => {
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {certFileSize ? `${(certFileSize / 1024).toFixed(1)} KB • ` : ''}
-                                {language === 'gu' ? 'દસ્તાવેજ સફળતાપૂર્વક જોડાયો' : language === 'hi' ? 'दस्तावेज़ सफलतापूर्वक जुड़ा' : 'Attached successfully'}
+                                {t('farmer.attachedSuccess')}
                               </Typography>
                             </Box>
                           </Box>
@@ -931,18 +855,14 @@ const AddProduct = () => {
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                               <CircularProgress size={28} color="success" />
                               <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                                {language === 'gu' ? 'પ્રમાણપત્ર અપલોડ થઈ રહ્યું છે...' : language === 'hi' ? 'प्रमाणपत्र अपलोड हो रहा है...' : 'Uploading certificate...'}
+                                {t('farmer.uploadingCert')}
                               </Typography>
                             </Box>
                           ) : (
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                               <MdCloudUpload size={36} color="#16A34A" />
                               <Typography variant="subtitle2" fontWeight={700} color="#15803D">
-                                {language === 'gu'
-                                  ? 'સજીવ ખેતી પ્રમાણપત્ર પસંદ કરવા અહીં ક્લિક કરો'
-                                  : language === 'hi'
-                                  ? 'जैविक प्रमाणपत्र चुनने के लिए यहाँ क्लिक करें'
-                                  : 'Click or Drag to Upload Organic Certificate'}
+                                {t('farmer.clickToUploadCert')}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 PDF, JPG, PNG (Max 10 MB)
@@ -1175,11 +1095,7 @@ const AddProduct = () => {
                   >
                     <MdInfoOutline size={16} color="#1D4ED8" />
                     <Typography variant="caption" color="#1E40AF" fontWeight={500}>
-                      {language === 'gu'
-                        ? '💡 ૧મો ફોટો કવર ફોટો તરીકે મંડી માર્કેટપ્લેસ અને ખરીદદારોના સર્ચ રિઝલ્ટમાં મુખ્ય દર્શાવવામાં આવશે.'
-                        : language === 'hi'
-                        ? '💡 पहली फ़ोटो मुख्य (कवर) फ़ोटो के रूप में मंडी मार्केटप्लेस और खरीदारों की खोज में सबसे आगे दिखेगी।'
-                        : '💡 The 1st photo is used as the primary cover photo across the marketplace, buyer catalog, and search results.'}
+                      {t('farmer.coverPhotoHint')}
                     </Typography>
                   </Box>
                 </Paper>
@@ -1196,18 +1112,18 @@ const AddProduct = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <MdCategory size={24} color="#2563EB" />
               <Typography variant="h6" fontWeight={700} color="#0F172A">
-                {t('farmer.pricePerUnit', 'Step 2: Available Stock & Desired Price')}
+                {t('farmer.pricePerUnitStepTitle')}
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter accurate quantity, measuring unit (default: Kg), genuine price you wish to receive, and packaging type.
+              {t('farmer.priceStepSubtitle')}
             </Typography>
 
             <Grid container spacing={2.5}>
               {/* Field 1: Measuring Unit (Default: Kg) */}
               <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}>
-                  {language === 'gu' ? 'માપણી એકમ (Measuring Unit)' : language === 'hi' ? 'माप इकाई (Measuring Unit)' : 'Measuring Unit'} <RedStar />
+                  {t('farmer.measuringUnit')} <RedStar />
                 </Typography>
                 <TextField
                   select
@@ -1228,16 +1144,16 @@ const AddProduct = () => {
                   InputProps={{ sx: { borderRadius: 2.5 } }}
                 >
                   <MenuItem value="Kg">
-                    {language === 'gu' ? 'Kilogram / કિલોગ્રામ (kg)' : language === 'hi' ? 'Kilogram / किलोग्राम (kg)' : 'Kilogram (kg)'}
+                    {t('farmer.unitKg')}
                   </MenuItem>
                   <MenuItem value="Quintal">
-                    {language === 'gu' ? 'Quintal / ક્વિન્ટલ (100 kg)' : language === 'hi' ? 'Quintal / क्विंटल (100 किग्रा)' : 'Quintal (100 kg)'}
+                    {t('farmer.unitQuintal')}
                   </MenuItem>
                   <MenuItem value="Metric Ton">
-                    {language === 'gu' ? 'Metric Ton / મેટ્રિક ટન (1000 kg)' : language === 'hi' ? 'Metric Ton / मीट्रिक टन (1000 किग्रा)' : 'Metric Ton (1000 kg)'}
+                    {t('farmer.unitMetricTon')}
                   </MenuItem>
                   <MenuItem value="Candy">
-                    {language === 'gu' ? 'Candy / ખાંડી (કપાસ - 356 kg)' : language === 'hi' ? 'Candy / खांडी (कपास - 356 किग्रा)' : 'Candy (Cotton - 356 kg)'}
+                    {t('farmer.unitCandy')}
                   </MenuItem>
                 </TextField>
               </Grid>
@@ -1245,22 +1161,12 @@ const AddProduct = () => {
               {/* Field 2: Total Available Quantity */}
               <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}>
-                  {language === 'gu'
-                    ? `કુલ ઉપલબ્ધ જથ્થો (${formData.unit} માં)`
-                    : language === 'hi'
-                    ? `कुल उपलब्ध मात्रा (${formData.unit} में)`
-                    : `Total Available Quantity (in ${formData.unit})`} <RedStar />
+                  {t('farmer.totalQtyLabel', { unit: formData.unit })} <RedStar />
                 </Typography>
                 <TextField
                   fullWidth
                   type="number"
-                  placeholder={
-                    language === 'gu'
-                      ? 'દા.ત. ૫૦૦ (કિલો / ક્વિન્ટલ)'
-                      : language === 'hi'
-                      ? 'उदा. 500 (किग्रा / क्विंटल)'
-                      : 'e.g. 500'
-                  }
+                  placeholder={t('farmer.totalQtyPlaceholder')}
                   value={formData.total_quantity}
                   onChange={(e) => {
                     setFormData({ ...formData, total_quantity: e.target.value });
@@ -1276,11 +1182,7 @@ const AddProduct = () => {
               {/* Field 3: Price per Unit */}
               <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}>
-                  {language === 'gu'
-                    ? `ભાવ (₹) પ્રતિ ${formData.unit}`
-                    : language === 'hi'
-                    ? `मूल्य (₹) प्रति ${formData.unit}`
-                    : `Price (₹) per ${formData.unit}`} <RedStar />
+                  {t('farmer.pricePerUnitLabel', { unit: formData.unit })} <RedStar />
                 </Typography>
                 <TextField
                   fullWidth
@@ -1313,11 +1215,7 @@ const AddProduct = () => {
               {/* Field 4: Minimum Order Quantity (MOQ Default: 1) */}
               <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}>
-                  {language === 'gu'
-                    ? `લઘુત્તમ ઓર્ડર જથ્થો (${formData.unit} માં)`
-                    : language === 'hi'
-                    ? `न्यूनतम ऑर्डर मात्रा (${formData.unit} में)`
-                    : `Minimum Order Quantity (in ${formData.unit})`} <RedStar />
+                  {t('farmer.minOrderQtyLabel', { unit: formData.unit })} <RedStar />
                 </Typography>
                 <TextField
                   fullWidth
@@ -1384,11 +1282,7 @@ const AddProduct = () => {
                 >
                   <MdInfoOutline size={18} color="#64748B" />
                   <Typography variant="caption" color="#475569">
-                    {language === 'gu'
-                      ? '💡 પેકિંગનો પ્રકાર: વાહન પરિવહન અને લોડિંગ માટે પાક કઈ રીતે ભરેલો છે (દા.ત. ૫૦ કિલો શણની બોરી, પ્લાસ્ટિક કેરેટ, કે છૂટો ટ્રોલી લોડ) તેની ખરીદનાર અને ટ્રાન્સપોર્ટરને સ્પષ્ટતા રહે છે.'
-                      : language === 'hi'
-                      ? '💡 पैकेजिंग प्रकार: परिवहन और लोडिंग के लिए फसल कैसे पैक की गई है (उदा. 50 किग्रा पटसन बोरी, प्लास्टिक क्रेट्स, या खुली ट्रॉली लोड) ताकि खरीदार और ट्रांसपोर्टर को स्पष्टता रहे।'
-                      : '💡 Packaging Type defines how the produce is bagged or crated for vehicle loading & transport so freight carriers can arrange appropriate transport.'}
+                    {t('farmer.packagingNote')}
                   </Typography>
                 </Box>
 
@@ -1397,17 +1291,21 @@ const AddProduct = () => {
                   <Box sx={{ mt: 2.5, p: 2.5, bgcolor: '#F0FDF4', borderRadius: 2.5, border: '1.5px solid #BBF7D0' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant="subtitle2" fontWeight={800} color="#166534">
-                        💰 Estimated Sales Settlement Preview
+                        {t('farmer.estimatedSettlementPreview')}
                       </Typography>
                       <Chip
-                        label="Zero Hidden Deductions"
+                        label={t('farmer.zeroHiddenDeductions')}
                         size="small"
                         sx={{ bgcolor: '#DCFCE7', color: '#166534', fontWeight: 700, fontSize: '0.7rem' }}
                       />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="body2" color="#475569">
-                        Estimated Gross Value ({formData.total_quantity} {formData.unit} × ₹{formData.price_per_unit}):
+                        {t('farmer.estimatedGrossValue', {
+                          qty: formData.total_quantity,
+                          unit: formData.unit,
+                          price: formData.price_per_unit,
+                        })}
                       </Typography>
                       <Typography variant="body2" fontWeight={700} color="#0F172A">
                         ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit)).toLocaleString('en-IN')}
@@ -1415,7 +1313,7 @@ const AddProduct = () => {
                     </Box>    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="body2" color="#475569">
-                        Platform Technology Fee (2.5%):
+                        {t('farmer.platformTechnologyFee')}
                       </Typography>
                       <Typography variant="body2" fontWeight={700} color="#DC2626">
                         - ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit) * 0.025).toLocaleString('en-IN')}
@@ -1424,7 +1322,7 @@ const AddProduct = () => {
                     <Divider sx={{ my: 1, borderColor: '#DCFCE7' }} />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="subtitle2" fontWeight={800} color="#166534">
-                        Estimated Net Payout to Bank:
+                        {t('farmer.netDirectBankPayout')}
                       </Typography>
                       <Typography variant="h6" fontWeight={800} color="#16A34A">
                         ₹{Math.round(Number(formData.total_quantity) * Number(formData.price_per_unit) * 0.975).toLocaleString('en-IN')}
@@ -1479,10 +1377,10 @@ const AddProduct = () => {
               showVillage={true}
               required={true}
               labels={{
-                state: language === 'gu' ? 'રાજ્ય' : language === 'hi' ? 'राज्य' : 'State',
-                district: language === 'gu' ? 'જિલ્લો' : language === 'hi' ? 'ज़िला' : 'District',
-                city: language === 'gu' ? 'શહેર / તાલુકો' : language === 'hi' ? 'शहर / तालुका' : 'City / Taluka',
-                village: language === 'gu' ? 'ગામ / ફાર્મનું નામ' : language === 'hi' ? 'गाँव / फार्म का नाम' : 'Village / Farm Name',
+                state: t('common.state', 'State'),
+                district: t('common.district', 'District'),
+                city: t('common.city', 'City / Taluka'),
+                village: t('farmer.villageFarmName', 'Village / Farm Name'),
               }}
             />
 
@@ -1490,7 +1388,7 @@ const AddProduct = () => {
               {/* Field: Pincode */}
               <Grid item xs={12} sm={6} size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" fontWeight={700} color="#334155" sx={{ mb: 0.6, display: 'block', fontSize: '0.8rem' }}>
-                  {language === 'gu' ? 'પોસ્ટલ પિનકોડ (Pincode)' : language === 'hi' ? 'पोस्टल पिनकोड (Pincode)' : 'Postal Pincode'} <RedStar />
+                  {t('farmer.pincodeLabel')} <RedStar />
                 </Typography>
                 <TextField
                   fullWidth
@@ -1543,13 +1441,7 @@ const AddProduct = () => {
                   fullWidth
                   multiline
                   rows={2}
-                  placeholder={
-                    language === 'gu'
-                      ? 'દા.ત. સર્વે નં. ૪૨/બી, સોમનાથ મહાદેવ મંદિર પાસે, મુખ્ય કેનાલ રોડ (ટ્રક પહોંચવા માટે સ્પષ્ટ લેન્ડમાર્ક)'
-                      : language === 'hi'
-                      ? 'उदा. सर्वे नं. 42/बी, सोमनाथ मंदिर के पास, मुख्य नहर रोड (ट्रक पहुँचने के लिए स्पष्ट लैंडमार्क)'
-                      : 'e.g. Survey No. 42/B, Near Primary School, Canal Road (Precise landmark for transport trucks)'
-                  }
+                  placeholder={t('farmer.exactAddressPlaceholder')}
                   value={formData.pickup_exact_address}
                   onChange={(e) => {
                     setFormData({ ...formData, pickup_exact_address: e.target.value });
@@ -1569,11 +1461,7 @@ const AddProduct = () => {
             </Grid>
 
             <Alert severity="success" sx={{ mt: 3, borderRadius: 2.5 }}>
-              {language === 'gu'
-                ? '✅ પાક પ્રકાશિત થતાં જ KhetSetu લાઈવ માર્કેટપ્લેસ પર વેચાણ માટે મૂકાઈ જશે. તમે ગમે ત્યારે ભાવ બદલી કે પાક પોઝ કરી શકો છો.'
-                : language === 'hi'
-                ? '✅ फसल प्रकाशित होते ही KhetSetu लाइव मार्केटप्लेस पर दिखाई देगी। आप कभी भी मूल्य बदल सकते हैं या फसल रोक सकते हैं।'
-                : '✅ Listing will be published instantly on the live marketplace. You can pause or adjust price anytime!'}
+              {t('farmer.cropPublishAlert')}
             </Alert>
           </Box>
         )}
@@ -1598,7 +1486,7 @@ const AddProduct = () => {
             >
               {createProductMutation.isPending
                 ? t('common.loading', 'Publishing...')
-                : t('common.submit', 'Publish Crop Listing')}
+                : t('farmer.publishCropBtn')}
             </Button>
           ) : (
             <Button
