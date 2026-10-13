@@ -67,6 +67,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 import AdminLedger from './pages/admin/AdminLedger';
 import AdminPayouts from './pages/admin/AdminPayouts';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
+import RouteErrorBoundary from './common/custom/RouteErrorBoundary';
 
 function App() {
   const router = createBrowserRouter([
@@ -74,14 +75,17 @@ function App() {
     {
       path: '/',
       element: <Landing />,
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/market',
       element: <MarketBrowse />,
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/market/:id',
       element: <ProductDetail />,
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/login',
@@ -90,6 +94,7 @@ function App() {
           <Login />
         </LogGaurd>
       ),
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/register',
@@ -98,14 +103,17 @@ function App() {
           <Register />
         </LogGaurd>
       ),
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/not-authorized',
       element: <NotAuthorized />,
+      errorElement: <RouteErrorBoundary />,
     },
     {
       path: '/home',
       element: <HomeRedirect />,
+      errorElement: <RouteErrorBoundary />,
     },
 
     // Farmer (Seller) Portal: /seller/*
@@ -118,6 +126,7 @@ function App() {
           </RoleGuard>
         </AuthGaurd>
       ),
+      errorElement: <RouteErrorBoundary />,
       children: [
         { path: '', element: <SellerDashboard /> },
         { path: 'products', element: <MyProducts /> },
@@ -150,6 +159,7 @@ function App() {
           </RoleGuard>
         </AuthGaurd>
       ),
+      errorElement: <RouteErrorBoundary />,
       children: [
         { path: '', element: <BuyerDashboard /> },
         { path: 'market', element: <MarketBrowse /> },
@@ -180,6 +190,7 @@ function App() {
           </RoleGuard>
         </AuthGaurd>
       ),
+      errorElement: <RouteErrorBoundary />,
       children: [
         { path: '', element: <AdminDashboard /> },
         { path: 'users', element: <AdminUsers /> },

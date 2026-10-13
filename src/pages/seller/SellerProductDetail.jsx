@@ -43,7 +43,7 @@ import {
 import { useGetProductDetailsQuery, useUpdateProductMutation } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { toast } from 'react-toastify';
-import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE, getProductImages } from '../../common/imageUtils';
 import { formatINR, formatQty, STOCK_ADJUSTMENT_REASONS } from '../../common/status';
 
 const SellerProductDetail = () => {
@@ -169,24 +169,7 @@ const SellerProductDetail = () => {
     ? getImageUrl(product.crop.image_url)
     : DEFAULT_FALLBACK_IMAGE;
 
-  let rawImages = [];
-  if (Array.isArray(product.images) && product.images.length > 0) {
-    rawImages = product.images;
-  } else if (typeof product.images === 'string') {
-    try {
-      rawImages = JSON.parse(product.images);
-    } catch {
-      rawImages = [product.images];
-    }
-  }
-
-  const validImages = Array.isArray(rawImages) && rawImages.length > 0
-    ? rawImages
-        .filter((img) => img && !String(img).startsWith('blob:'))
-        .map((img) => getImageUrl(img, fallbackImg))
-    : [];
-
-  const images = validImages.length > 0 ? validImages : [fallbackImg];
+  const images = getProductImages(product, fallbackImg);
 
   const getStatusColor = (status) => {
     switch (status) {

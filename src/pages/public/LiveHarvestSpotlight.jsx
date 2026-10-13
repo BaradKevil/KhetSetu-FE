@@ -226,9 +226,10 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
   const moistureText = current.moisture_percentage ? `• Moisture ${current.moisture_percentage}%` : '';
   const priceFormatted = current.price_per_unit_paise
     ? `₹${Math.round(current.price_per_unit_paise / 100).toLocaleString('en-IN')}`
-    : '₹0';
-  const stockFormatted = `${Math.round(Number(current.available_quantity || current.total_quantity || 0))} ${current.unit || 'Quintals'}`;
-  const imageUrl = getFirstImage(current, 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80');
+    : 'Market Rate';
+  const stockFormatted = `${Math.round(Number(current?.available_quantity || current?.total_quantity || 0))} ${current?.unit || 'Quintals'}`;
+  const cropFallbackImage = current?.crop?.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=700&q=80';
+  const imageUrl = getFirstImage(current, cropFallbackImage);
 
   const slideVariants = {
     enter: (direction) => ({
@@ -340,6 +341,13 @@ const LiveHarvestSpotlight = ({ products: incomingProducts = [], isLoading = fal
                 component="img"
                 src={imageUrl}
                 alt={title}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  const fallback = current?.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
                 sx={{
                   width: '100%',
                   height: '100%',

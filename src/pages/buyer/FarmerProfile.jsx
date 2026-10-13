@@ -23,7 +23,7 @@ import {
 } from 'react-icons/md';
 import { useGetFarmerProfileQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
-import { getFirstImage } from '../../common/imageUtils';
+import { getFirstImage, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 import PageHeader from '../../common/custom/PageHeader';
 
 const FarmerProfile = () => {
@@ -196,8 +196,12 @@ const FarmerProfile = () => {
                   <CardMedia
                     component="img"
                     height="190"
-                    image={getFirstImage(item)}
+                    image={getFirstImage(item, item.crop?.image_url)}
                     alt={item.variety}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = item.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
+                    }}
                     sx={{ objectFit: 'cover' }}
                   />
                   <Box sx={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 0.8 }}>

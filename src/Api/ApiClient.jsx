@@ -57,7 +57,17 @@ apiClient.interceptors.response.use(
       } catch {
         // Safe ignore
       }
-      window.location.href = `/not-authorized?error=${encodeURIComponent(errorMsg)}`;
+
+      // Do not hijack navigation if user is on public pages (home, market, login)
+      const currentPath = window.location.pathname;
+      const publicPaths = ['/', '/login', '/register', '/market', '/not-authorized'];
+      const isPublic = publicPaths.some(
+        (p) => currentPath === p || currentPath.startsWith('/market/')
+      );
+
+      if (!isPublic && currentPath !== '/not-authorized') {
+        window.location.href = `/not-authorized?error=${encodeURIComponent(errorMsg)}`;
+      }
       return Promise.reject(error);
     }
 

@@ -30,7 +30,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import PhoneInput from '../../common/custom/PhoneInput';
 import LocationSelector from '../../common/custom/LocationSelector';
 import { toast } from 'react-toastify';
-import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE, getProductImages } from '../../common/imageUtils';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -136,20 +136,7 @@ const ProductDetail = () => {
     ? getImageUrl(product.crop.image_url)
     : DEFAULT_FALLBACK_IMAGE;
 
-  let rawImages = [];
-  if (Array.isArray(product.images) && product.images.length > 0) {
-    rawImages = product.images;
-  } else if (typeof product.images === 'string') {
-    try {
-      rawImages = JSON.parse(product.images);
-    } catch {
-      rawImages = [product.images];
-    }
-  }
-
-  const images = Array.isArray(rawImages) && rawImages.length > 0
-    ? rawImages.map((img) => getImageUrl(img, fallbackImg))
-    : [fallbackImg];
+  const images = getProductImages(product, fallbackImg);
 
   return (
     <Box sx={{ bgcolor: '#F8FAF9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -3,6 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from './ApiClient';
 import { unwrap, unwrapPaginated, unwrapList } from './apiUtils';
 
+const isRole = (...roles) => {
+  const currentRole = localStorage.getItem('role');
+  return !!localStorage.getItem('accessToken') && roles.includes(currentRole);
+};
+
 // -------------------------------------------------
 //  Auth APIs
 // -------------------------------------------------
@@ -53,11 +58,13 @@ export const useVerifyOtpMutation = () => {
   });
 };
 
-export const useGetProfileQuery = () => {
+export const useGetProfileQuery = (arg, options = {}) => {
+  const opts = typeof arg === 'object' && arg !== null ? arg : options;
   return useQuery({
     queryKey: ['profile'],
     queryFn: async () => unwrap(await authApi.getProfile()),
     enabled: !!localStorage.getItem('accessToken'),
+    ...opts,
   });
 };
 
@@ -109,11 +116,12 @@ export const useGetProductDetailsQuery = (id) => {
   });
 };
 
-export const useGetSellerProductsQuery = (params = {}) => {
+export const useGetSellerProductsQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['seller-products', params],
     queryFn: async () => unwrapPaginated(await productApi.getSellerProducts(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('seller', 'super_admin'),
+    ...options,
   });
 };
 
@@ -164,19 +172,21 @@ export const useCreateOrderMutation = () => {
   });
 };
 
-export const useGetBuyerOrdersQuery = (params = {}) => {
+export const useGetBuyerOrdersQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['buyer-orders', params],
     queryFn: async () => unwrapPaginated(await orderApi.getBuyerOrders(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('buyer', 'super_admin'),
+    ...options,
   });
 };
 
-export const useGetSellerOrdersQuery = (params = {}) => {
+export const useGetSellerOrdersQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['seller-orders', params],
     queryFn: async () => unwrapPaginated(await orderApi.getSellerOrders(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('seller', 'super_admin'),
+    ...options,
   });
 };
 
@@ -225,11 +235,12 @@ export const useAskAIAdvisoryMutation = () => {
   });
 };
 
-export const useGetSellerDisputesQuery = () => {
+export const useGetSellerDisputesQuery = (options = {}) => {
   return useQuery({
     queryKey: ['seller-disputes'],
     queryFn: async () => unwrapList(await sellerApi.getDisputes()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('seller', 'super_admin'),
+    ...options,
   });
 };
 
@@ -246,11 +257,12 @@ export const useRespondToDisputeMutation = () => {
 };
 
 
-export const useGetSellerProfileQuery = () => {
+export const useGetSellerProfileQuery = (options = {}) => {
   return useQuery({
     queryKey: ['seller-profile'],
     queryFn: async () => unwrap(await sellerApi.getProfile()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('seller', 'super_admin'),
+    ...options,
   });
 };
 
@@ -307,11 +319,12 @@ export const buyerApi = {
   raiseDispute: (data) => apiClient.post('/buyer/disputes', data),
 };
 
-export const useGetBuyerProfileQuery = () => {
+export const useGetBuyerProfileQuery = (options = {}) => {
   return useQuery({
     queryKey: ['buyer-profile'],
     queryFn: async () => unwrap(await buyerApi.getProfile()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('buyer', 'super_admin'),
+    ...options,
   });
 };
 
@@ -348,11 +361,12 @@ export const useGetFarmerProfileQuery = (id) => {
   });
 };
 
-export const useGetAddressesQuery = () => {
+export const useGetAddressesQuery = (options = {}) => {
   return useQuery({
     queryKey: ['buyer-addresses'],
     queryFn: async () => unwrapList(await buyerApi.getAddresses()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('buyer', 'super_admin'),
+    ...options,
   });
 };
 
@@ -401,11 +415,12 @@ export const useSetDefaultAddressMutation = () => {
   });
 };
 
-export const useGetBuyerDisputesQuery = () => {
+export const useGetBuyerDisputesQuery = (options = {}) => {
   return useQuery({
     queryKey: ['buyer-disputes'],
     queryFn: async () => unwrapList(await buyerApi.getDisputes()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('buyer', 'super_admin'),
+    ...options,
   });
 };
 
@@ -479,27 +494,30 @@ export const useRejectUnlockKYCMutation = () => {
   });
 };
 
-export const useGetKYCDetailsQuery = (sellerId) => {
+export const useGetKYCDetailsQuery = (sellerId, options = {}) => {
   return useQuery({
     queryKey: ['admin-kyc-detail', sellerId],
     queryFn: async () => unwrap(await adminApi.getKYCDetails(sellerId)),
-    enabled: !!sellerId && !!localStorage.getItem('accessToken'),
+    enabled: !!sellerId && isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetAdminMetricsQuery = () => {
+export const useGetAdminMetricsQuery = (options = {}) => {
   return useQuery({
     queryKey: ['admin-metrics'],
     queryFn: async () => unwrap(await adminApi.getMetrics()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetKYCQueueQuery = (params = {}) => {
+export const useGetKYCQueueQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-kyc-queue', params],
     queryFn: async () => unwrapPaginated(await adminApi.getKYCQueue(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
@@ -514,43 +532,48 @@ export const useModerateKYCMutation = () => {
   });
 };
 
-export const useGetLedgerQuery = (params = {}) => {
+export const useGetLedgerQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-ledger', params],
     queryFn: async () => unwrapPaginated(await adminApi.getLedger(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetPayoutsQuery = (params = {}) => {
+export const useGetPayoutsQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-payouts', params],
     queryFn: async () => unwrapPaginated(await adminApi.getPayouts(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetAuditLogsQuery = (params = {}) => {
+export const useGetAuditLogsQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-audit-logs', params],
     queryFn: async () => unwrapPaginated(await adminApi.getAuditLogs(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetAdminOrdersQuery = (params = {}) => {
+export const useGetAdminOrdersQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-orders', params],
     queryFn: async () => unwrapPaginated(await adminApi.getOrders(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetAdminOrderDetailsQuery = (id) => {
+export const useGetAdminOrderDetailsQuery = (id, options = {}) => {
   return useQuery({
     queryKey: ['admin-order-detail', id],
     queryFn: async () => unwrap(await adminApi.getOrderDetails(id)),
-    enabled: !!id && !!localStorage.getItem('accessToken'),
+    enabled: !!id && isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
@@ -566,19 +589,21 @@ export const useOrderInterventionMutation = () => {
   });
 };
 
-export const useGetAdminUsersQuery = (params = {}) => {
+export const useGetAdminUsersQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-users', params],
     queryFn: async () => unwrapPaginated(await adminApi.getUsers(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetAdminUserDetailsQuery = (id) => {
+export const useGetAdminUserDetailsQuery = (id, options = {}) => {
   return useQuery({
     queryKey: ['admin-user-detail', id],
     queryFn: async () => unwrap(await adminApi.getUserDetails(id)),
-    enabled: !!id && !!localStorage.getItem('accessToken'),
+    enabled: !!id && isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
@@ -607,11 +632,12 @@ export const usePermanentlyDeleteUserMutation = () => {
   });
 };
 
-export const useGetAdminListingsQuery = (params = {}) => {
+export const useGetAdminListingsQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-listings', params],
     queryFn: async () => unwrapPaginated(await adminApi.getListings(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
@@ -638,19 +664,21 @@ export const usePermanentlyDeleteListingMutation = () => {
   });
 };
 
-export const useGetAdminDisputesQuery = (params = {}) => {
+export const useGetAdminDisputesQuery = (params = {}, options = {}) => {
   return useQuery({
     queryKey: ['admin-disputes', params],
     queryFn: async () => unwrapPaginated(await adminApi.getDisputes(params)),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
-export const useGetDisputeDetailsQuery = (id) => {
+export const useGetDisputeDetailsQuery = (id, options = {}) => {
   return useQuery({
     queryKey: ['admin-dispute-detail', id],
     queryFn: async () => unwrap(await adminApi.getDisputeDetails(id)),
-    enabled: !!id && !!localStorage.getItem('accessToken'),
+    enabled: !!id && isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 
@@ -690,11 +718,12 @@ export const useHoldPayoutMutation = () => {
   });
 };
 
-export const useGetPlatformSettingsQuery = () => {
+export const useGetPlatformSettingsQuery = (options = {}) => {
   return useQuery({
     queryKey: ['admin-settings'],
     queryFn: async () => unwrap(await adminApi.getSettings()),
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: isRole('super_admin', 'staff'),
+    ...options,
   });
 };
 

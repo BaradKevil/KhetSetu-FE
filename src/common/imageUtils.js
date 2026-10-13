@@ -56,8 +56,13 @@ export const getFirstImage = (item, fallback = DEFAULT_FALLBACK_IMAGE) => {
 
   if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
     const raw = String(imgs[0]).trim();
-    // Dead blob URLs from past sessions cannot be reloaded by browser
-    if (raw.startsWith('blob:')) {
+    // Dead blob URLs from past sessions, PDFs, and KYC documents cannot be used as crop photos
+    if (
+      raw.startsWith('blob:') ||
+      raw.includes('kyc-') ||
+      raw.includes('/documents/') ||
+      raw.toLowerCase().endsWith('.pdf')
+    ) {
       return cropFallback;
     }
     return getImageUrl(raw, cropFallback);
@@ -68,4 +73,41 @@ export const getFirstImage = (item, fallback = DEFAULT_FALLBACK_IMAGE) => {
   }
 
   return fallback;
+};
+
+/**
+ * Extracts and resolves an array of valid images for product gallery views.
+ */
+export const getProductImages = (item, fallback = DEFAULT_FALLBACK_IMAGE) => {
+  if (!item) return [fallback];
+  const cropFallback = item.crop?.image_url ? getImageUrl(item.crop.image_url, fallback) : fallback;
+
+  let imgs = item.images || item.photos;
+  if (typeof imgs === 'string') {
+    try {
+      imgs = JSON.parse(imgs);
+    } catch {
+      imgs = [imgs];
+    }
+  }
+
+  if (Array.isArray(imgs) && imgs.length > 0) {
+    const valid = imgs
+      .filter((img) => {
+        if (!img || typeof img !== 'string') return false;
+        const trimmed = img.trim();
+        return (
+          trimmed &&
+          !trimmed.startsWith('blob:') &&
+          !trimmed.includes('kyc-') &&
+          !trimmed.includes('/documents/') &&
+          !trimmed.toLowerCase().endsWith('.pdf')
+        );
+      })
+      .map((img) => getImageUrl(img, cropFallback));
+
+    if (valid.length > 0) return valid;
+  }
+
+  return [cropFallback];
 };
