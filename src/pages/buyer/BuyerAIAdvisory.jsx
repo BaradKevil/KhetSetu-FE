@@ -68,7 +68,12 @@ export default function BuyerAIAdvisory() {
       const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}_${language || 'en'}`);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = parsed.filter(
+            (m) => m?.text && m.text !== 'connectionError' && m.model !== 'connection-error'
+          );
+          if (cleaned.length > 0) return cleaned;
+        }
       }
     } catch {
       // ignore
@@ -78,7 +83,10 @@ export default function BuyerAIAdvisory() {
       {
         id: 'msg-welcome-buyer',
         sender: 'ai',
-        text: t('aiAdvisory.buyerWelcome'),
+        text: t(
+          'aiAdvisory.buyerWelcome',
+          'Namaste! I am your **KhetSetu Mandi & Procurement AI Advisor**.\n\nI can assist you with:\n* **Produce Quality & Grading**: Grade A/B/C parameters, moisture limits, and testing methods.\n* **APMC Mandi Intelligence**: Prevailing modal rates, arrivals, and price cycles in Gujarat and across India.\n* **100% Escrow Protection**: Safe bulk buying, quality verification, and dispute resolution.\n* **Bulk RFQs & Logistics**: Minimum order quantities, packaging, and delivery tracking.\n\nHow can I help your procurement today?'
+        ),
         model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
@@ -100,8 +108,13 @@ export default function BuyerAIAdvisory() {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setMessages(parsed);
-            return;
+            const cleaned = parsed.filter(
+              (m) => m?.text && m.text !== 'connectionError' && m.model !== 'connection-error'
+            );
+            if (cleaned.length > 0) {
+              setMessages(cleaned);
+              return;
+            }
           }
         } catch {
           // ignore
@@ -111,7 +124,10 @@ export default function BuyerAIAdvisory() {
         {
           id: `msg-welcome-buyer-${language}`,
           sender: 'ai',
-          text: t('aiAdvisory.buyerWelcome'),
+          text: t(
+            'aiAdvisory.buyerWelcome',
+            'Namaste! I am your **KhetSetu Mandi & Procurement AI Advisor**.\n\nI can assist you with:\n* **Produce Quality & Grading**: Grade A/B/C parameters, moisture limits, and testing methods.\n* **APMC Mandi Intelligence**: Prevailing modal rates, arrivals, and price cycles in Gujarat and across India.\n* **100% Escrow Protection**: Safe bulk buying, quality verification, and dispute resolution.\n* **Bulk RFQs & Logistics**: Minimum order quantities, packaging, and delivery tracking.\n\nHow can I help your procurement today?'
+          ),
           model: GEMINI_MODEL,
           time: new Date().toISOString(),
         },
@@ -157,6 +173,7 @@ export default function BuyerAIAdvisory() {
       }));
 
       const result = await askAIMutation.mutateAsync({
+        message: query,
         prompt: query,
         context: 'buyer_procurement_and_mandi_quality',
         history: historyPayload,
@@ -164,11 +181,23 @@ export default function BuyerAIAdvisory() {
         language: language || 'en',
       });
 
+      const responseText =
+        result?.answer ||
+        result?.data?.answer ||
+        result?.text ||
+        result?.message ||
+        (typeof result === 'string' ? result : '');
+
       const aiMessage = {
         id: `msg-${Date.now()}-ai`,
         sender: 'ai',
-        text: result.answer,
-        model: result.model || GEMINI_MODEL,
+        text:
+          responseText ||
+          t(
+            'aiAdvisory.connectionError',
+            '⚠️ Unable to connect to the AI advisory service at the moment. Please try again.'
+          ),
+        model: result?.model || GEMINI_MODEL,
         time: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, aiMessage]);
@@ -177,7 +206,10 @@ export default function BuyerAIAdvisory() {
       const errorMessage = {
         id: `msg-${Date.now()}-ai-error`,
         sender: 'ai',
-        text: t('aiAdvisory.connectionError'),
+        text: t(
+          'aiAdvisory.connectionError',
+          '⚠️ Unable to connect to the AI advisory service at the moment. Please check your connection and retry.'
+        ),
         model: 'connection-error',
         time: new Date().toISOString(),
       };
@@ -207,7 +239,10 @@ export default function BuyerAIAdvisory() {
       {
         id: `msg-${Date.now()}-ai`,
         sender: 'ai',
-        text: t('aiAdvisory.buyerResetWelcome'),
+        text: t(
+          'aiAdvisory.buyerResetWelcome',
+          'Chat history cleared. How can I assist your produce procurement or mandi price research today?'
+        ),
         model: GEMINI_MODEL,
         time: new Date().toISOString(),
       },
@@ -219,20 +254,32 @@ export default function BuyerAIAdvisory() {
 
   const starterQuestions = [
     {
-      label: t('aiAdvisory.buyerPrompt1Label'),
-      query: t('aiAdvisory.buyerPrompt1Query'),
+      label: t('aiAdvisory.buyerPrompt1Label', 'Garlic Quality & Moisture Standards'),
+      query: t(
+        'aiAdvisory.buyerPrompt1Query',
+        'What are the Grade A quality standards and safe moisture limits for Gujarat Garlic-4?'
+      ),
     },
     {
-      label: t('aiAdvisory.buyerPrompt2Label'),
-      query: t('aiAdvisory.buyerPrompt2Query'),
+      label: t('aiAdvisory.buyerPrompt2Label', 'Unjha Cumin (Jeera) APMC Rates'),
+      query: t(
+        'aiAdvisory.buyerPrompt2Query',
+        'Explain the prevailing modal price trends and export quality grading for Cumin (Jeera) in Unjha Mandi.'
+      ),
     },
     {
-      label: t('aiAdvisory.buyerPrompt3Label'),
-      query: t('aiAdvisory.buyerPrompt3Query'),
+      label: t('aiAdvisory.buyerPrompt3Label', 'How KhetSetu Escrow Protects Buyers'),
+      query: t(
+        'aiAdvisory.buyerPrompt3Query',
+        'How does KhetSetu Escrow guarantee my payment safety when ordering 50 Quintals of Groundnut directly from a farmer?'
+      ),
     },
     {
-      label: t('aiAdvisory.buyerPrompt4Label'),
-      query: t('aiAdvisory.buyerPrompt4Query'),
+      label: t('aiAdvisory.buyerPrompt4Label', 'Cotton (Kapas) Staple Length & Grading'),
+      query: t(
+        'aiAdvisory.buyerPrompt4Query',
+        'What are the standard grading parameters for Shankar-6 Cotton including staple length, micronaire, and moisture percentage?'
+      ),
     },
   ];
 
@@ -307,7 +354,7 @@ export default function BuyerAIAdvisory() {
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={800} color="#0F172A">
-                {t('aiAdvisory.buyerTitle')}
+                {t('aiAdvisory.buyerTitle', 'Mandi AI & Produce Procurement Advisor')}
               </Typography>
               <Chip
                 label={t('aiAdvisory.model', '⚡ Gemini 3.8 Flash')}
@@ -323,7 +370,10 @@ export default function BuyerAIAdvisory() {
               />
             </Box>
             <Typography variant="caption" color="#64748B" fontWeight={500}>
-              {t('aiAdvisory.buyerSubtitle')}
+              {t(
+                'aiAdvisory.buyerSubtitle',
+                '24×7 AI guidance for crop quality grading, APMC mandi rates & bulk escrow purchasing'
+              )}
             </Typography>
           </Box>
         </Box>
@@ -458,9 +508,9 @@ export default function BuyerAIAdvisory() {
                         }}
                       >
                         <Typography variant="caption" color="#94A3B8" fontWeight={500}>
-                          {t('aiAdvisory.buyerAssistantName')}
+                          {t('aiAdvisory.buyerAssistantName', '🤖 Mandi AI Advisor')}
                         </Typography>
-                        <Tooltip title={copiedId === msg.id ? t('aiAdvisory.copiedAdvice') : t('aiAdvisory.copyAdvice')}>
+                        <Tooltip title={copiedId === msg.id ? t('aiAdvisory.copiedAdvice', 'Copied!') : t('aiAdvisory.copyAdvice', 'Copy Advice')}>
                           <IconButton
                             size="small"
                             onClick={() => handleCopyText(msg.id, msg.text)}
@@ -486,7 +536,7 @@ export default function BuyerAIAdvisory() {
                 color="#64748B"
                 sx={{ display: 'block', mb: 1.5, textTransform: 'uppercase', letterSpacing: 0.5 }}
               >
-                💡 {t('aiAdvisory.commonInquiries')}
+                💡 {t('aiAdvisory.commonInquiries', 'Common Procurement Questions')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
                 {starterQuestions.map((q, idx) => (
@@ -544,7 +594,10 @@ export default function BuyerAIAdvisory() {
               >
                 <CircularProgress size={16} sx={{ color: '#2563EB' }} />
                 <Typography variant="body2" sx={{ color: '#475569', fontWeight: 600 }}>
-                  {t('aiAdvisory.buyerAnalyzing')}
+                  {t(
+                    'aiAdvisory.buyerAnalyzing',
+                    'Mandi AI is analyzing commodity standards and market intelligence...'
+                  )}
                 </Typography>
               </Box>
             </Box>
@@ -593,7 +646,10 @@ export default function BuyerAIAdvisory() {
             fullWidth
             multiline
             maxRows={4}
-            placeholder={t('aiAdvisory.buyerPlaceholder')}
+            placeholder={t(
+              'aiAdvisory.buyerPlaceholder',
+              'Ask about crop quality grading, moisture limits, mandi rates, or bulk escrow buying...'
+            )}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={handleKeyDown}

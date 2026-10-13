@@ -797,6 +797,24 @@ export const aiAdvisory = {
   analyzing: 'Kisan AI is analyzing your farm inquiry...',
   inputPlaceholder: 'Ask about tractor sizing, solar pumps, drip irrigation, pest control, mandi rates, grading, or selling...',
   chatCleared: 'Chat cleared.',
+  // Buyer AI Advisory
+  buyerTitle: 'Mandi AI & Produce Procurement Advisor',
+  buyerSubtitle: '24×7 AI guidance for crop quality grading, APMC mandi rates & bulk escrow purchasing',
+  buyerAssistantName: '🤖 Mandi AI Advisor',
+  buyerPlaceholder: 'Ask about crop quality grading, moisture limits, mandi rates, or bulk escrow buying...',
+  buyerWelcome: 'Namaste! I am your **KhetSetu Mandi & Procurement AI Advisor**.\n\nI can assist you with:\n* **Produce Quality & Grading**: Grade A/B/C parameters, moisture limits, and testing methods.\n* **APMC Mandi Intelligence**: Prevailing modal rates, arrivals, and price cycles in Gujarat and across India.\n* **100% Escrow Protection**: Safe bulk buying, quality verification, and dispute resolution.\n* **Bulk RFQs & Logistics**: Minimum order quantities, packaging, and delivery tracking.\n\nHow can I help your procurement today?',
+  buyerResetWelcome: 'Chat history cleared. How can I assist your produce procurement or mandi price research today?',
+  connectionError: '⚠️ Unable to connect to the AI advisory service at the moment. Please check your internet connection or retry in a few seconds.',
+  commonInquiries: 'Common Procurement Questions',
+  buyerAnalyzing: 'Mandi AI is analyzing commodity standards and market intelligence...',
+  buyerPrompt1Label: 'Garlic Quality & Moisture Standards',
+  buyerPrompt1Query: 'What are the Grade A quality standards and safe moisture limits for Gujarat Garlic-4?',
+  buyerPrompt2Label: 'Unjha Cumin (Jeera) APMC Rates',
+  buyerPrompt2Query: 'Explain the prevailing modal price trends and export quality grading for Cumin (Jeera) in Unjha Mandi.',
+  buyerPrompt3Label: 'How KhetSetu Escrow Protects Buyers',
+  buyerPrompt3Query: 'How does KhetSetu Escrow guarantee my payment safety when ordering 50 Quintals of Groundnut directly from a farmer?',
+  buyerPrompt4Label: 'Cotton (Kapas) Staple Length & Grading',
+  buyerPrompt4Query: 'What are the standard grading parameters for Shankar-6 Cotton including staple length, micronaire, and moisture percentage?',
 };
 
 export default {
