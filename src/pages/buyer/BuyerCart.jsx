@@ -23,6 +23,7 @@ import {
   MdShoppingBag,
 } from 'react-icons/md';
 import { useCart } from '../../context/CartContext';
+import { DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
 import { useLanguage } from '../../context/LanguageContext';
 import PageHeader from '../../common/custom/PageHeader';
 
@@ -151,6 +152,10 @@ const BuyerCart = () => {
                           component="img"
                           image={item.image}
                           alt={item.variety}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = DEFAULT_FALLBACK_IMAGE;
+                          }}
                           sx={{ width: 68, height: 68, borderRadius: 2, objectFit: 'cover' }}
                         />
                         <Box>
