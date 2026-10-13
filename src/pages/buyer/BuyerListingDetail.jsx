@@ -35,7 +35,7 @@ import { useGetProductDetailsQuery } from '../../Api/Api';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { toast } from 'react-toastify';
-import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../common/imageUtils';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE, getProductImages } from '../../common/imageUtils';
 
 import PageHeader from '../../common/custom/PageHeader';
 
@@ -110,21 +110,7 @@ const BuyerListingDetail = () => {
   };
 
   const fallbackImg = product.crop?.image_url ? getImageUrl(product.crop.image_url) : DEFAULT_FALLBACK_IMAGE;
-
-  let rawImages = [];
-  if (Array.isArray(product.images) && product.images.length > 0) {
-    rawImages = product.images;
-  } else if (typeof product.images === 'string') {
-    try {
-      rawImages = JSON.parse(product.images);
-    } catch {
-      rawImages = [product.images];
-    }
-  }
-
-  const images = Array.isArray(rawImages) && rawImages.length > 0
-    ? rawImages.map((img) => getImageUrl(img, fallbackImg))
-    : [fallbackImg];
+  const images = getProductImages(product, fallbackImg);
 
   const sellerProfile = product.seller?.seller_profile;
   const isFarmerVerified = sellerProfile?.kyc_status === 'verified';
@@ -182,7 +168,16 @@ const BuyerListingDetail = () => {
                     flexShrink: 0,
                   }}
                 >
-                  <Box component="img" src={img} alt={`Thumb ${i}`} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Box
+                    component="img"
+                    src={img}
+                    alt={`Thumb ${i}`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = fallbackImg;
+                    }}
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 </Box>
               ))}
             </Box>

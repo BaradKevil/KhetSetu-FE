@@ -386,8 +386,12 @@ const MarketBrowse = () => {
                     <CardMedia
                       component="img"
                       height="190"
-                      image={getFirstImage(item)}
+                      image={getFirstImage(item, item.crop?.image_url)}
                       alt={item.variety}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = item.crop?.image_url || DEFAULT_FALLBACK_IMAGE;
+                      }}
                       sx={{ objectFit: 'cover' }}
                     />
                     <Box sx={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
